@@ -1,0 +1,73 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "HashLink",
+            "type": "hl",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/export/hl/bin",
+            "program": "${workspaceFolder}/export/hl/obj/ApplicationMain.hl",
+            "preLaunchTask": "lime: build"
+        },
+        {
+            "name": "HashLink (profile)",
+            "type": "hl",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/export/hl/bin",
+            "program": "${workspaceFolder}/export/hl/obj/ApplicationMain.hl",
+            "preLaunchTask": "lime: build",
+            "profileSamples": 10000
+        },
+        {
+            "name": "HashLink (attach)",
+            "type": "hl",
+            "port": 6000,
+            "cwd": "${workspaceFolder}/export/hl/bin",
+            "request": "attach"
+        },
+        {
+            "name": "Node",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/export/html5/bin/index.html",
+            "preLaunchTask": "lime: build"
+        },
+        {
+            "type": "gdb",
+            "request": "launch",
+            "name": "HXCPP (GDB Linux)",
+            "target": "${workspaceFolder}/export/linux/bin/Client",
+            "cwd": "${workspaceFolder}/export/linux/bin",
+            "valuesFormatting": "parseText",
+            "preLaunchTask": "lime: build"
+        },
+        {
+            "name": "HXCPP (Linux)",
+            "type": "hxcpp",
+            "request": "launch",
+            "program": "${workspaceFolder}/export/linux/bin/Client",
+            "preLaunchTask": "lime: build"
+        },
+        {
+            "name": "HXCPP (Windows)",
+            "type": "hxcpp",
+            "request": "launch",
+            "program": "${workspaceFolder}/export/windows/bin/Client.exe",
+            "preLaunchTask": "lime: build"
+        },
+        {
+            "name": "HXCPP (attach)",
+            "type": "hxcpp",
+            "request": "attach"
+        },
+        {
+            "name": "Haxe Interpreter",
+            "type": "haxe-eval",
+            "request": "launch",
+            "preLaunchTask": "lime: build"
+        }
+    ]
+}
