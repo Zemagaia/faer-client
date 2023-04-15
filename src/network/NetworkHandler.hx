@@ -1014,11 +1014,11 @@ class NetworkHandler {
 						#end
 				}
 			}
-		} catch (e: Exception) {
+		} /*catch (e: Exception) {
 			Global.gameSprite?.textBox.addText('Socket Read Error: $e', 0xFF0000);
 			trace('Socket Read Error: $e, stack trace: ${e.stack}');
 			disconnect();
-		}
+		}*/
 	}
 
 	private static function updateAck() {
@@ -1620,19 +1620,19 @@ class NetworkHandler {
 					go.size = size / 100;
 			case MaxMP:
 				var maxMP = socket.readShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).maxMP = maxMP;
 			case MP:
 				var mp = socket.readShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).mp = mp;
 			case Strength:
 				var strength = socket.readShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).strength = strength;
@@ -1644,31 +1644,31 @@ class NetworkHandler {
 				go.defense = defense;
 			case Speed:
 				var speed = socket.readShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).speed = speed;
 			case Luck:
 				var luck = socket.readShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).luck = luck;
 			case Sight:
 				var sight = socket.readShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).sight = sight;
 			case Stamina:
 				var stam = socket.readShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).stamina = stam;
 			case Penetration:
 				var pen = socket.readShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).penetration = pen;
@@ -1710,7 +1710,7 @@ class NetworkHandler {
 			// go.portalActive = portalActive;
 			case AccId:
 				var accId = socket.readInt();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).accountId = accId;
@@ -1728,55 +1728,55 @@ class NetworkHandler {
 			// go.merchCount = merchCount;
 			case MaxHPBoost:
 				var maxHPBoost = socket.readUnsignedShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).maxHPBoost = maxHPBoost;
 			case MaxMPBoost:
 				var maxMPBoost = socket.readUnsignedShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).maxMPBoost = maxMPBoost;
 			case StrengthBoost:
 				var strengthBoost = socket.readUnsignedShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).strengthBoost = strengthBoost;
 			case DefenseBoost:
 				var defenseBoost = socket.readUnsignedShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).defenseBoost = defenseBoost;
 			case SpeedBoost:
 				var speedBoost = socket.readUnsignedShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).speedBoost = speedBoost;
 			case SightBoost:
 				var sightBoost = socket.readUnsignedShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).sightBoost = sightBoost;
 			case StaminaBoost:
 				var staminaBoost = socket.readUnsignedShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).staminaBoost = staminaBoost;
 			case LuckBoost:
 				var luckBoost = socket.readUnsignedShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).luckBoost = luckBoost;
 			case PenetrationBoost:
 				var penBoost = socket.readUnsignedShort();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).penetrationBoost = penBoost;
@@ -1802,25 +1802,25 @@ class NetworkHandler {
 				go.setAltTexture(altTex);
 			case GuildName:
 				var guildName = socket.readUTF();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).setGuildName(guildName);
 			case GuildRank:
 				var guildRank = socket.readByte();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).guildRank = guildRank;
 			case HealthVialStack:
 				var healthVialCount = socket.readUnsignedByte();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).healthVialCount = healthVialCount;
 			case MagicVialStack:
 				var magicVialCount = socket.readUnsignedByte();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).magicVialCount = magicVialCount;
@@ -1843,44 +1843,46 @@ class NetworkHandler {
 					Global.gameSprite.inventory.addBackpackTab(player);
 			case DamageMultiplier:
 				var damageMult = socket.readFloat();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).damageMult = damageMult;
 			case HitMultiplier:
 				var hitMult = socket.readFloat();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).hitMult = hitMult;
 			case Tier:
 				var tier = socket.readUnsignedByte();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).tier = tier;
 			case Gems:
 				var gems = socket.readInt();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).gems = gems;
 			case Gold:
 				var gold = socket.readInt();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).gold = gold;
 			case Crowns:
 				var crowns = socket.readInt();
-				if (go == null)
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).crowns = crowns;
 			case Inv12 | Inv13 | Inv14 | Inv15 | Inv16 | Inv17 | Inv18 | Inv19:
 				var index = statType - StatType.Inv12 + GeneralConstants.NUM_EQUIPMENT_SLOTS + GeneralConstants.NUM_INVENTORY_SLOTS;
 				var itemType = socket.readUnsignedShort();
-				if (go == null)
+				if (itemType == 65535)
+					itemType = -1;
+				if (go == null || !Std.isOfType(go, Player))
 					return;
 
 				cast(go, Player).equipment[index] = itemType;

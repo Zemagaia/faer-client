@@ -112,7 +112,7 @@ class Main extends Sprite {
 	}
 
 	private final function onEnterFrame(_: Event) {
-		DiscordRpc.process();
+		//DiscordRpc.process();
 
 		if (baseCursorSprite == null)
 			return;

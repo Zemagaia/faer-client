@@ -248,7 +248,7 @@ class Player extends GameObject {
 		var player: Player = null;
 		var isFellowGuild = false;
 		this.guildName = guildName;
-		var myPlayer = map.player;
+		var myPlayer = map?.player;
 		if (myPlayer == this)
 			for (player in map.players) {
 				if (player != null && player != this)

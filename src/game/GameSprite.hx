@@ -110,7 +110,6 @@ class GameSprite extends Sprite {
 	public inline function updateStats(time: Int32) {
 		this.frames++;
 		var dt = time - this.lastFrameUpdate;
-		trace(this.frames, time, this.lastFrameUpdate, dt);
 		if (dt >= 1000) {
 			this.lastFrameUpdate = time;
 			this.statsView.text = 'FPS: ${this.frames}\nMemory: ${Math.round((untyped __global__.__hxcpp_gc_used_bytes()) / (1024 * 1024))} MB';

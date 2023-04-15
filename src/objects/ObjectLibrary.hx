@@ -81,7 +81,7 @@ class ObjectLibrary {
 	}
 
 	public static function getObjectFromType(objectType: Int) {
-		if (objectType == 0)
+		if (objectType == 0 || !xmlLibrary.exists(objectType))
 			objectType = idToType.get("Crocodile");
 
 		var objectXML = xmlLibrary.get(objectType);
