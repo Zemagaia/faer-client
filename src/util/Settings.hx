@@ -6,9 +6,9 @@ import sys.FileSystem;
 import sys.io.File;
 
 class Settings {
-	public static inline var BUILD_VERSION = "0.1";
+	public static inline var BUILD_VERSION = "0.5";
 	public static inline var BUILD_LABEL = "Faer v" + BUILD_VERSION;
-	public static inline var APP_ENGINE_URL = "http://127.0.0.1";
+	public static inline var APP_ENGINE_URL = "http://127.0.0.1:8080";
 	public static inline var DISABLE_MAP_BG = #if hl true #else false #end;
 	public static inline var FELLOW_GUILD_COLOR: UInt32 = 0xA6FF5D;
 	public static inline var DEFAULT_COLOR: UInt32 = 0xFCDF00;

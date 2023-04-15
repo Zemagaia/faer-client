@@ -106,10 +106,11 @@ class GameSprite extends Sprite {
 	public inline function updateStats(time: Int32) {
 		this.frames++;
 		var dt = time - this.lastFrameUpdate;
+		trace(this.frames, time, this.lastFrameUpdate, dt);
 		if (dt >= 1000) {
 			this.lastFrameUpdate = time;
 			this.statsView.text = 'FPS: ${this.frames}\nMemory: ${Math.round((untyped __global__.__hxcpp_gc_used_bytes()) / (1024 * 1024))} MB';
-								//Angle: ${Camera.angleRad}';
+			// Angle: ${Camera.angleRad}';
 			this.statsView.updateMetrics();
 			this.frames = 0;
 		}
@@ -218,19 +219,19 @@ class GameSprite extends Sprite {
 				return;
 
 			var minDist = 1.0;
-			var closestInteractive = -1;
-			var playerX = this.map.player.mapX;
-			var playerY = this.map.player.mapY;
-			for (go in this.map.gameObjects)
-				if (go?.props != null && go.objClass == "Portal" && (Math.abs(playerX - go.mapX) < 1 || Math.abs(playerY - go.mapY) < 1)) {
-					var dist = PointUtil.distanceXY(go.mapX, go.mapY, playerX, playerY);
-					if (dist < minDist) {
-						minDist = dist;
-						closestInteractive = go.objectId;
-					}
-			}
+				var closestInteractive = -1;
+				var playerX = this.map.player.mapX;
+				var playerY = this.map.player.mapY;
+				for (go in this.map.gameObjects)
+					if (go?.props != null && go.objClass == "Portal" && (Math.abs(playerX - go.mapX) < 1 || Math.abs(playerY - go.mapY) < 1)) {
+						var dist = PointUtil.distanceXY(go.mapX, go.mapY, playerX, playerY);
+						if (dist < minDist) {
+							minDist = dist;
+							closestInteractive = go.objectId;
+						}
+				}
 
-			Global.currentInteractiveTarget = closestInteractive;
+				Global.currentInteractiveTarget = closestInteractive;
 
 			var player = this.map.player;
 			if (player != null) {

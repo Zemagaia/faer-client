@@ -11,8 +11,9 @@ class RegisterAccountTask extends Task {
 	public static var accountData: AccountData;
 
 	override public function startTask() {
-		RequestHandler.setParameter("email", Account.email);
-		RequestHandler.setParameter("password", Account.password);
+		RequestHandler.setParameter("username", accountData.userName);
+		RequestHandler.setParameter("email", accountData.email);
+		RequestHandler.setParameter("password", accountData.password);
 		RequestHandler.complete.once(this.onComplete);
 		RequestHandler.sendRequest("/account/register");
 	}

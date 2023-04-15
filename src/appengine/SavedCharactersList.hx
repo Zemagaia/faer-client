@@ -66,12 +66,12 @@ class SavedCharactersList extends Event {
 		this.accountId = Std.parseInt(accountXML.elementsNamed("AccountId").next().firstChild().nodeValue);
 		this.name = accountXML.elementsNamed("Name").next().firstChild().nodeValue;
 		this.isAdmin = accountXML.elementsNamed("Admin").hasNext();
-		this.gems = Std.parseInt(accountXML.elementsNamed("Gems").next().firstChild().nodeValue);
-		this.gold = Std.parseInt(accountXML.elementsNamed("Gold").next().firstChild().nodeValue);
-		this.crowns = Std.parseInt(accountXML.elementsNamed("Crowns").next().firstChild().nodeValue);
-		this.nextCharSlotPrice = Std.parseInt(accountXML.elementsNamed("NextCharSlotPrice").next().firstChild().nodeValue);
-		this.nextCharSlotCurrency = Std.parseInt(accountXML.elementsNamed("NextCharSlotCurrency").next().firstChild().nodeValue);
-		this.hasPlayerDied = !accountXML.elementsNamed("isFirstDeath").hasNext();
+		//this.gems = Std.parseInt(accountXML.elementsNamed("Gems").next().firstChild().nodeValue);
+		//this.gold = Std.parseInt(accountXML.elementsNamed("Gold").next().firstChild().nodeValue);
+		//this.crowns = Std.parseInt(accountXML.elementsNamed("Crowns").next().firstChild().nodeValue);
+		//this.nextCharSlotPrice = Std.parseInt(accountXML.elementsNamed("NextCharSlotPrice").next().firstChild().nodeValue);
+		//this.nextCharSlotCurrency = Std.parseInt(accountXML.elementsNamed("NextCharSlotCurrency").next().firstChild().nodeValue);
+		//this.hasPlayerDied = !accountXML.elementsNamed("isFirstDeath").hasNext();
 	}
 
 	private function parseGuildData(accountXML: Xml) {

@@ -26,6 +26,7 @@ class RegisterDialog extends Frame {
 	private static inline var INVALID_EMAIL_ADDRESS: String = "Not a valid email address";
 
 	private var errors: Array<String> = new Array<String>();
+	private var nameInput: LabeledField;
 	private var emailInput: LabeledField;
 	private var passwordInput: LabeledField;
 	private var retypePasswordInput: LabeledField;
@@ -35,6 +36,7 @@ class RegisterDialog extends Frame {
 	public function new() {
 		super(REGISTER_IMPERATIVE, "Cancel", "Register", 326);
 
+		this.nameInput = new LabeledField("Name", false, 275);
 		this.emailInput = new LabeledField("Email", false, 275);
 		this.passwordInput = new LabeledField("Password", true, 275);
 		this.retypePasswordInput = new LabeledField("Retype Password", true, 275);
@@ -50,6 +52,7 @@ class RegisterDialog extends Frame {
 		this.signInText.updateMetrics();
 		this.signInText.filters = [new DropShadowFilter(0, 0, 0)];
 		this.signInText.addEventListener(TextEvent.LINK, onSignIn);
+		addLabeledField(this.nameInput);
 		addLabeledField(this.emailInput);
 		addLabeledField(this.passwordInput);
 		addLabeledField(this.retypePasswordInput);
@@ -93,9 +96,18 @@ class RegisterDialog extends Frame {
 	private function areInputsValid() {
 		this.errors.splice(0, this.errors.length);
 		var isValid = true;
+		isValid = this.isNameValid() && isValid;
 		isValid = this.isEmailValid() && isValid;
 		isValid = this.isPasswordValid() && isValid;
 		isValid = this.isPasswordVerified() && isValid;
+		return isValid;
+	}
+
+	private function isNameValid() {
+		var isValid: Bool = this.nameInput.text().length < 10;
+		this.nameInput.setErrorHighlight(!isValid);
+		if (!isValid)
+			this.errors.push("Name too long");
 		return isValid;
 	}
 
@@ -138,6 +150,7 @@ class RegisterDialog extends Frame {
 
 	private function sendData() {
 		var data = new AccountData();
+		data.userName = this.nameInput.text();
 		data.email = this.emailInput.text();
 		data.password = this.passwordInput.text();
 		RegisterAccountTask.accountData = data;
