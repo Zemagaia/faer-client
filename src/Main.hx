@@ -34,6 +34,8 @@ class Main extends Sprite {
 	public static var tempAtlas: BitmapData;
 	public static var atlasPacker: BinPacker;
 	public static var atlas: GLTextureData;
+	public static var startTime: Int;
+	public static var rpcReady: Bool;
 
 	private static var baseCursorSprite: Bitmap;
 	private static var clickCursorSprite: Bitmap;
@@ -49,6 +51,20 @@ class Main extends Sprite {
 
 		Settings.load();
 		AssetLoader.load();
+
+		startTime = Std.int(Date.now().getTime() / 1000);
+		DiscordRpc.start({
+			clientID: "1095646272171552811",
+			onReady: () -> {
+				rpcReady = true;
+			},
+			onError: (code: Int, message: String) -> {
+				trace('Discord RPC Error (code $code): $message');
+			},
+			onDisconnected: (code: Int, message: String) -> {
+				trace('Discord RPC Disconnected (code $code): $message');
+			}
+		});
 
 		refreshCursor();
 
@@ -71,24 +87,6 @@ class Main extends Sprite {
 		stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUp);
 		stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, onMouseDown);
 		stage.addEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUp);
-
-		DiscordRpc.start({
-			clientID: "1095646272171552811",
-			onReady: () -> {
-				DiscordRpc.presence({
-					details: 'In Game',
-					state: '',
-					largeImageKey: 'logo',
-					largeImageText: 'test'
-				});
-			},
-			onError: (code: Int, message: String) -> {
-				trace('Discord RPC Error (code $code): $message');
-			},
-			onDisconnected: (code: Int, message: String) -> {
-				trace('Discord RPC Disconnected (code $code): $message');
-			}
-		});
 	}
 
 	public static function refreshCursor() {
@@ -114,6 +112,8 @@ class Main extends Sprite {
 	}
 
 	private final function onEnterFrame(_: Event) {
+		DiscordRpc.process();
+
 		if (baseCursorSprite == null)
 			return;
 

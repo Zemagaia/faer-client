@@ -1,5 +1,6 @@
 package ui.view;
 
+import discord_rpc.DiscordRpc;
 import mapeditor.MapEditor;
 import account.Account;
 import util.Settings;
@@ -42,6 +43,15 @@ class TitleView extends Sprite {
 	private function onAdded(_: Event) {
 		removeEventListener(Event.ADDED_TO_STAGE, onAdded);
 		addEventListener(Event.REMOVED_FROM_STAGE, onRemoved);
+
+		if (Main.rpcReady)
+			DiscordRpc.presence({
+				details: 'Main Menu',
+				state: '',
+				largeImageKey: 'logo',
+				largeImageText: 'v${Settings.BUILD_VERSION}',
+				startTimestamp: Main.startTime
+			});
 
 		this.initialize();
 		this.playClicked.on(handleIntentionToPlay);

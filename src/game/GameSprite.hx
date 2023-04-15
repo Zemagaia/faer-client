@@ -1,5 +1,7 @@
 package game;
 
+import util.Utils.StringUtils;
+import util.Settings;
 import discord_rpc.DiscordRpc;
 import map.Camera;
 import network.NetworkHandler;
@@ -23,6 +25,8 @@ import ui.TextBox;
 import ui.view.CharacterDetailsView;
 import ui.view.Inventory;
 import util.PointUtil;
+
+using StringTools;
 
 class GameSprite extends Sprite {
 	public var map: Map;
@@ -211,10 +215,7 @@ class GameSprite extends Sprite {
 			return;
 
 		var time: Int32 = System.getTimer();
-
 		if (time - this.lastFixedUpdate > 33) {
-			DiscordRpc.process();
-
 			if (this.map == null || this.map.player == null)
 				return;
 
@@ -238,6 +239,19 @@ class GameSprite extends Sprite {
 				if (!this.uiInited) {
 					this.inventory.init(player);
 					this.characterDetails.init(player);
+					if (Main.rpcReady) {
+						final className = player.props.displayId;
+						DiscordRpc.presence({
+							details: 'In Game',
+							state: '',
+							largeImageKey: 'logo',
+							largeImageText: 'v${Settings.BUILD_VERSION}',
+							smallImageKey: className.toLowerCase().replace(' ', '_'),
+							smallImageText: 'Tier ${StringUtils.toRoman(player.tier)} $className',
+							startTimestamp: Main.startTime
+						});
+					}
+						
 					this.uiInited = true;
 				}
 
