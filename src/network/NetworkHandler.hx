@@ -1603,13 +1603,13 @@ class NetworkHandler {
 	private static inline function parseStat(go: GameObject, statType: StatType) {
 		switch (statType) {
 			case MaxHP:
-				var maxHP = socket.readShort();
+				var maxHP = socket.readInt();
 				if (go == null)
 					return;
 
 				go.maxHP = maxHP;
 			case HP:
-				var hp = socket.readShort();
+				var hp = socket.readInt();
 				if (go == null)
 					return;
 
