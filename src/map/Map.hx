@@ -102,9 +102,9 @@ class Map extends Sprite {
 	public var objIBO: GLBuffer;
 	public var objIBOLen: Int32 = 0;
 	public var vertexData: RawPointer<Float32>;
-	@:keep public var vertexLen: UInt32 = untyped __cpp__('4294967295');
+	public var vertexLen: UInt32 = 65536;
 	public var indexData: RawPointer<UInt32>;
-	@:keep public var indexLen: UInt32 = untyped __cpp__('4294967295');
+	public var indexLen: UInt32 = 65536;
 
 	private var i: Int32 = 0;
 	private var vIdx: Int32 = 0;
@@ -140,8 +140,8 @@ class Map extends Sprite {
 	@:nonVirtual public function initialize() {
 		addChild(this.mapOverlay);
 
-		this.vertexData = cast Stdlib.nativeMalloc(untyped __cpp__('this->vertexLen * 4'));
-		this.indexData = cast Stdlib.nativeMalloc(untyped __cpp__('this->indexLen * 4'));
+		this.vertexData = cast Stdlib.nativeMalloc(this.vertexLen * 4);
+		this.indexData = cast Stdlib.nativeMalloc(this.indexLen * 4);
 
 		var leftMaskRect = AssetLibrary.getRectFromSet("ground", 0x6b);
 		leftMaskU = (leftMaskRect.x + Main.PADDING) / Main.ATLAS_WIDTH;
@@ -599,9 +599,9 @@ class Map extends Sprite {
 			if (rect != null) {
 				obj.uValue = rect.x / Main.ATLAS_WIDTH;
 				obj.vValue = rect.y / Main.ATLAS_WIDTH;
-				texW = (rect.width + 2);
+				texW = rect.width;
 				obj.width = texW / Main.ATLAS_WIDTH;
-				texH = (rect.height + 2);
+				texH = rect.height;
 				obj.height = texH / Main.ATLAS_HEIGHT;
 			}
 		}
@@ -776,9 +776,9 @@ class Map extends Sprite {
 			if (rect != null) {
 				player.uValue = rect.x / Main.ATLAS_WIDTH;
 				player.vValue = rect.y / Main.ATLAS_WIDTH;
-				texW = (rect.width + 2);
+				texW = rect.width;
 				player.width = texW / Main.ATLAS_WIDTH;
-				texH = (rect.height + 2);
+				texH = rect.height;
 				player.height = texH / Main.ATLAS_HEIGHT;
 			}
 		}
@@ -799,7 +799,7 @@ class Map extends Sprite {
 		final w = size * texW * RenderUtils.clipSpaceScaleX * 0.5;
 		final hBase = size * texH;
 		final h = hBase * RenderUtils.clipSpaceScaleY * 0.5 / sink;
-		final yBase = (player.screenY - hBase / 2 - size * Main.PADDING) * RenderUtils.clipSpaceScaleY;
+		final yBase = (player.screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
 		final xBase = player.screenX * RenderUtils.clipSpaceScaleX;
 		final texelW = 2 / Main.ATLAS_WIDTH / size;
 		final texelH = 2 / Main.ATLAS_HEIGHT / size;
@@ -1039,15 +1039,15 @@ class Map extends Sprite {
 		GL.activeTexture(GL.TEXTURE0);
 		GL.bindTexture(GL.TEXTURE_2D, Main.atlas.texture);
 
-		/*if (this.vertexLen < this.visSquareLen * 16) {
-				this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
-				this.vertexLen *= 2;
-			}
+		while (this.vertexLen < this.visSquareLen * 56) {
+			this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
+			this.vertexLen *= 2;
+		}
 
-			if (this.indexLen < this.visSquareLen * 6) {
-				this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
-				this.indexLen *= 2;
-		}*/
+		while (this.indexLen < this.visSquareLen * 6) {
+			this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
+			this.indexLen *= 2;
+		}
 
 		this.i = this.vIdx = this.iIdx = 0;
 		drawSquares();
@@ -1094,15 +1094,15 @@ class Map extends Sprite {
 			return;
 		}
 
-		/*if (this.vertexLen < this.gameObjectsLen * 36) {
-				this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
-				this.vertexLen *= 2;
-			}
+		while (this.vertexLen < (this.gameObjectsLen + this.playersLen + this.projectilesLen) * 36) {
+			this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
+			this.vertexLen *= 2;
+		}
 
-			if (this.indexLen < this.gameObjectsLen * 6) {
-				this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
-				this.indexLen *= 2;
-		}*/
+		while (this.indexLen < (this.gameObjectsLen + this.playersLen + this.projectilesLen) * 6) {
+			this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
+			this.indexLen *= 2;
+		}
 
 		this.i = -1;
 		this.vIdx = this.iIdx = 0;
@@ -1113,32 +1113,12 @@ class Map extends Sprite {
 			drawGameObject(time, obj);
 		}
 
-		/*if (this.vertexLen < this.playersLen * 36) {
-				this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
-				this.vertexLen *= 2;
-			}
-
-			if (this.indexLen < this.playersLen * 6) {
-				this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
-				this.indexLen *= 2;
-		}*/
-
 		for (player in this.players) {
 			if (player.curSquare?.lastVisible < time)
 				continue;
 
 			drawPlayer(time, player);
 		}
-
-		/*if (this.vertexLen < this.projectilesLen * 36) {
-				this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
-				this.vertexLen *= 2;
-			}
-
-			if (this.indexLen < this.projectilesLen * 6) {
-				this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
-				this.indexLen *= 2;
-		}*/
 
 		for (proj in this.projectiles) {
 			if (proj.curSquare?.lastVisible < time)
