@@ -49,7 +49,7 @@ import util.AssetLibrary;
 using util.Utils.ArrayUtils;
 
 class Map extends Sprite {
-	private static inline var TILE_UPDATE_MS = 50; // tick rate
+	private static inline var TILE_UPDATE_MS = 200; // tick rate
 	private static inline var BUFFER_UPDATE_MS = 500;
 	private static inline var MAX_VISIBLE_SQUARES = 729;
 
@@ -102,9 +102,9 @@ class Map extends Sprite {
 	public var objIBO: GLBuffer;
 	public var objIBOLen: Int32 = 0;
 	public var vertexData: RawPointer<Float32>;
-	public var vertexLen: UInt32 = 262140;
+	@:keep public var vertexLen: UInt32 = untyped __cpp__('4294967295');
 	public var indexData: RawPointer<UInt32>;
-	public var indexLen: UInt32 = 262140;
+	@:keep public var indexLen: UInt32 = untyped __cpp__('4294967295');
 
 	private var i: Int32 = 0;
 	private var vIdx: Int32 = 0;
@@ -140,8 +140,8 @@ class Map extends Sprite {
 	@:nonVirtual public function initialize() {
 		addChild(this.mapOverlay);
 
-		this.vertexData = cast Stdlib.nativeMalloc(262140 * 4);
-		this.indexData = cast Stdlib.nativeMalloc(262140 * 4);
+		this.vertexData = cast Stdlib.nativeMalloc(untyped __cpp__('this->vertexLen * 4'));
+		this.indexData = cast Stdlib.nativeMalloc(untyped __cpp__('this->indexLen * 4'));
 
 		var leftMaskRect = AssetLibrary.getRectFromSet("ground", 0x6b);
 		leftMaskU = (leftMaskRect.x + Main.PADDING) / Main.ATLAS_WIDTH;
@@ -464,17 +464,16 @@ class Map extends Sprite {
 	}
 
 	@:nonVirtual private final inline function drawSquares() {
-		final xScaledCosHalf = 0.5 * Camera.xScaledCos;
-		final yScaledCosHalf = 0.5 * Camera.yScaledCos;
-		final xScaledSinHalf = 0.5 * Camera.xScaledSin;
-		final yScaledSinHalf = 0.5 * Camera.yScaledSin;
+		final xScaledCosHalf: Float32 = untyped __cpp__('0.5 * ::map::Camera_obj::xScaledCos');
+		final yScaledCosHalf: Float32 = untyped __cpp__('0.5 * ::map::Camera_obj::yScaledCos');
+		final xScaledSinHalf: Float32 = untyped __cpp__('0.5 * ::map::Camera_obj::xScaledSin');
+		final yScaledSinHalf: Float32 = untyped __cpp__('0.5 * ::map::Camera_obj::yScaledSin');
 
 		while (this.i < this.visSquareLen) {
 			final square = this.visSquares[this.i];
 			square.clipX = square.middleX * Camera.cos + square.middleY * Camera.sin + Camera.csX;
 			square.clipY = square.middleX * -Camera.sin + square.middleY * Camera.cos + Camera.csY;
 
-			final w = 8 / Main.ATLAS_WIDTH;
 			final scaledClipX = square.clipX * RenderUtils.clipSpaceScaleX;
 			final scaledClipY = square.clipY * RenderUtils.clipSpaceScaleY;
 
@@ -498,7 +497,7 @@ class Map extends Sprite {
 
 			this.vertexData[this.vIdx + 14] = -(-xScaledCosHalf + xScaledSinHalf) + scaledClipX;
 			this.vertexData[this.vIdx + 15] = (-yScaledSinHalf + -yScaledCosHalf) + scaledClipY;
-			this.vertexData[this.vIdx + 16] = w;
+			this.vertexData[this.vIdx + 16] = 8 / Main.ATLAS_WIDTH;
 			this.vertexData[this.vIdx + 17] = 0;
 
 			this.vertexData[this.vIdx + 18] = square.leftBlendU;
@@ -517,7 +516,7 @@ class Map extends Sprite {
 			this.vertexData[this.vIdx + 28] = -(xScaledCosHalf + -xScaledSinHalf) + scaledClipX;
 			this.vertexData[this.vIdx + 29] = (yScaledSinHalf + yScaledCosHalf) + scaledClipY;
 			this.vertexData[this.vIdx + 30] = 0;
-			this.vertexData[this.vIdx + 31] = w;
+			this.vertexData[this.vIdx + 31] = 8 / Main.ATLAS_WIDTH;
 
 			this.vertexData[this.vIdx + 32] = square.leftBlendU;
 			this.vertexData[this.vIdx + 33] = square.leftBlendV;
@@ -534,8 +533,8 @@ class Map extends Sprite {
 
 			this.vertexData[this.vIdx + 42] = -(-xScaledCosHalf + -xScaledSinHalf) + scaledClipX;
 			this.vertexData[this.vIdx + 43] = (-yScaledSinHalf + yScaledCosHalf) + scaledClipY;
-			this.vertexData[this.vIdx + 44] = w;
-			this.vertexData[this.vIdx + 45] = w;
+			this.vertexData[this.vIdx + 44] = 8 / Main.ATLAS_WIDTH;
+			this.vertexData[this.vIdx + 45] = 8 / Main.ATLAS_WIDTH;
 
 			this.vertexData[this.vIdx + 46] = square.leftBlendU;
 			this.vertexData[this.vIdx + 47] = square.leftBlendV;
@@ -549,7 +548,6 @@ class Map extends Sprite {
 
 			this.vertexData[this.vIdx + 54] = square.baseU;
 			this.vertexData[this.vIdx + 55] = square.baseV;
-
 			this.vIdx += 56;
 
 			final i4: UInt32 = this.i * 4;
@@ -559,7 +557,6 @@ class Map extends Sprite {
 			this.indexData[this.iIdx + 3] = 2 + i4;
 			this.indexData[this.iIdx + 4] = 1 + i4;
 			this.indexData[this.iIdx + 5] = 3 + i4;
-
 			this.iIdx += 6;
 
 			this.i++;
@@ -686,60 +683,60 @@ class Map extends Sprite {
 		iIdx += 6;
 
 		/*var yPos: Int32 = 10 + (sink != 0 ? 5 : 0);
-		if (obj.props.showName) {
-				if (obj.name != null && obj.name != "" && obj.nameTex == null) {
-					obj.nameText = new SimpleText(16, 0xFFFFFF);
-					obj.nameText.setBold(true);
-					obj.nameText.text = obj.name;
-					obj.nameText.updateMetrics();
+			if (obj.props.showName) {
+					if (obj.name != null && obj.name != "" && obj.nameTex == null) {
+						obj.nameText = new SimpleText(16, 0xFFFFFF);
+						obj.nameText.setBold(true);
+						obj.nameText.text = obj.name;
+						obj.nameText.updateMetrics();
 
-					obj.nameTex = new BitmapData(Std.int(obj.nameText.width + 20), 64, true, 0);
-					obj.nameTex.draw(obj.nameText, new Matrix(1, 0, 0, 1, 12, 0));
-					obj.nameTex.applyFilter(obj.nameTex, obj.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
+						obj.nameTex = new BitmapData(Std.int(obj.nameText.width + 20), 64, true, 0);
+						obj.nameTex.draw(obj.nameText, new Matrix(1, 0, 0, 1, 12, 0));
+						obj.nameTex.applyFilter(obj.nameTex, obj.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
 
-				 	obj.nameBitmap = new Bitmap(obj.nameTex);
-					obj.nameBitmap.cacheAsBitmap = true;
-					addChild(obj.nameBitmap);
+					 	obj.nameBitmap = new Bitmap(obj.nameTex);
+						obj.nameBitmap.cacheAsBitmap = true;
+						addChild(obj.nameBitmap);
+					}
+
+					obj.nameBitmap.x = obj.screenX - texW * 2;
+					obj.nameBitmap.y = obj.yBaseNoZ - texH;
 				}
 
-				obj.nameBitmap.x = obj.screenX - texW * 2;
-				obj.nameBitmap.y = obj.yBaseNoZ - texH;
+				if (obj.props == null || !obj.props.noMiniMap) {
+					if (obj.hp > obj.maxHP)
+						obj.maxHP = obj.hp;
+
+					var hpPerc = obj.hp / obj.maxHP;
+					if (hpPerc > 0 && hpPerc < 1.1) {
+						if (obj.hpBar == null)
+							obj.hpBar = new Bitmap();
+
+						obj.hpBar.bitmapData = TextureRedrawer.redrawHPBar(0x111111, 0x280000, ColorUtils.greenToRed(Std.int(hpPerc * 100)), 50, 8, hpPerc);
+						obj.hpBar.x = obj.screenX - texW * 2;
+						obj.hpBar.y = obj.yBaseNoZ + texH / 2;
+						if (!contains(obj.hpBar))
+							addChild(obj.hpBar);
+						yPos += 15;
+					}
 			}
 
-			if (obj.props == null || !obj.props.noMiniMap) {
-				if (obj.hp > obj.maxHP)
-					obj.maxHP = obj.hp;
+			if (obj.condition > 0) {
+				var icon: BitmapData = null;
+				if (obj.icons == null)
+					obj.icons = new Array<BitmapData>();
 
-				var hpPerc = obj.hp / obj.maxHP;
-				if (hpPerc > 0 && hpPerc < 1.1) {
-					if (obj.hpBar == null)
-						obj.hpBar = new Bitmap();
-
-					obj.hpBar.bitmapData = TextureRedrawer.redrawHPBar(0x111111, 0x280000, ColorUtils.greenToRed(Std.int(hpPerc * 100)), 50, 8, hpPerc);
-					obj.hpBar.x = obj.screenX - texW * 2;
-					obj.hpBar.y = obj.yBaseNoZ + texH / 2;
-					if (!contains(obj.hpBar))
-						addChild(obj.hpBar);
-					yPos += 15;
+				obj.icons.splice(0, obj.icons.length);
+				ConditionEffect.getConditionEffectIcons(obj.condition, obj.icons, Std.int(time / 500));
+				var len: Int32 = obj.icons.length;
+				var lenDiv2: Int32 = len >> 1;
+				for (i in 0...len) {
+					icon = obj.icons[i];
+					var iconData = TextureFactory.make(icon);
+						var iconW: Int32 = iconData.width;
+						RenderUtils.baseRender(iconW, iconData.height, obj.screenX - iconW * lenDiv2 + i * iconW, obj.yBaseNoZ + obj.dh + yPos, obj.width,
+							obj.height, obj.uValue, obj.vValue, 1);
 				}
-		}
-
-		if (obj.condition > 0) {
-			var icon: BitmapData = null;
-			if (obj.icons == null)
-				obj.icons = new Array<BitmapData>();
-
-			obj.icons.splice(0, obj.icons.length);
-			ConditionEffect.getConditionEffectIcons(obj.condition, obj.icons, Std.int(time / 500));
-			var len: Int32 = obj.icons.length;
-			var lenDiv2: Int32 = len >> 1;
-			for (i in 0...len) {
-				icon = obj.icons[i];
-				var iconData = TextureFactory.make(icon);
-					var iconW: Int32 = iconData.width;
-					RenderUtils.baseRender(iconW, iconData.height, obj.screenX - iconW * lenDiv2 + i * iconW, obj.yBaseNoZ + obj.dh + yPos, obj.width,
-						obj.height, obj.uValue, obj.vValue, 1);
-			}
 		}*/
 	}
 
@@ -864,57 +861,57 @@ class Map extends Sprite {
 
 		var yPos: Int32 = 10 + (sink != 0 ? 5 : 0);
 		/*if (player.name != null && player.name != "" && player.nameTex == null) {
-				player.nameText = new SimpleText(16, player.isFellowGuild ? Settings.FELLOW_GUILD_COLOR : Settings.DEFAULT_COLOR);
-				player.nameText.setBold(true);
-				player.nameText.text = player.name;
-				player.nameText.updateMetrics();
+					player.nameText = new SimpleText(16, player.isFellowGuild ? Settings.FELLOW_GUILD_COLOR : Settings.DEFAULT_COLOR);
+					player.nameText.setBold(true);
+					player.nameText.text = player.name;
+					player.nameText.updateMetrics();
 
-				player.nameTex = new BitmapData(Std.int(player.nameText.width + 20), 64, true, 0);
-				player.nameTex.draw(player.nameText, new Matrix(1, 0, 0, 1, 12, 0));
-				player.nameTex.applyFilter(player.nameTex, player.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
+					player.nameTex = new BitmapData(Std.int(player.nameText.width + 20), 64, true, 0);
+					player.nameTex.draw(player.nameText, new Matrix(1, 0, 0, 1, 12, 0));
+					player.nameTex.applyFilter(player.nameTex, player.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
 
-				player.nameBitmap = new Bitmap(player.nameTex);
-				player.nameBitmap.cacheAsBitmap = true;
-				addChild(player.nameBitmap);
-			}
-
-			player.nameBitmap.x = player.screenX - texW * 2;
-			player.nameBitmap.y = player.yBaseNoZ - texH;
-
-			if (player.props == null || !player.props.noMiniMap) {
-				if (player.hp > player.maxHP)
-					player.maxHP = player.hp;
-
-				var hpPerc = player.hp / player.maxHP;
-				if (hpPerc > 0 && hpPerc < 1.1) {
-					if (player.hpBar == null)
-						player.hpBar = new Bitmap();
-
-					player.hpBar.bitmapData = TextureRedrawer.redrawHPBar(0x111111, 0x280000, ColorUtils.greenToRed(Std.int(hpPerc * 100)), 50, 8, hpPerc);
-					player.hpBar.x = player.screenX - texW * 2;
-					player.hpBar.y = player.yBaseNoZ + texH / 2;
-					if (!contains(player.hpBar))
-						addChild(player.hpBar);
-					yPos += 15;
+					player.nameBitmap = new Bitmap(player.nameTex);
+					player.nameBitmap.cacheAsBitmap = true;
+					addChild(player.nameBitmap);
 				}
-		}
 
-		if (player.condition > 0) {
-			var icon: BitmapData = null;
-			if (player.icons == null)
-				player.icons = new Array<BitmapData>();
+				player.nameBitmap.x = player.screenX - texW * 2;
+				player.nameBitmap.y = player.yBaseNoZ - texH;
 
-			player.icons.splice(0, player.icons.length);
-			ConditionEffect.getConditionEffectIcons(player.condition, player.icons, Std.int(time / 500));
-			var len: Int32 = player.icons.length;
-			var lenDiv2: Int32 = len >> 1;
-			for (i in 0...len) {
-				icon = player.icons[i];
-				var iconData = TextureFactory.make(icon);
-					var iconW: Int32 = iconData.width;
-					RenderUtils.baseRender(iconW, iconData.height, player.screenX - iconW * lenDiv2 + i * iconW, player.yBaseNoZ + player.dh + yPos, player.width,
-						player.height, player.uValue, player.vValue, 1);
+				if (player.props == null || !player.props.noMiniMap) {
+					if (player.hp > player.maxHP)
+						player.maxHP = player.hp;
+
+					var hpPerc = player.hp / player.maxHP;
+					if (hpPerc > 0 && hpPerc < 1.1) {
+						if (player.hpBar == null)
+							player.hpBar = new Bitmap();
+
+						player.hpBar.bitmapData = TextureRedrawer.redrawHPBar(0x111111, 0x280000, ColorUtils.greenToRed(Std.int(hpPerc * 100)), 50, 8, hpPerc);
+						player.hpBar.x = player.screenX - texW * 2;
+						player.hpBar.y = player.yBaseNoZ + texH / 2;
+						if (!contains(player.hpBar))
+							addChild(player.hpBar);
+						yPos += 15;
+					}
 			}
+
+			if (player.condition > 0) {
+				var icon: BitmapData = null;
+				if (player.icons == null)
+					player.icons = new Array<BitmapData>();
+
+				player.icons.splice(0, player.icons.length);
+				ConditionEffect.getConditionEffectIcons(player.condition, player.icons, Std.int(time / 500));
+				var len: Int32 = player.icons.length;
+				var lenDiv2: Int32 = len >> 1;
+				for (i in 0...len) {
+					icon = player.icons[i];
+					var iconData = TextureFactory.make(icon);
+						var iconW: Int32 = iconData.width;
+						RenderUtils.baseRender(iconW, iconData.height, player.screenX - iconW * lenDiv2 + i * iconW, player.yBaseNoZ + player.dh + yPos, player.width,
+							player.height, player.uValue, player.vValue, 1);
+				}
 		}*/
 	}
 
@@ -1023,38 +1020,6 @@ class Map extends Sprite {
 
 		if (time - this.lastBufferUpdate > BUFFER_UPDATE_MS) {
 			if (Main.stageWidth != this.lastWidth || Main.stageHeight != this.lastHeight) {
-				/*GL.deleteTexture(this.backBufferTexture);
-					GL.deleteTexture(this.frontBufferTexture);
-					GL.deleteFramebuffer(this.backBuffer);
-					GL.deleteFramebuffer(this.frontBuffer);
-
-					this.backBufferTexture = GL.createTexture();
-					this.frontBufferTexture = GL.createTexture();
-					this.backBuffer = GL.createFramebuffer();
-					this.frontBuffer = GL.createFramebuffer();
-
-					GL.activeTexture(GL.TEXTURE0);
-
-					GL.bindTexture(GL.TEXTURE_2D, this.backBufferTexture);
-					GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGB, Main.stageWidth, Main.stageHeight, 0, GL.RGB, GL.UNSIGNED_BYTE, 0);
-					GL.bindFramebuffer(GL.FRAMEBUFFER, this.backBuffer);
-					GL.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.TEXTURE_2D, this.backBufferTexture, 0);
-
-					var errCode = GL.checkFramebufferStatus(GL.FRAMEBUFFER);
-					if (errCode != GL.FRAMEBUFFER_COMPLETE)
-						throw new ArgumentException("Could not initialize back buffer: " + errCode);
-
-					GL.bindTexture(GL.TEXTURE_2D, this.frontBufferTexture);
-					GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGB, Main.stageWidth, Main.stageHeight, 0, GL.RGB, GL.UNSIGNED_BYTE, 0);
-					GL.bindFramebuffer(GL.FRAMEBUFFER, this.frontBuffer);
-					GL.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.TEXTURE_2D, this.frontBufferTexture, 0);
-
-					errCode = GL.checkFramebufferStatus(GL.FRAMEBUFFER);
-					if (errCode != GL.FRAMEBUFFER_COMPLETE)
-						throw new ArgumentException("Could not initialize front buffer: " + errCode);
-
-					GL.viewport(0, 0, Main.stageWidth, Main.stageHeight); */
-
 				this.c3d.configureBackBuffer(Main.stageWidth, Main.stageHeight, 0, false);
 
 				this.lastWidth = Main.stageWidth;
@@ -1068,42 +1033,21 @@ class Map extends Sprite {
 			this.lastBufferUpdate = time;
 		}
 
+		this.c3d.setDepthTest(true, Context3DCompareMode.LESS);
 		this.c3d.clear();
-		/*GL.viewport(0, 0, Main.stageWidth, Main.stageHeight);
-			//GL.bindFramebuffer(GL.FRAMEBUFFER, this.backBuffer);
-			GL.disable(GL.DEPTH_TEST);
-			GL.disable(GL.STENCIL_TEST);
-			GL.disable(GL.SCISSOR_TEST);
-			GL.disable(GL.CULL_FACE);
-			GL.depthMask(false);
-			GL.depthFunc(GL.LEQUAL);
-			GL.frontFace(GL.CCW);
-			GL.clearColor(0, 0, 0, 1);
-			GL.clear(GL.COLOR_BUFFER_BIT); */
-
-		// GL.disable(GL.DEPTH_TEST);
-		// GL.disable(GL.STENCIL_TEST);
-		// GL.disable(GL.SCISSOR_TEST);
-		// GL.disable(GL.CULL_FACE);
-		// GL.depthMask(false);
-		// GL.depthFunc(GL.LEQUAL);
-		// GL.frontFace(GL.CCW);
-		// GL.clearColor(0, 0, 0, 1);
-		// GL.clear(GL.COLOR_BUFFER_BIT);
-		// GL.viewport(0, 0, Main.stageWidth, Main.stageHeight);
 
 		GL.activeTexture(GL.TEXTURE0);
 		GL.bindTexture(GL.TEXTURE_2D, Main.atlas.texture);
 
-		if (this.vertexLen < this.visSquareLen * 16) {
-			this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
-			this.vertexLen *= 2;
-		}
+		/*if (this.vertexLen < this.visSquareLen * 16) {
+				this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
+				this.vertexLen *= 2;
+			}
 
-		if (this.indexLen < this.visSquareLen * 6) {
-			this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
-			this.indexLen *= 2;
-		}
+			if (this.indexLen < this.visSquareLen * 6) {
+				this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
+				this.indexLen *= 2;
+		}*/
 
 		this.i = this.vIdx = this.iIdx = 0;
 		drawSquares();
@@ -1150,15 +1094,15 @@ class Map extends Sprite {
 			return;
 		}
 
-		if (this.vertexLen < this.gameObjectsLen * 36) {
-			this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
-			this.vertexLen *= 2;
-		}
+		/*if (this.vertexLen < this.gameObjectsLen * 36) {
+				this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
+				this.vertexLen *= 2;
+			}
 
-		if (this.indexLen < this.gameObjectsLen * 6) {
-			this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
-			this.indexLen *= 2;
-		}
+			if (this.indexLen < this.gameObjectsLen * 6) {
+				this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
+				this.indexLen *= 2;
+		}*/
 
 		this.i = -1;
 		this.vIdx = this.iIdx = 0;
@@ -1169,15 +1113,15 @@ class Map extends Sprite {
 			drawGameObject(time, obj);
 		}
 
-		if (this.vertexLen < this.playersLen * 36) {
-			this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
-			this.vertexLen *= 2;
-		}
+		/*if (this.vertexLen < this.playersLen * 36) {
+				this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
+				this.vertexLen *= 2;
+			}
 
-		if (this.indexLen < this.playersLen * 6) {
-			this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
-			this.indexLen *= 2;
-		}
+			if (this.indexLen < this.playersLen * 6) {
+				this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
+				this.indexLen *= 2;
+		}*/
 
 		for (player in this.players) {
 			if (player.curSquare?.lastVisible < time)
@@ -1186,15 +1130,15 @@ class Map extends Sprite {
 			drawPlayer(time, player);
 		}
 
-		if (this.vertexLen < this.projectilesLen * 36) {
-			this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
-			this.vertexLen *= 2;
-		}
+		/*if (this.vertexLen < this.projectilesLen * 36) {
+				this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
+				this.vertexLen *= 2;
+			}
 
-		if (this.indexLen < this.projectilesLen * 6) {
-			this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
-			this.indexLen *= 2;
-		}
+			if (this.indexLen < this.projectilesLen * 6) {
+				this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
+				this.indexLen *= 2;
+		}*/
 
 		for (proj in this.projectiles) {
 			if (proj.curSquare?.lastVisible < time)
@@ -1215,7 +1159,7 @@ class Map extends Sprite {
 			this.objVBOLen = this.vIdx;
 		} else
 			GL.bufferSubData(GL.ARRAY_BUFFER, 0, this.vIdx * 4, untyped __cpp__('(uintptr_t){0}', this.vertexData));
-			
+
 		GL.enableVertexAttribArray(0);
 		GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 36, 0);
 		GL.enableVertexAttribArray(1);
