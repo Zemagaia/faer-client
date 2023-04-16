@@ -6,7 +6,7 @@ import objects.GameObject;
 class Square {
 	public var tileType: Int = 0xFF;
 	public var obj: GameObject = null;
-	public var props: GroundProperties;
+	public var props: GroundProperties = GroundLibrary.defaultProps;
 	public var baseU: Float32 = 1;
 	public var baseV: Float32 = 1;
 	public var sink: Float32 = 0.0;
@@ -27,10 +27,8 @@ class Square {
 	public var middleX: Float32 = 0.0;
 	public var middleY: Float32 = 0.0;
 
-	public function new(map: Map, x: UInt16, y: UInt16) {
-		this.props = GroundLibrary.defaultProps;
-
-		this.middleX = x + 0.5;
-		this.middleY = y + 0.5;
-	}
+	public function new (x: Float32, y: Float32) {
+		this.middleX = x;
+		this.middleY = y;
+	};
 }

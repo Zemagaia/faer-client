@@ -63,6 +63,7 @@ class RunningAnimation {
 		while (time - this.frameStart > frame.time) {
 			if (this.frameId >= this.animationData.frames.length - 1)
 				return null;
+
 			this.frameStart = this.frameStart + frame.time;
 			this.frameId++;
 			frame = this.animationData.frames[this.frameId];

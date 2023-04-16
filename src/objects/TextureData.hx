@@ -88,37 +88,34 @@ class TextureData {
 				var index = xml.intElement("Index");
 				var sheet = xml.element("Sheet");
 				this.texture = AssetLibrary.getImageFromSet(sheet, index);
-				var rect = AssetLibrary.getRectFromSet(sheet, index);
+				this.rect = AssetLibrary.getRectFromSet(sheet, index);
 				if (sheet == "ground") {
-					this.uValue = (rect.x + Main.PADDING) / Main.ATLAS_WIDTH;
-					this.vValue = (rect.y + Main.PADDING) / Main.ATLAS_HEIGHT;
-					this.width = rect.width / Main.ATLAS_WIDTH;
-					this.height = rect.height / Main.ATLAS_HEIGHT;
+					this.uValue = (this.rect.x + Main.PADDING) / Main.ATLAS_WIDTH;
+					this.vValue = (this.rect.y + Main.PADDING) / Main.ATLAS_HEIGHT;
+					this.width = this.rect.width / Main.ATLAS_WIDTH;
+					this.height = this.rect.height / Main.ATLAS_HEIGHT;
 				} else {
-					this.uValue = rect.x / Main.ATLAS_WIDTH;
-					this.vValue = rect.y / Main.ATLAS_HEIGHT;
-					this.width = rect.width / Main.ATLAS_WIDTH;
-					this.height = rect.height / Main.ATLAS_HEIGHT;
+					this.uValue = this.rect.x / Main.ATLAS_WIDTH;
+					this.vValue = this.rect.y / Main.ATLAS_HEIGHT;
+					this.width = this.rect.width / Main.ATLAS_WIDTH;
+					this.height = this.rect.height / Main.ATLAS_HEIGHT;
 				}
-				
-				this.rect = new Rect(this.uValue, this.vValue, this.width, this.height);
 			case "Mask":
 				var index = xml.intElement("Index");
 				var sheet = xml.element("Sheet");
 				this.mask = AssetLibrary.getImageFromSet(sheet, index);
-				var rect = AssetLibrary.getRectFromSet(sheet, index);
+				this.rect = AssetLibrary.getRectFromSet(sheet, index);
 				if (sheet == "ground") {
-					this.uValue = (rect.x + Main.PADDING) / Main.ATLAS_WIDTH;
-					this.vValue = (rect.y + Main.PADDING) / Main.ATLAS_HEIGHT;
-					this.width = rect.width / Main.ATLAS_WIDTH;
-					this.height = rect.height / Main.ATLAS_HEIGHT;
+					this.uValue = (this.rect.x + Main.PADDING) / Main.ATLAS_WIDTH;
+					this.vValue = (this.rect.y + Main.PADDING) / Main.ATLAS_HEIGHT;
+					this.width = this.rect.width / Main.ATLAS_WIDTH;
+					this.height = this.rect.height / Main.ATLAS_HEIGHT;
 				} else {
-					this.uValue = rect.x / Main.ATLAS_WIDTH;
-					this.vValue = rect.y / Main.ATLAS_HEIGHT;
-					this.width = rect.width / Main.ATLAS_WIDTH;
-					this.height = rect.height / Main.ATLAS_HEIGHT;
+					this.uValue = this.rect.x / Main.ATLAS_WIDTH;
+					this.vValue = this.rect.y / Main.ATLAS_HEIGHT;
+					this.width = this.rect.width / Main.ATLAS_WIDTH;
+					this.height = this.rect.height / Main.ATLAS_HEIGHT;
 				}
-				this.rect = new Rect(this.uValue, this.vValue, this.width, this.height);
 			case "AnimatedTexture":
 				this.animatedChar = AnimatedChars.getAnimatedChar(xml.element("Sheet"), xml.intElement("Index"));
 				if (this.animatedChar != null) {

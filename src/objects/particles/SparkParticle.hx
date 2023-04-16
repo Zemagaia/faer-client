@@ -1,4 +1,5 @@
 package objects.particles;
+
 import util.NativeTypes;
 
 class SparkParticle extends Particle {
@@ -36,6 +37,6 @@ class SparkParticle extends Particle {
 
 	override public function removeFromMap() {
 		super.removeFromMap();
-		//Global.sparkParticlePool.release(this);
+		// Global.sparkParticlePool.release(this);
 	}
 }

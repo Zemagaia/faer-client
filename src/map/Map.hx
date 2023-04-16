@@ -1,45 +1,33 @@
 package map;
 
-import lime.graphics.opengl.GLVertexArrayObject;
-import openfl.geom.Matrix;
-import openfl.filters.GlowFilter;
-import openfl.geom.Point;
-import ui.SimpleText;
-import util.Settings;
-import openfl.display.Bitmap;
-import util.TextureRedrawer;
-import lime.utils.DataPointer;
+import util.Utils.MathUtil;
+import engine.TextureFactory;
+import util.BinPacker.Rect;
+import util.AnimatedChar;
+import util.Utils.RenderUtils;
+import objects.Player;
 import cpp.Stdlib;
+import lime.graphics.opengl.GL;
+import lime.graphics.opengl.GLVertexArrayObject;
 import cpp.RawPointer;
 import haxe.ds.HashMap;
-import cpp.Pointer;
-import util.BinPacker.Rect;
 import lime.utils.Int32Array;
 import util.ConditionEffect;
-import util.AnimatedChar;
 import objects.GameObject;
 import openfl.display3D.Context3DCompareMode;
 import haxe.io.Bytes;
-import haxe.io.BytesInput;
-import openfl.display.BitmapData;
-import lime.graphics.Image;
-import util.Utils;
 import util.NativeTypes;
 import haxe.Exception;
 import engine.GLTextureData;
-import engine.TextureFactory;
 import haxe.ds.IntMap;
 import haxe.ds.Vector;
-import lime.graphics.opengl.GL;
 import lime.graphics.opengl.GLBuffer;
 import lime.graphics.opengl.GLFramebuffer;
 import lime.graphics.opengl.GLProgram;
 import lime.graphics.opengl.GLTexture;
 import lime.utils.Float32Array;
 import lime.utils.Int16Array;
-import map.MapOverlay;
 import objects.BasicObject;
-import objects.Player;
 import objects.Projectile;
 import openfl.display.Sprite;
 import openfl.display3D.Context3D;
@@ -49,7 +37,7 @@ import util.AssetLibrary;
 using util.Utils.ArrayUtils;
 
 class Map extends Sprite {
-	private static inline var TILE_UPDATE_MS = 200; // tick rate
+	private static inline var TILE_UPDATE_MS = 100; // tick rate
 	private static inline var BUFFER_UPDATE_MS = 500;
 	private static inline var MAX_VISIBLE_SQUARES = 729;
 
@@ -201,33 +189,6 @@ class Map extends Sprite {
 		GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, 0, new Int32Array([]), GL.DYNAMIC_DRAW);
 		GL.useProgram(this.defaultProgram);
 
-		/*this.backBufferTexture = GL.createTexture();
-			this.frontBufferTexture = GL.createTexture();
-			this.backBuffer = GL.createFramebuffer();
-			this.frontBuffer = GL.createFramebuffer();
-
-			GL.activeTexture(GL.TEXTURE0);
-
-			GL.bindTexture(GL.TEXTURE_2D, this.backBufferTexture);
-			GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGB, Main.stageWidth, Main.stageHeight, 0, GL.RGB, GL.UNSIGNED_BYTE, 0);
-			GL.bindFramebuffer(GL.FRAMEBUFFER, this.backBuffer);
-			GL.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.TEXTURE_2D, this.backBufferTexture, 0);
-
-			var errCode = GL.checkFramebufferStatus(GL.FRAMEBUFFER);
-			if (errCode != GL.FRAMEBUFFER_COMPLETE)
-				throw new ArgumentException("Could not initialize back buffer: " + errCode);
-
-			GL.bindTexture(GL.TEXTURE_2D, this.frontBufferTexture);
-			GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGB, Main.stageWidth, Main.stageHeight, 0, GL.RGB, GL.UNSIGNED_BYTE, 0);
-			GL.bindFramebuffer(GL.FRAMEBUFFER, this.frontBuffer);
-			GL.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.TEXTURE_2D, this.frontBufferTexture, 0);
-
-			errCode = GL.checkFramebufferStatus(GL.FRAMEBUFFER);
-			if (errCode != GL.FRAMEBUFFER_COMPLETE)
-				throw new ArgumentException("Could not initialize front buffer: " + errCode);
-
-			GL.viewport(0, 0, Main.stageWidth, Main.stageHeight); */
-
 		this.c3d = Main.primaryStage3D.context3D;
 		this.c3d.configureBackBuffer(Main.stageWidth, Main.stageHeight, 0, true);
 
@@ -291,7 +252,7 @@ class Map extends Sprite {
 		var idx: Int32 = x + y * this.mapWidth;
 		var square = this.squares[idx];
 		if (square == null) {
-			square = new Square(this, x, y);
+			square = new Square(x + 0.5, y + 0.5);
 			this.squares[idx] = square;
 		}
 
@@ -446,7 +407,7 @@ class Map extends Sprite {
 			|| y < 0
 			|| y >= this.mapHeight
 			|| player != null
-			&& (player.mapX < 0 || player.mapY < 0) ? null : this.squares.get(x + y * this.mapWidth);
+			&& (player.mapX < 0 || player.mapY < 0) ? null : this.squares[x + y * this.mapWidth];
 	}
 
 	@:nonVirtual public function forceLookupSquare(x: UInt16, y: UInt16) {
@@ -456,7 +417,7 @@ class Map extends Sprite {
 		var idx = x + y * this.mapWidth;
 		var square = this.squares[idx];
 		if (square == null) {
-			square = new Square(this, x, y);
+			square = new Square(x + 0.5, y + 0.5);
 			this.squares[idx] = square;
 		}
 
@@ -569,10 +530,10 @@ class Map extends Sprite {
 		var texW = obj.width * Main.ATLAS_WIDTH,
 			texH = obj.height * Main.ATLAS_HEIGHT;
 
+		var rect: Rect = null;
 		if (obj.animatedChar != null) {
 			var action = AnimatedChar.STAND;
 			var p: Float32 = 0.0;
-			var rect: Rect = null;
 			if (time < obj.attackStart + GameObject.ATTACK_PERIOD) {
 				if (!obj.props.dontFaceAttacks)
 					obj.facing = obj.attackAngle;
@@ -592,18 +553,19 @@ class Map extends Sprite {
 					action = AnimatedChar.STAND;
 
 				p = time % walkPer / walkPer;
-			} else if (obj.animations != null)
-				rect = obj.animations.getTexture(time);
+			}
 
 			rect = obj.animatedChar.rectFromFacing(obj.facing, action, p);
-			if (rect != null) {
-				obj.uValue = rect.x / Main.ATLAS_WIDTH;
-				obj.vValue = rect.y / Main.ATLAS_WIDTH;
-				texW = rect.width;
-				obj.width = texW / Main.ATLAS_WIDTH;
-				texH = rect.height;
-				obj.height = texH / Main.ATLAS_HEIGHT;
-			}
+		} else if (obj.animations != null)
+			rect = obj.animations.getTexture(time);
+
+		if (rect != null) {
+			obj.uValue = rect.x / Main.ATLAS_WIDTH;
+			obj.vValue = rect.y / Main.ATLAS_WIDTH;
+			texW = rect.width;
+			obj.width = texW / Main.ATLAS_WIDTH;
+			texH = rect.height;
+			obj.height = texH / Main.ATLAS_HEIGHT;
 		}
 
 		var sink: Float32 = 1.0;
@@ -746,10 +708,10 @@ class Map extends Sprite {
 		var texW = player.width * Main.ATLAS_WIDTH,
 			texH = player.height * Main.ATLAS_HEIGHT;
 
+		var rect: Rect = null;
 		if (player.animatedChar != null) {
 			var action = AnimatedChar.STAND;
 			var p: Float32 = 0.0;
-			var rect: Rect = null;
 			if (time < player.attackStart + GameObject.ATTACK_PERIOD) {
 				if (!player.props.dontFaceAttacks)
 					player.facing = player.attackAngle;
@@ -769,18 +731,19 @@ class Map extends Sprite {
 					action = AnimatedChar.STAND;
 
 				p = time % walkPer / walkPer;
-			} else if (player.animations != null)
-				rect = player.animations.getTexture(time);
+			}
 
 			rect = player.animatedChar.rectFromFacing(player.facing, action, p);
-			if (rect != null) {
-				player.uValue = rect.x / Main.ATLAS_WIDTH;
-				player.vValue = rect.y / Main.ATLAS_WIDTH;
-				texW = rect.width;
-				player.width = texW / Main.ATLAS_WIDTH;
-				texH = rect.height;
-				player.height = texH / Main.ATLAS_HEIGHT;
-			}
+		} else if (player.animations != null)
+			rect = player.animations.getTexture(time);
+
+		if (rect != null) {
+			player.uValue = rect.x / Main.ATLAS_WIDTH;
+			player.vValue = rect.y / Main.ATLAS_WIDTH;
+			texW = rect.width;
+			player.width = texW / Main.ATLAS_WIDTH;
+			texH = rect.height;
+			player.height = texH / Main.ATLAS_HEIGHT;
 		}
 
 		var sink: Float32 = 1.0;

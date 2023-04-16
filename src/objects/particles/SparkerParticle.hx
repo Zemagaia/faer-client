@@ -44,7 +44,7 @@ class SparkerParticle extends Particle {
 		// moveTo(this.pathX += this.dx * trueDt, this.pathY += this.dy * trueDt);
 		var prt = Global.sparkParticlePool.get();
 		prt.init(5, color, 600, 0, MathUtil.plusMinus(1), MathUtil.plusMinus(1));
-		//map.addObj(prt, this.pathX, this.pathY);
+		// map.addObj(prt, this.pathX, this.pathY);
 		this.lastUpdate = time;
 		return true;
 	}

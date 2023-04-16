@@ -26,8 +26,8 @@ class Particle extends BasicObject {
 
 	override public function draw(time: Int) {
 		/*var textureData = TextureFactory.make(this.texture);
-		RenderUtils.baseRender(textureData.width, textureData.height, this.screenX - this.halfW, this.screenY - this.halfH - textureData.yOffset,
-			textureData.texture, 0);*/
+			RenderUtils.baseRender(textureData.width, textureData.height, this.screenX - this.halfW, this.screenY - this.halfH - textureData.yOffset,
+				textureData.texture, 0); */
 	}
 
 	public function moveTo(x: Float, y: Float) {

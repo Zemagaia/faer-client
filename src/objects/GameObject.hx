@@ -82,16 +82,22 @@ class GameObject extends BasicObject {
 	private var myLastTickId: Int32 = -1;
 	private var posAtTick: Point;
 	private var tickPosition: Point;
+
 	public var moveVec: Vector3D;
 	public var yBase: Float32 = 0.0;
 	public var yBaseNoZ: Float32 = 0.0;
+
 	private var nextBulletId: Int8 = 1;
 	private var sizeMult: Float32 = 1.0;
+
 	public var icons: Array<BitmapData> = null;
+
 	private var floatTimeOffset: Int32 = 0;
+
 	public var w: Float32 = 0.0;
 	public var h: Float32 = 0.0;
 	public var dh: Float32 = 0.0;
+
 	private var mapColor: UInt32 = 0;
 	private var bloodColors: Array<UInt32> = null;
 
@@ -178,12 +184,12 @@ class GameObject extends BasicObject {
 		}
 
 		/*var effLen = this.props != null && this.props.showEffects != null ? this.props.showEffects.length : 0;
-		for (i in 0...effLen) {
-			var eff = this.props.showEffects[i];
-			switch (eff.effType) {
-				case "Ring":
-					this.map.addObj(new RingEffect(this, eff.radius, eff.color, eff.cooldown), this.mapX, this.mapY);
-			}
+			for (i in 0...effLen) {
+				var eff = this.props.showEffects[i];
+				switch (eff.effType) {
+					case "Ring":
+						this.map.addObj(new RingEffect(this, eff.radius, eff.color, eff.cooldown), this.mapX, this.mapY);
+				}
 		}*/
 
 		if (this.props.floating)
@@ -392,11 +398,11 @@ class GameObject extends BasicObject {
 		}
 
 		/*if (this.dead)
-			map.addObj(new ExplosionEffect(this.bloodColors, this.size, 30), mapX, mapY);
-		else if (proj != null)
-			map.addObj(new HitEffect(this.bloodColors, this.size, 10, proj.angle, proj.projProps.realSpeed), mapX, mapY);
-		else
-			map.addObj(new ExplosionEffect(this.bloodColors,, this.size, 10), mapX, mapY);*/
+				map.addObj(new ExplosionEffect(this.bloodColors, this.size, 30), mapX, mapY);
+			else if (proj != null)
+				map.addObj(new HitEffect(this.bloodColors, this.size, 10, proj.angle, proj.projProps.realSpeed), mapX, mapY);
+			else
+				map.addObj(new ExplosionEffect(this.bloodColors,, this.size, 10), mapX, mapY); */
 
 		if (damageAmount > 0)
 			map.mapOverlay.addStatusText(new CharacterStatusText(this, "-" + damageAmount,
