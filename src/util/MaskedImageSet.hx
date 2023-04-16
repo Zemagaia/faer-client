@@ -25,7 +25,7 @@ class MaskedImageSet {
 		}
 
 		for (i in 0...imagesSet.images.length) {
-			if (i == AnimatedChar.FRAMES_PER_DIR) {
+			if (i % AnimatedChar.FRAMES_PER_DIR == 0) {
 				for (j in 0...AnimatedChar.FRAMES_PER_DIR) {
 					this.images.push(new MaskedImage(BitmapUtil.mirror(imagesSet.images[j]), masksNull ? null : BitmapUtil.mirror(masksSet.images[j])));
 					this.imageRects.push(imagesSet.rects[i + j]);

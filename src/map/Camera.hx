@@ -19,8 +19,8 @@ class Camera {
 
 	public static var cos: Float32 = 1.0;
 	public static var sin: Float32 = 0.0;
-	public static var xScaledCos: Float32 = 1.0;
-	public static var yScaledCos: Float32 = 1.0;
+	public static var xScaledCos: Float32 = 0.5;
+	public static var yScaledCos: Float32 = 0.5;
 	public static var xScaledSin: Float32 = 0.0;
 	public static var yScaledSin: Float32 = 0.0;
 	public static var csX: Float32 = 0.0;
@@ -59,10 +59,10 @@ class Camera {
 			sinAngle = MathUtil.sin(angleRad);
 		cos = cosAngle * Camera.PX_PER_TILE;
 		sin = sinAngle * Camera.PX_PER_TILE;
-		xScaledCos = cos * RenderUtils.clipSpaceScaleX;
-		yScaledCos = cos * RenderUtils.clipSpaceScaleY;
-		xScaledSin = sin * RenderUtils.clipSpaceScaleX;
-		yScaledSin = sin * RenderUtils.clipSpaceScaleY;
+		xScaledCos = cos * RenderUtils.clipSpaceScaleX * 0.5;
+		yScaledCos = cos * RenderUtils.clipSpaceScaleY * 0.5;
+		xScaledSin = sin * RenderUtils.clipSpaceScaleX * 0.5;
+		yScaledSin = sin * RenderUtils.clipSpaceScaleY * 0.5;
 		csX = (x * cosAngle + y * sinAngle) * -Camera.PX_PER_TILE;
 		csY = (x * -sinAngle + y * cosAngle) * -Camera.PX_PER_TILE;
 

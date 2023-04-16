@@ -464,10 +464,10 @@ class Map extends Sprite {
 	}
 
 	@:nonVirtual private final inline function drawSquares() {
-		final xScaledCosHalf: Float32 = untyped __cpp__('0.5 * ::map::Camera_obj::xScaledCos');
-		final yScaledCosHalf: Float32 = untyped __cpp__('0.5 * ::map::Camera_obj::yScaledCos');
-		final xScaledSinHalf: Float32 = untyped __cpp__('0.5 * ::map::Camera_obj::xScaledSin');
-		final yScaledSinHalf: Float32 = untyped __cpp__('0.5 * ::map::Camera_obj::yScaledSin');
+		final xScaledCos: Float32 = Camera.xScaledCos;
+		final yScaledCos: Float32 = Camera.yScaledCos;
+		final xScaledSin: Float32 = Camera.xScaledSin;
+		final yScaledSin: Float32 = Camera.yScaledSin;
 
 		while (this.i < this.visSquareLen) {
 			final square = this.visSquares[this.i];
@@ -477,8 +477,8 @@ class Map extends Sprite {
 			final scaledClipX = square.clipX * RenderUtils.clipSpaceScaleX;
 			final scaledClipY = square.clipY * RenderUtils.clipSpaceScaleY;
 
-			this.vertexData[this.vIdx] = -(xScaledCosHalf + xScaledSinHalf) + scaledClipX;
-			this.vertexData[this.vIdx + 1] = (yScaledSinHalf + -yScaledCosHalf) + scaledClipY;
+			this.vertexData[this.vIdx] = -xScaledCos - xScaledSin + scaledClipX;
+			this.vertexData[this.vIdx + 1] = yScaledSin - yScaledCos + scaledClipY;
 			this.vertexData[this.vIdx + 2] = 0;
 			this.vertexData[this.vIdx + 3] = 0;
 
@@ -495,8 +495,8 @@ class Map extends Sprite {
 			this.vertexData[this.vIdx + 12] = square.baseU;
 			this.vertexData[this.vIdx + 13] = square.baseV;
 
-			this.vertexData[this.vIdx + 14] = -(-xScaledCosHalf + xScaledSinHalf) + scaledClipX;
-			this.vertexData[this.vIdx + 15] = (-yScaledSinHalf + -yScaledCosHalf) + scaledClipY;
+			this.vertexData[this.vIdx + 14] = xScaledCos - xScaledSin + scaledClipX;
+			this.vertexData[this.vIdx + 15] = -yScaledSin - yScaledCos + scaledClipY;
 			this.vertexData[this.vIdx + 16] = 8 / Main.ATLAS_WIDTH;
 			this.vertexData[this.vIdx + 17] = 0;
 
@@ -513,8 +513,8 @@ class Map extends Sprite {
 			this.vertexData[this.vIdx + 26] = square.baseU;
 			this.vertexData[this.vIdx + 27] = square.baseV;
 
-			this.vertexData[this.vIdx + 28] = -(xScaledCosHalf + -xScaledSinHalf) + scaledClipX;
-			this.vertexData[this.vIdx + 29] = (yScaledSinHalf + yScaledCosHalf) + scaledClipY;
+			this.vertexData[this.vIdx + 28] = -xScaledCos + xScaledSin + scaledClipX;
+			this.vertexData[this.vIdx + 29] = yScaledSin + yScaledCos + scaledClipY;
 			this.vertexData[this.vIdx + 30] = 0;
 			this.vertexData[this.vIdx + 31] = 8 / Main.ATLAS_WIDTH;
 
@@ -531,8 +531,8 @@ class Map extends Sprite {
 			this.vertexData[this.vIdx + 40] = square.baseU;
 			this.vertexData[this.vIdx + 41] = square.baseV;
 
-			this.vertexData[this.vIdx + 42] = -(-xScaledCosHalf + -xScaledSinHalf) + scaledClipX;
-			this.vertexData[this.vIdx + 43] = (-yScaledSinHalf + yScaledCosHalf) + scaledClipY;
+			this.vertexData[this.vIdx + 42] = xScaledCos + xScaledSin + scaledClipX;
+			this.vertexData[this.vIdx + 43] = -yScaledSin + yScaledCos + scaledClipY;
 			this.vertexData[this.vIdx + 44] = 8 / Main.ATLAS_WIDTH;
 			this.vertexData[this.vIdx + 45] = 8 / Main.ATLAS_WIDTH;
 
