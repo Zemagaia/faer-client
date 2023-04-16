@@ -922,16 +922,21 @@ class Map extends Sprite {
 			texH = proj.height * Main.ATLAS_HEIGHT;
 
 		final size = Camera.SIZE_MULT * proj.size;
-		final w = size * texW * RenderUtils.clipSpaceScaleX * 0.5;
-		final hBase = size * texH;
-		final h = hBase * RenderUtils.clipSpaceScaleY * 0.5;
-		final yBase = (proj.screenY - hBase / 2 - size * Main.PADDING) * RenderUtils.clipSpaceScaleY;
+		final w = size * texW;
+		final h = size * texH;
+		final yBase = (proj.screenY - (h / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
 		final xBase = proj.screenX * RenderUtils.clipSpaceScaleX;
 		final texelW = 2 / Main.ATLAS_WIDTH / size;
 		final texelH = 2 / Main.ATLAS_HEIGHT / size;
+		final cosAngle = MathUtil.cos(proj.angle);
+		final sinAngle = MathUtil.sin(proj.angle);
+		final xScaledCos = cosAngle * w * RenderUtils.clipSpaceScaleX * 0.5;
+		final xScaledSin = sinAngle * h * RenderUtils.clipSpaceScaleX * 0.5;
+		final yScaledCos = cosAngle * w * RenderUtils.clipSpaceScaleY * 0.5;
+		final yScaledSinInv = -sinAngle * h * RenderUtils.clipSpaceScaleY * 0.5;
 
-		this.vertexData[vIdx] = -w + xBase;
-		this.vertexData[vIdx + 1] = -h + yBase;
+		this.vertexData[vIdx] = -xScaledCos + xScaledSin + xBase;
+		this.vertexData[vIdx + 1] = yScaledSinInv + -yScaledCos + yBase;
 		this.vertexData[vIdx + 2] = proj.uValue;
 		this.vertexData[vIdx + 3] = proj.vValue;
 
@@ -941,8 +946,8 @@ class Map extends Sprite {
 		this.vertexData[vIdx + 7] = 0;
 		this.vertexData[vIdx + 8] = 0;
 
-		this.vertexData[vIdx + 9] = w + xBase;
-		this.vertexData[vIdx + 10] = -h + yBase;
+		this.vertexData[vIdx + 9] = xScaledCos + xScaledSin + xBase;
+		this.vertexData[vIdx + 10] = -(yScaledSinInv + yScaledCos) + yBase;
 		this.vertexData[vIdx + 11] = proj.uValue + proj.width;
 		this.vertexData[vIdx + 12] = proj.vValue;
 
@@ -952,8 +957,8 @@ class Map extends Sprite {
 		this.vertexData[vIdx + 16] = 0;
 		this.vertexData[vIdx + 17] = 0;
 
-		this.vertexData[vIdx + 18] = -w + xBase;
-		this.vertexData[vIdx + 19] = h + yBase;
+		this.vertexData[vIdx + 18] = -(xScaledCos + xScaledSin) + xBase;
+		this.vertexData[vIdx + 19] = yScaledSinInv + yScaledCos + yBase;
 		this.vertexData[vIdx + 20] = proj.uValue;
 		this.vertexData[vIdx + 21] = proj.vValue + proj.height;
 
@@ -963,8 +968,8 @@ class Map extends Sprite {
 		this.vertexData[vIdx + 25] = 0;
 		this.vertexData[vIdx + 26] = 0;
 
-		this.vertexData[vIdx + 27] = w + xBase;
-		this.vertexData[vIdx + 28] = h + yBase;
+		this.vertexData[vIdx + 27] = xScaledCos + -xScaledSin + xBase;
+		this.vertexData[vIdx + 28] = -yScaledSinInv + yScaledCos + yBase;
 		this.vertexData[vIdx + 29] = proj.uValue + proj.width;
 		this.vertexData[vIdx + 30] = proj.vValue + proj.height;
 
