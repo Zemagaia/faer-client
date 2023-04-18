@@ -425,21 +425,18 @@ class Map extends Sprite {
 	}
 
 	@:nonVirtual private final inline function drawSquares() {
-		final xScaledCos: Float32 = Camera.xScaledCos;
-		final yScaledCos: Float32 = Camera.yScaledCos;
-		final xScaledSin: Float32 = Camera.xScaledSin;
-		final yScaledSin: Float32 = Camera.yScaledSin;
+		final xScaledCos = Camera.xScaledCos;
+		final yScaledCos = Camera.yScaledCos;
+		final xScaledSin = Camera.xScaledSin;
+		final yScaledSin = Camera.yScaledSin;
 
 		while (this.i < this.visSquareLen) {
 			final square = this.visSquares[this.i];
-			square.clipX = square.middleX * Camera.cos + square.middleY * Camera.sin + Camera.csX;
-			square.clipY = square.middleX * -Camera.sin + square.middleY * Camera.cos + Camera.csY;
-
-			final scaledClipX = square.clipX * RenderUtils.clipSpaceScaleX;
-			final scaledClipY = square.clipY * RenderUtils.clipSpaceScaleY;
-
-			this.vertexData[this.vIdx] = -xScaledCos - xScaledSin + scaledClipX;
-			this.vertexData[this.vIdx + 1] = yScaledSin - yScaledCos + scaledClipY;
+			square.clipX = (square.middleX * Camera.cos + square.middleY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
+			square.clipY = (square.middleX * -Camera.sin + square.middleY * Camera.cos + Camera.csY) * RenderUtils.clipSpaceScaleY;
+			
+			this.vertexData[this.vIdx] = -xScaledCos - xScaledSin + square.clipX;
+			this.vertexData[this.vIdx + 1] = yScaledSin - yScaledCos + square.clipY;
 			this.vertexData[this.vIdx + 2] = 0;
 			this.vertexData[this.vIdx + 3] = 0;
 
@@ -456,8 +453,8 @@ class Map extends Sprite {
 			this.vertexData[this.vIdx + 12] = square.baseU;
 			this.vertexData[this.vIdx + 13] = square.baseV;
 
-			this.vertexData[this.vIdx + 14] = xScaledCos - xScaledSin + scaledClipX;
-			this.vertexData[this.vIdx + 15] = -yScaledSin - yScaledCos + scaledClipY;
+			this.vertexData[this.vIdx + 14] = xScaledCos - xScaledSin + square.clipX;
+			this.vertexData[this.vIdx + 15] = -yScaledSin - yScaledCos + square.clipY;
 			this.vertexData[this.vIdx + 16] = 8 / Main.ATLAS_WIDTH;
 			this.vertexData[this.vIdx + 17] = 0;
 
@@ -474,8 +471,8 @@ class Map extends Sprite {
 			this.vertexData[this.vIdx + 26] = square.baseU;
 			this.vertexData[this.vIdx + 27] = square.baseV;
 
-			this.vertexData[this.vIdx + 28] = -xScaledCos + xScaledSin + scaledClipX;
-			this.vertexData[this.vIdx + 29] = yScaledSin + yScaledCos + scaledClipY;
+			this.vertexData[this.vIdx + 28] = -xScaledCos + xScaledSin + square.clipX;
+			this.vertexData[this.vIdx + 29] = yScaledSin + yScaledCos + square.clipY;
 			this.vertexData[this.vIdx + 30] = 0;
 			this.vertexData[this.vIdx + 31] = 8 / Main.ATLAS_WIDTH;
 
@@ -492,8 +489,8 @@ class Map extends Sprite {
 			this.vertexData[this.vIdx + 40] = square.baseU;
 			this.vertexData[this.vIdx + 41] = square.baseV;
 
-			this.vertexData[this.vIdx + 42] = xScaledCos + xScaledSin + scaledClipX;
-			this.vertexData[this.vIdx + 43] = -yScaledSin + yScaledCos + scaledClipY;
+			this.vertexData[this.vIdx + 42] = xScaledCos + xScaledSin + square.clipX;
+			this.vertexData[this.vIdx + 43] = -yScaledSin + yScaledCos + square.clipY;
 			this.vertexData[this.vIdx + 44] = 8 / Main.ATLAS_WIDTH;
 			this.vertexData[this.vIdx + 45] = 8 / Main.ATLAS_WIDTH;
 
@@ -529,6 +526,72 @@ class Map extends Sprite {
 
 		var texW = obj.width * Main.ATLAS_WIDTH,
 			texH = obj.height * Main.ATLAS_HEIGHT;
+
+		if (obj.props.drawOnGround) {
+			final xScaledCos = Camera.xScaledCos;
+			final yScaledCos = Camera.yScaledCos;
+			final xScaledSin = Camera.xScaledSin;
+			final yScaledSin = Camera.yScaledSin;
+			final clipX = obj.curSquare.clipX;
+			final clipY = obj.curSquare.clipY;
+
+			this.vertexData[this.vIdx] = -xScaledCos - xScaledSin + clipX;
+			this.vertexData[this.vIdx + 1] = yScaledSin - yScaledCos + clipY;
+			this.vertexData[this.vIdx + 2] = obj.uValue;
+			this.vertexData[this.vIdx + 3] = obj.vValue;
+
+			this.vertexData[this.vIdx + 4] = 0;
+			this.vertexData[this.vIdx + 5] = 0;
+			this.vertexData[this.vIdx + 6] = 0;
+			this.vertexData[this.vIdx + 7] = 0;
+			this.vertexData[this.vIdx + 8] = 0;
+
+			this.vertexData[this.vIdx + 9] = xScaledCos - xScaledSin + clipX;
+			this.vertexData[this.vIdx + 10] = -yScaledSin - yScaledCos + clipY;
+			this.vertexData[this.vIdx + 11] = obj.uValue + obj.width;
+			this.vertexData[this.vIdx + 12] = obj.vValue;
+
+			this.vertexData[this.vIdx + 13] = 0;
+			this.vertexData[this.vIdx + 14] = 0;
+			this.vertexData[this.vIdx + 15] = 0;
+			this.vertexData[this.vIdx + 16] = 0;
+			this.vertexData[this.vIdx + 17] = 0;
+
+			this.vertexData[this.vIdx + 18] = -xScaledCos + xScaledSin + clipX;
+			this.vertexData[this.vIdx + 19] = yScaledSin + yScaledCos + clipY;
+			this.vertexData[this.vIdx + 20] = obj.uValue;
+			this.vertexData[this.vIdx + 21] = obj.vValue + obj.height;
+
+			this.vertexData[this.vIdx + 22] = 0;
+			this.vertexData[this.vIdx + 23] = 0;
+			this.vertexData[this.vIdx + 24] = 0;
+			this.vertexData[this.vIdx + 25] = 0;
+			this.vertexData[this.vIdx + 26] = 0;
+
+			this.vertexData[this.vIdx + 27] = xScaledCos + xScaledSin + clipX;
+			this.vertexData[this.vIdx + 28] = -yScaledSin + yScaledCos + clipY;
+			this.vertexData[this.vIdx + 29] = obj.uValue + obj.width;
+			this.vertexData[this.vIdx + 30] = obj.vValue + obj.height;
+
+			this.vertexData[this.vIdx + 31] = 0;
+			this.vertexData[this.vIdx + 32] = 0;
+			this.vertexData[this.vIdx + 33] = 0;
+			this.vertexData[this.vIdx + 34] = 0;
+			this.vertexData[this.vIdx + 35] = 0;
+			this.vIdx += 36;
+
+			final i4: UInt32 = this.i * 4;
+			this.indexData[this.iIdx] = i4;
+			this.indexData[this.iIdx + 1] = 1 + i4;
+			this.indexData[this.iIdx + 2] = 2 + i4;
+			this.indexData[this.iIdx + 3] = 2 + i4;
+			this.indexData[this.iIdx + 4] = 1 + i4;
+			this.indexData[this.iIdx + 5] = 3 + i4;
+			this.iIdx += 6;
+
+			this.i++;
+			return;
+		}
 
 		var rect: Rect = null;
 		if (obj.animatedChar != null) {
@@ -892,7 +955,7 @@ class Map extends Sprite {
 		final texelW = 2 / Main.ATLAS_WIDTH / size;
 		final texelH = 2 / Main.ATLAS_HEIGHT / size;
 		final rotation = proj.props.rotation;
-		final angle = proj.getDirectionAngle(time) + proj.props.angleCorrection + (rotation == 0 ? 0 : time / rotation);
+		final angle = proj.getDirectionAngle(time) + proj.props.angleCorrection + (rotation == 0 ? 0 : time / rotation) - Camera.angleRad;
 		final cosAngle = MathUtil.cos(angle);
 		final sinAngle = MathUtil.sin(angle);
 		final xScaledCos = cosAngle * w * RenderUtils.clipSpaceScaleX * 0.5;
