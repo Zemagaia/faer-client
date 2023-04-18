@@ -23,15 +23,13 @@ class BuySkinTask extends Task {
 		RequestHandler.sendRequest("account/purchaseSkin");
 	}
 
-	private function onComplete(pCompData: Pointer<CompletionData>) {
-		var compData = pCompData.ptr;
+	private function onComplete(compData: CompletionData) {
 		if (compData.success)
 			this.completePurchase();
 		else
 			this.abandonPurchase(compData.result);
 
 		completeTask(compData.success, compData.result);
-		Stdlib.free(pCompData);
 	}
 
 	private function completePurchase() {

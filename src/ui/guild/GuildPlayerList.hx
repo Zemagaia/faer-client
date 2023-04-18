@@ -57,13 +57,11 @@ class GuildPlayerList extends Sprite {
 		RequestHandler.sendRequest("/guild/listMembers");
 	}
 
-	private function onComplete(pCompData: Pointer<CompletionData>) {
-		var compData = pCompData.ptr;
+	private function onComplete(compData: CompletionData) {
 		if (compData.success)
 			this.onGenericData(compData.result);
 		else
 			onTextError(compData.result);
-		Stdlib.free(pCompData);
 	}
 
 	private function onGenericData(data: String) {

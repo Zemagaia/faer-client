@@ -18,14 +18,12 @@ class RegisterAccountTask extends Task {
 		RequestHandler.sendRequest("/account/register");
 	}
 
-	private function onComplete(pCompData: Pointer<CompletionData>) {
-		var compData = pCompData.ptr;
+	private function onComplete(compData: CompletionData) {
 		if (compData.success)
 			onRegisterDone();
 
 		accountData = null;
 		completeTask(compData.success, compData.result);
-		Stdlib.free(pCompData);
 	}
 
 	private static function onRegisterDone() {

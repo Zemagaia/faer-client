@@ -94,16 +94,14 @@ class LoginDialog extends Frame {
 		}
 	}
 
-	private function loginComplete(pCompData: Pointer<CompletionData>) {
+	private function loginComplete(_: CompletionData) {
 		RequestHandler.complete.once(this.charListComplete);
 		Global.charListTask.start();
-		Stdlib.free(pCompData);
 	}
 
-	private function charListComplete(pCompData: Pointer<CompletionData>) {
+	private function charListComplete(_: CompletionData) {
 		Global.layers.dialogs.closeDialogs();
 		Global.invalidate();
 		Global.setScreenValid(new CharacterSelectionScreen());
-		Stdlib.free(pCompData);
 	}
 }

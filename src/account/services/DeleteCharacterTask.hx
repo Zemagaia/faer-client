@@ -17,13 +17,11 @@ class DeleteCharacterTask extends Task {
 		RequestHandler.sendRequest("/char/delete");
 	}
 
-	private function onComplete(pCompData: Pointer<CompletionData>) {
-		var compData = pCompData.ptr;
+	private function onComplete(compData: CompletionData) {
 		if (compData.success)
 			updateUserData();
 
 		completeTask(compData.success, compData.result);
-		Stdlib.free(pCompData);
 	}
 
 	private static function updateUserData() {

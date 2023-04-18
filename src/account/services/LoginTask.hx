@@ -24,12 +24,10 @@ class LoginTask extends Task {
 		}
 	}
 
-	private function onComplete(pCompData: Pointer<CompletionData>) {
-		var compData = pCompData.ptr;
+	private function onComplete(compData: CompletionData) {
 		if (compData.success)
 			Account.updateUser("", Account.email, Account.password);
 
 		completeTask(compData.success, compData.result);
-		Stdlib.free(pCompData);
 	}
 }

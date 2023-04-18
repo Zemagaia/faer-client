@@ -1,30 +1,18 @@
 package appengine;
 
-import cpp.Pointer;
 import haxe.Http;
 import util.Settings;
 import util.Signal;
 
-@:unreflective
-@:structAccess
-@:native("CCompletionData")
-extern class CompletionData {
+@:structInit
+@:stackOnly
+class CompletionData {
 	public var success: Bool;
 	public var result: String;
-
-	@:native("new CCompletionData")
-	public static function create(success: Bool, result: String): Pointer<CompletionData>;
 }
 
-@:headerCode('
-struct CCompletionData {
-   CCompletionData(bool inSuccess, ::String inResult) : success(inSuccess), result(inResult) { }
-
-   bool success;
-   ::String result;
-};')
 class RequestHandler {
-	public static var complete = new Signal<Pointer<CompletionData>>();
+	public static var complete = new Signal<CompletionData>();
 	public static var maxRetries = 0;
 	private static var http = new Http(null);
 	private static var retriesLeft = 0;
@@ -70,6 +58,6 @@ class RequestHandler {
 			data = match?.length > 1 ? match[1] : data;
 		}
 
-		complete.emit(CompletionData.create(isOK, data));
+		complete.emit({success: isOK, result: data});
 	}
 }

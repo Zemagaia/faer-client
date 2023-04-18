@@ -15,14 +15,12 @@ class SendPasswordReminderTask extends Task {
 		RequestHandler.sendRequest("/account/forgotPassword");
 	}
 
-	private function onComplete(pCompData: Pointer<CompletionData>) {
+	private function onComplete(compData: CompletionData) {
 		email = null;
-		var compData = pCompData.ptr;
 		if (compData.success)
 			this.onForgotDone();
 		else
 			this.onForgotError(compData.result);
-		Stdlib.free(pCompData);
 	}
 
 	private function onForgotDone() {

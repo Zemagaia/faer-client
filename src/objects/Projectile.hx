@@ -304,7 +304,7 @@ class Projectile extends BasicObject {
 		return p;
 	}
 
-	private function getDirectionAngle(time: Int32) {
+	public function getDirectionAngle(time: Int32) {
 		var elapsed = time - this.startTime;
 		var futurePos = this.positionAt(elapsed + 16);
 

@@ -891,8 +891,10 @@ class Map extends Sprite {
 		final xBase = proj.screenX * RenderUtils.clipSpaceScaleX;
 		final texelW = 2 / Main.ATLAS_WIDTH / size;
 		final texelH = 2 / Main.ATLAS_HEIGHT / size;
-		final cosAngle = MathUtil.cos(proj.angle);
-		final sinAngle = MathUtil.sin(proj.angle);
+		final rotation = proj.props.rotation;
+		final angle = proj.getDirectionAngle(time) + proj.props.angleCorrection + (rotation == 0 ? 0 : time / rotation);
+		final cosAngle = MathUtil.cos(angle);
+		final sinAngle = MathUtil.sin(angle);
 		final xScaledCos = cosAngle * w * RenderUtils.clipSpaceScaleX * 0.5;
 		final xScaledSin = sinAngle * h * RenderUtils.clipSpaceScaleX * 0.5;
 		final yScaledCos = cosAngle * w * RenderUtils.clipSpaceScaleY * 0.5;

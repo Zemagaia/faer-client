@@ -1725,7 +1725,7 @@ class NetworkHandler {
 
 			// go.setCurrency(merchCurrency);
 			case MerchCount:
-				var merchCount = socket.readUnsignedByte();
+				var merchCount = socket.readByte();
 			// if (go == null)
 			// return;
 

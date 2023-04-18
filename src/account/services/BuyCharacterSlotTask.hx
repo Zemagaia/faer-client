@@ -15,12 +15,10 @@ class BuyCharacterSlotTask extends Task {
 		RequestHandler.sendRequest("/account/purchaseCharSlot");
 	}
 
-	private function onComplete(pCompData: Pointer<CompletionData>) {
-		var compData = pCompData.ptr;
+	private function onComplete(compData: CompletionData) {
 		if (compData.success)
 			updatePlayerData();
 		completeTask(compData.success, compData.result);
-		Stdlib.free(pCompData);
 	}
 
 	private static function updatePlayerData() {

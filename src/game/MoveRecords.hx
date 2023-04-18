@@ -1,36 +1,22 @@
 package game;
 
-import cpp.RawPointer;
-import cpp.Stdlib;
 import util.NativeTypes;
 
-@:unreflective
-@:structAccess
-@:native("CMoveRecord")
-extern class MoveRecord {
+@:stackOnly
+@:structInit
+class MoveRecord {
 	public var time: Int32;
 	public var x: Float32;
 	public var y: Float32;
-
-	@:native("CMoveRecord")
-	public static function create(time: Int32, x: Float32, y: Float32): MoveRecord;
 }
 
-@:headerCode('
-struct CMoveRecord {
-   CMoveRecord(int inTime, float inX, float inY) : time(inTime), x(inX), y(inY) { }
-
-   int time;
-   float x;
-   float y;
-};')
 class MoveRecords {
 	public var lastClearTime: Int = -1;
-	public var records: RawPointer<MoveRecord>;
+	public var records: Array<MoveRecord>;
 	public var recordIdx: Int = 0;
 
 	public function new() {
-		this.records = cast Stdlib.nativeMalloc(Stdlib.sizeof(MoveRecord) * 10);
+		this.records = [];
 	}
 
 	public inline function addRecord(time: Int, x: Float, y: Float) {
@@ -42,14 +28,14 @@ class MoveRecords {
 			return;
 
 		if (this.recordIdx == 0) {
-			this.records[this.recordIdx++] = MoveRecord.create(time, x, y);
+			this.records.push({time: time, x: x, y: y});
 			return;
 		}
 
 		var currRecord = this.records[this.recordIdx - 1];
 		var currId: Int = this.getId(currRecord.time);
 		if (id != currId) {
-			this.records[this.recordIdx++] = MoveRecord.create(time, x, y);
+			this.records.push({time: time, x: x, y: y});
 			return;
 		}
 
@@ -64,7 +50,7 @@ class MoveRecords {
 
 	public function clear(time: Int32) {
 		this.lastClearTime = time;
-		this.recordIdx = 0;
+		this.records.resize(0);
 	}
 
 	private function getId(time: Int32) {

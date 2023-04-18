@@ -48,12 +48,10 @@ class LoadAccountTask extends Task {
 		}
 	}
 
-	private function onComplete(pCompData: Pointer<CompletionData>) {
-		var compData = pCompData.ptr;
+	private function onComplete(compData: CompletionData) {
 		if (compData.success)
 			Account.updateUser(this.data.userName, this.data.email, this.data.password);
 
 		completeTask(compData.success, compData.result);
-		Stdlib.free(pCompData);
 	}
 }

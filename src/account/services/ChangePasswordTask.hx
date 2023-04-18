@@ -17,13 +17,11 @@ class ChangePasswordTask extends Task {
 		RequestHandler.sendRequest("/account/changePassword");
 	}
 
-	private function onComplete(pCompData: Pointer<CompletionData>) {
-		var compData = pCompData.ptr;
+	private function onComplete(compData: CompletionData) {
 		if (compData.success)
 			this.onChangeDone();
 		changePwData = null;
 		completeTask(compData.success, compData.result);
-		Stdlib.free(pCompData);
 	}
 
 	private function onChangeDone() {

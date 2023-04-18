@@ -22,13 +22,11 @@ class GetCharListTask extends Task {
 		RequestHandler.sendRequest("/char/list");
 	}
 
-	private function onComplete(pCompData: Pointer<CompletionData>) {
-		var compData = pCompData.ptr;
+	private function onComplete(compData: CompletionData) {
 		if (compData.success)
 			this.onListComplete(compData.result);
 		else
 			this.onListComplete("EOF");
-		Stdlib.free(pCompData);
 	}
 
 	private function onListComplete(data: String) {
