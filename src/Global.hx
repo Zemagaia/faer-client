@@ -1,5 +1,6 @@
 package;
 
+import openfl.Assets;
 import openfl.display.PNGEncoderOptions;
 import engine.TextureFactory;
 import util.MacroUtil;
@@ -117,8 +118,8 @@ final class Global {
 		layers = new Layers();
 		root.addChild(layers);
 
-		var playersXML = MacroUtil.readFile("assets/xmls/Players.xml").asXml();
-		var skinsXML = MacroUtil.readFile("assets/xmls/Skins.xml").asXml();
+		var playersXML = Assets.getText("assets/xmls/Players.xml").asXml();
+		var skinsXML = Assets.getText("assets/xmls/Skins.xml").asXml();
 
 		for (xml in playersXML.elements()) {
 			var charType = xml.intAttribute("type");

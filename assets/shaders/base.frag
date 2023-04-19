@@ -1,36 +1,42 @@
 #version 460
 
-layout (location = 0) in vec2 inUv;
-layout (location = 1) in vec2 texelSize;
-layout (location = 2) in vec2 colors;
-layout (location = 3) in float flashStrength;
+in BatchData {
+    vec2 uv;
+    vec2 texelSize;
+    vec2 colors;
+    float flashStrength;
+    float barThresh;
+} data;
 
 layout (location = 0) out vec4 resultColor;
 
-layout (location = 0) uniform sampler2D sampler;
+layout (location = 0) uniform vec2 emptyBar;
+layout (location = 1) uniform sampler2D sampler;
 
 void main() {
-    vec4 pixel = texture(sampler, inUv);
+    // Wackart
+    vec4 pixel = data.barThresh != -1 && data.barThresh < data.uv.x ? texture(sampler, emptyBar) : texture(sampler, data.uv);
 
-    int glowColor = int(colors.x); 
-    int flashColor = int(colors.y);
-    if (texelSize.x != 0 && pixel.a < 1.0) {
-        float alpha = texture(sampler, inUv - texelSize).a;
-        alpha += texture(sampler, vec2(inUv.x - texelSize.x, inUv.y + texelSize.y)).a;
-        alpha += texture(sampler, vec2(inUv.x + texelSize.x, inUv.y - texelSize.y)).a;
-        alpha += texture(sampler, inUv + texelSize).a;
+    if (data.texelSize.x != 0 && pixel.a < 1.0) {
+        float alpha = texture(sampler, data.uv - data.texelSize).a;
+        alpha += texture(sampler, vec2(data.uv.x - data.texelSize.x, data.uv.y + data.texelSize.y)).a;
+        alpha += texture(sampler, vec2(data.uv.x + data.texelSize.x, data.uv.y - data.texelSize.y)).a;
+        alpha += texture(sampler, data.uv + data.texelSize).a;
 
-        if (alpha > 0)
+        if (alpha > 0) {
+            int glowColor = int(data.colors.x);
             pixel = vec4(((glowColor >> 16) & 0xFF) / 255.0,
-                ((glowColor >> 8) & 0xFF) / 255.0, 
-                (glowColor & 0xFF) / 255.0, 1.0);
+                            ((glowColor >> 8) & 0xFF) / 255.0, 
+                            (glowColor & 0xFF) / 255.0, 1.0);
+        }
     }
 
-    if (flashColor != -1 && pixel.a > 0) {
-        float flashStrengthInv = 1 - flashStrength;
-        pixel = vec4(((flashColor >> 16) & 0xFF) / 255.0 * flashStrength + pixel.r * flashStrengthInv,
-                        ((flashColor >> 8) & 0xFF) / 255.0 * flashStrength + pixel.g * flashStrengthInv, 
-                        (flashColor & 0xFF) / 255.0 * flashStrength + pixel.b * flashStrengthInv, pixel.a);
+    if (data.colors.y >= 0 && pixel.a > 0) {
+        int flashColor = int(data.colors.y);
+        float flashStrengthInv = 1 - data.flashStrength;
+        pixel = vec4(((flashColor >> 16) & 0xFF) / 255.0 * data.flashStrength + pixel.r * flashStrengthInv,
+                        ((flashColor >> 8) & 0xFF) / 255.0 * data.flashStrength + pixel.g * flashStrengthInv, 
+                        (flashColor & 0xFF) / 255.0 * data.flashStrength + pixel.b * flashStrengthInv, pixel.a);
     }
   
     resultColor = pixel;

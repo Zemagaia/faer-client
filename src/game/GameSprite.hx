@@ -219,19 +219,19 @@ class GameSprite extends Sprite {
 				return;
 
 			var minDist = 1.0;
-				var closestInteractive = -1;
-				var playerX = this.map.player.mapX;
-				var playerY = this.map.player.mapY;
-				for (go in this.map.gameObjects)
-					if (go?.props != null && go.objClass == "Portal" && (Math.abs(playerX - go.mapX) < 1 || Math.abs(playerY - go.mapY) < 1)) {
-						var dist = PointUtil.distanceXY(go.mapX, go.mapY, playerX, playerY);
-						if (dist < minDist) {
-							minDist = dist;
-							closestInteractive = go.objectId;
-						}
+			var closestInteractive = -1;
+			var playerX = this.map.player.mapX;
+			var playerY = this.map.player.mapY;
+			for (go in this.map.gameObjects)
+				if (go?.props != null && go.objClass == "Portal" && (Math.abs(playerX - go.mapX) < 1 || Math.abs(playerY - go.mapY) < 1)) {
+					var dist = PointUtil.distanceXY(go.mapX, go.mapY, playerX, playerY);
+					if (dist < minDist) {
+						minDist = dist;
+						closestInteractive = go.objectId;
+					}
 				}
 
-				Global.currentInteractiveTarget = closestInteractive;
+			Global.currentInteractiveTarget = closestInteractive;
 
 			var player = this.map.player;
 			if (player != null) {

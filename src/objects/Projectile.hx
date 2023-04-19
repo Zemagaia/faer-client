@@ -79,7 +79,7 @@ class Projectile extends BasicObject {
 		if (!super.addTo(map, x, y))
 			return false;
 
-		if (!this.containerProps.flying && curSquare.sink != 0) {
+		if (!this.containerProps.flying && curSquare != null && curSquare.sink != 0) {
 			if (curSquare.obj != null && curSquare.obj.props.protectFromSink)
 				mapZ = 0.5;
 			else

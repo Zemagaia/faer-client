@@ -25,8 +25,8 @@ class AssetLoader {
 		AssetLibrary.addImageSet("cursors", Assets.getBitmapData("assets/sheets/Cursors.png"), 32, 32, true);
 		AssetLibrary.addImageSet("items", Assets.getBitmapData("assets/sheets/Items.png"), 8, 8, true);
 		AssetLibrary.addImageSet("tieredItems", Assets.getBitmapData("assets/sheets/TieredItems.png"), 8, 8, true);
-		AssetLibrary.addImageSet("skinItems", Assets.getBitmapData("assets/sheets/PlayerSkins.png"), 8, 8, true);
-
+		
+		AssetLibrary.addImageSet("bars", Assets.getBitmapData("assets/sheets/Bars.png"), 24, 8);
 		AssetLibrary.addImageSet("ground", Assets.getBitmapData("assets/sheets/Ground.png"), 8, 8);
 		AssetLibrary.addImageSet("conditions", Assets.getBitmapData("assets/sheets/Conditions.png"), 16, 16);
 		AssetLibrary.addImageSet("misc", Assets.getBitmapData("assets/sheets/Misc.png"), 8, 8);
