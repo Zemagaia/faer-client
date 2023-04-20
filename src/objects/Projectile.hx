@@ -79,17 +79,6 @@ class Projectile extends BasicObject {
 		if (!super.addTo(map, x, y))
 			return false;
 
-		if (!this.containerProps.flying && curSquare != null && curSquare.sink != 0) {
-			if (curSquare.obj != null && curSquare.obj.props.protectFromSink)
-				mapZ = 0.5;
-			else
-				mapZ = 0.1;
-		} else {
-			var player = map.players.get(this.ownerId);
-			if (player?.sinkLevel > 0)
-				mapZ = 0.5 - 0.4 * (player.sinkLevel / 1.8);
-		}
-
 		return true;
 	}
 
@@ -178,7 +167,6 @@ class Projectile extends BasicObject {
 		this.cosAngle = MathUtil.cos(this.angle);
 		this.startTime = startTime;
 		objectId = getNewObjId(this.ownerId, this.bulletId);
-		mapZ = 0.5;
 		this.containerProps = ObjectLibrary.propsLibrary.get(this.containerType);
 		this.projProps = this.containerProps.projectiles.get(bulletType);
 		this.props = ObjectLibrary.getPropsFromId(this.projProps.objectId);

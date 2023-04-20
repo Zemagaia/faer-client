@@ -21,6 +21,7 @@ import openfl.display.StageScaleMode;
 import openfl.events.Event;
 import openfl.events.MouseEvent;
 import util.Settings;
+import util.ConditionEffect;
 
 class Main extends Sprite {
 	public static inline final PADDING = 2;
@@ -68,6 +69,7 @@ class Main extends Sprite {
 
 		refreshCursor();
 
+		ConditionEffect.initRects();
 		Camera.init();
 		NetworkHandler.init();
 		RequestHandler.init();

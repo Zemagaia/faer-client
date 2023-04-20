@@ -16,7 +16,7 @@ class AnimatedChar {
 	public static inline var STAND = 0;
 	public static inline var WALK = 1;
 	public static inline var ATTACK = 2;
-	public static inline var FRAMES_PER_DIR = 6;
+	public static inline var FRAMES_PER_DIR = 5;
 
 	private static var SEC_TO_DIRS = [
 		[LEFT, UP, DOWN],

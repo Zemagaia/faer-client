@@ -1,5 +1,11 @@
 package map;
 
+import openfl.filters.GlowFilter;
+import openfl.geom.Point;
+import openfl.geom.Matrix;
+import openfl.display.Bitmap;
+import openfl.display.BitmapData;
+import ui.SimpleText;
 import openfl.Assets;
 import util.Utils.MathUtil;
 import engine.TextureFactory;
@@ -850,46 +856,109 @@ class Map extends Sprite {
 			}
 		}
 
-		/*
-			if (obj.props.showName) {
-					if (obj.name != null && obj.name != "" && obj.nameTex == null) {
-						obj.nameText = new SimpleText(16, 0xFFFFFF);
-						obj.nameText.setBold(true);
-						obj.nameText.text = obj.name;
-						obj.nameText.updateMetrics();
+		if (obj.condition > 0) {
+			var len = 0;
+			for (i in 0...32)
+				if (obj.condition & (1 << i) != 0)
+					len++;
 
-						obj.nameTex = new BitmapData(Std.int(obj.nameText.width + 20), 64, true, 0);
-						obj.nameTex.draw(obj.nameText, new Matrix(1, 0, 0, 1, 12, 0));
-						obj.nameTex.applyFilter(obj.nameTex, obj.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
+			len >>= 1;
+			for (i in 0...32)
+				if (obj.condition & (1 << i) != 0) {
+					var rect = ConditionEffect.effectRects[i];
+					if (rect == null)
+						continue;
 
-					 	obj.nameBitmap = new Bitmap(obj.nameTex);
-						obj.nameBitmap.cacheAsBitmap = true;
-						addChild(obj.nameBitmap);
-					}
+					var scaledW: Float32 = rect.width / Main.ATLAS_WIDTH;
+					var scaledH: Float32 = rect.height / Main.ATLAS_HEIGHT;
+					var scaledU: Float32 = rect.x / Main.ATLAS_WIDTH;
+					var scaledV: Float32 = rect.y / Main.ATLAS_HEIGHT;
+					w = rect.width * RenderUtils.clipSpaceScaleX;
+					h = rect.height * RenderUtils.clipSpaceScaleY;
+					xBase = (obj.screenX - rect.width * len + i * rect.width) * RenderUtils.clipSpaceScaleX;
+					yBase = (obj.screenY + yPos - (rect.height / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+					texelW = 0.5 / Main.ATLAS_WIDTH;
+					texelH = 0.5 / Main.ATLAS_HEIGHT;
 
-					obj.nameBitmap.x = obj.screenX - texW * 2;
-					obj.nameBitmap.y = obj.yBaseNoZ - texH;
+					this.vertexData[this.vIdx] = -w + xBase;
+					this.vertexData[this.vIdx + 1] = -h + yBase;
+					this.vertexData[this.vIdx + 2] = scaledU;
+					this.vertexData[this.vIdx + 3] = scaledV;
+
+					this.vertexData[this.vIdx + 4] = texelW;
+					this.vertexData[this.vIdx + 5] = texelH;
+					this.vertexData[this.vIdx + 6] = 0;
+					this.vertexData[this.vIdx + 7] = 0;
+					this.vertexData[this.vIdx + 8] = 0;
+					this.vertexData[this.vIdx + 9] = -1;
+
+					this.vertexData[this.vIdx + 10] = w + xBase;
+					this.vertexData[this.vIdx + 11] = -h + yBase;
+					this.vertexData[this.vIdx + 12] = scaledU + scaledW;
+					this.vertexData[this.vIdx + 13] = scaledV;
+
+					this.vertexData[this.vIdx + 14] = texelW;
+					this.vertexData[this.vIdx + 15] = texelH;
+					this.vertexData[this.vIdx + 16] = 0;
+					this.vertexData[this.vIdx + 17] = 0;
+					this.vertexData[this.vIdx + 18] = 0;
+					this.vertexData[this.vIdx + 19] = -1;
+
+					this.vertexData[this.vIdx + 20] = -w + xBase;
+					this.vertexData[this.vIdx + 21] = h + yBase;
+					this.vertexData[this.vIdx + 22] = scaledU;
+					this.vertexData[this.vIdx + 23] = scaledV + scaledH;
+
+					this.vertexData[this.vIdx + 24] = texelW;
+					this.vertexData[this.vIdx + 25] = texelH;
+					this.vertexData[this.vIdx + 26] = 0;
+					this.vertexData[this.vIdx + 27] = 0;
+					this.vertexData[this.vIdx + 28] = 0;
+					this.vertexData[this.vIdx + 29] = -1;
+
+					this.vertexData[this.vIdx + 30] = w + xBase;
+					this.vertexData[this.vIdx + 31] = h + yBase;
+					this.vertexData[this.vIdx + 32] = scaledU + scaledW;
+					this.vertexData[this.vIdx + 33] = scaledV + scaledH;
+
+					this.vertexData[this.vIdx + 34] = texelW;
+					this.vertexData[this.vIdx + 35] = texelH;
+					this.vertexData[this.vIdx + 36] = 0;
+					this.vertexData[this.vIdx + 37] = 0;
+					this.vertexData[this.vIdx + 38] = 0;
+					this.vertexData[this.vIdx + 39] = -1;
+					this.vIdx += 40;
+
+					final i4 = this.i * 4;
+					this.indexData[this.iIdx] = i4;
+					this.indexData[this.iIdx + 1] = 1 + i4;
+					this.indexData[this.iIdx + 2] = 2 + i4;
+					this.indexData[this.iIdx + 3] = 2 + i4;
+					this.indexData[this.iIdx + 4] = 1 + i4;
+					this.indexData[this.iIdx + 5] = 3 + i4;
+					this.iIdx += 6;
+					this.i++;
 				}
+		}
 
-				
+		/*if (obj.props.showName) {
+			if (obj.name != null && obj.name != "" && obj.nameBitmap == null) {
+				var nameText = new SimpleText(16, 0xFFFFFF);
+				nameText.setBold(true);
+				nameText.text = obj.name;
+				nameText.updateMetrics();
+
+				var nameTex = new BitmapData(Std.int(nameText.width + 20), 64, true, 0);
+				nameTex.draw(nameText, new Matrix(1, 0, 0, 1, 12, 0));
+				nameTex.applyFilter(nameTex, nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
+
+				obj.nameBitmap = new Bitmap(nameTex);
+				obj.nameBitmap.cacheAsBitmap = true;
+				addChild(obj.nameBitmap);
 			}
 
-			if (obj.condition > 0) {
-				var icon: BitmapData = null;
-				if (obj.icons == null)
-					obj.icons = new Array<BitmapData>();
-
-				obj.icons.splice(0, obj.icons.length);
-				ConditionEffect.getConditionEffectIcons(obj.condition, obj.icons, Std.int(time / 500));
-				var len: Int32 = obj.icons.length;
-				var lenDiv2: Int32 = len >> 1;
-				for (i in 0...len) {
-					icon = obj.icons[i];
-					var iconData = TextureFactory.make(icon);
-						var iconW: Int32 = iconData.width;
-						RenderUtils.baseRender(iconW, iconData.height, obj.screenX - iconW * lenDiv2 + i * iconW, obj.yBaseNoZ + obj.dh + yPos, obj.width,
-							obj.height, obj.uValue, obj.vValue, 1);
-				}
+			obj.nameBitmap.x = obj.screenX - obj.nameBitmap.width * 2;
+			obj.nameBitmap.y = obj.yBaseNoZ - obj.nameBitmap.height;
 		}*/
 	}
 
@@ -1168,6 +1237,94 @@ class Map extends Sprite {
 
 				yPos += 20;
 			}
+		}
+
+		if (player.condition > 0) {
+			var len = 0;
+			for (i in 0...32)
+				if (player.condition & (1 << i) != 0)
+					len++;
+
+			len >>= 1;
+
+			var idx = 0;
+			for (i in 0...32)
+				if (player.condition & (1 << i) != 0) {
+					var rect = ConditionEffect.effectRects[i];
+					if (rect == null)
+						continue;
+
+					var scaledW: Float32 = rect.width / Main.ATLAS_WIDTH;
+					var scaledH: Float32 = rect.height / Main.ATLAS_HEIGHT;
+					var scaledU: Float32 = rect.x / Main.ATLAS_WIDTH;
+					var scaledV: Float32 = rect.y / Main.ATLAS_HEIGHT;
+					w = rect.width * RenderUtils.clipSpaceScaleX * 0.5;
+					h = rect.height * RenderUtils.clipSpaceScaleY * 0.5;
+					xBase = (player.screenX - rect.width * len + idx * rect.width) * RenderUtils.clipSpaceScaleX;
+					yBase = (player.screenY + yPos + 5 - (rect.height / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+					texelW = 1 / Main.ATLAS_WIDTH;
+					texelH = 1 / Main.ATLAS_HEIGHT;
+
+					this.vertexData[this.vIdx] = -w + xBase;
+					this.vertexData[this.vIdx + 1] = -h + yBase;
+					this.vertexData[this.vIdx + 2] = scaledU;
+					this.vertexData[this.vIdx + 3] = scaledV;
+
+					this.vertexData[this.vIdx + 4] = texelW;
+					this.vertexData[this.vIdx + 5] = texelH;
+					this.vertexData[this.vIdx + 6] = 0;
+					this.vertexData[this.vIdx + 7] = 0;
+					this.vertexData[this.vIdx + 8] = 0;
+					this.vertexData[this.vIdx + 9] = -1;
+
+					this.vertexData[this.vIdx + 10] = w + xBase;
+					this.vertexData[this.vIdx + 11] = -h + yBase;
+					this.vertexData[this.vIdx + 12] = scaledU + scaledW;
+					this.vertexData[this.vIdx + 13] = scaledV;
+
+					this.vertexData[this.vIdx + 14] = texelW;
+					this.vertexData[this.vIdx + 15] = texelH;
+					this.vertexData[this.vIdx + 16] = 0;
+					this.vertexData[this.vIdx + 17] = 0;
+					this.vertexData[this.vIdx + 18] = 0;
+					this.vertexData[this.vIdx + 19] = -1;
+
+					this.vertexData[this.vIdx + 20] = -w + xBase;
+					this.vertexData[this.vIdx + 21] = h + yBase;
+					this.vertexData[this.vIdx + 22] = scaledU;
+					this.vertexData[this.vIdx + 23] = scaledV + scaledH;
+
+					this.vertexData[this.vIdx + 24] = texelW;
+					this.vertexData[this.vIdx + 25] = texelH;
+					this.vertexData[this.vIdx + 26] = 0;
+					this.vertexData[this.vIdx + 27] = 0;
+					this.vertexData[this.vIdx + 28] = 0;
+					this.vertexData[this.vIdx + 29] = -1;
+
+					this.vertexData[this.vIdx + 30] = w + xBase;
+					this.vertexData[this.vIdx + 31] = h + yBase;
+					this.vertexData[this.vIdx + 32] = scaledU + scaledW;
+					this.vertexData[this.vIdx + 33] = scaledV + scaledH;
+
+					this.vertexData[this.vIdx + 34] = texelW;
+					this.vertexData[this.vIdx + 35] = texelH;
+					this.vertexData[this.vIdx + 36] = 0;
+					this.vertexData[this.vIdx + 37] = 0;
+					this.vertexData[this.vIdx + 38] = 0;
+					this.vertexData[this.vIdx + 39] = -1;
+					this.vIdx += 40;
+
+					final i4 = this.i * 4;
+					this.indexData[this.iIdx] = i4;
+					this.indexData[this.iIdx + 1] = 1 + i4;
+					this.indexData[this.iIdx + 2] = 2 + i4;
+					this.indexData[this.iIdx + 3] = 2 + i4;
+					this.indexData[this.iIdx + 4] = 1 + i4;
+					this.indexData[this.iIdx + 5] = 3 + i4;
+					this.iIdx += 6;
+					this.i++;
+					idx++;
+				}
 		}
 
 		/*if (player.name != null && player.name != "" && player.nameTex == null) {

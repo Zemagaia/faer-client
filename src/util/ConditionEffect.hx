@@ -1,5 +1,7 @@
 package util;
 
+import util.BinPacker.Rect;
+import util.NativeTypes;
 import haxe.ds.StringMap;
 import openfl.display.BitmapData;
 import openfl.filters.BitmapFilterQuality;
@@ -36,28 +38,46 @@ class ConditionEffect {
 	public static inline var HIDDEN_BIT = 1 << HIDDEN - 1;
 	public static inline var TARGETED_BIT = 1 << TARGETED - 1;
 
-	private static var GLOW_FILTER: GlowFilter = new GlowFilter(0, 0.3, 6, 6, 2, BitmapFilterQuality.HIGH, false, false);
 	public static var effects: Array<ConditionEffect> = [
-		new ConditionEffect("Nothing", 0, null),
-		new ConditionEffect("Dead", DEAD_BIT, null),
-		new ConditionEffect("Weak", WEAK_BIT, [5]),
-		new ConditionEffect("Slowed", SLOWED_BIT, [7]),
-		new ConditionEffect("Sick", SICK_BIT, [10]),
-		new ConditionEffect("Speedy", SPEEDY_BIT, [6]),
-		new ConditionEffect("Bleeding", BLEEDING_BIT, [2]),
-		new ConditionEffect("Healing", HEALING_BIT, [1]),
-		new ConditionEffect("Damaging", DAMAGING_BIT, [4]),
-		new ConditionEffect("Invulnerable", INVULNERABLE_BIT, [11]),
-		new ConditionEffect("Armored", ARMORED_BIT, [3]),
-		new ConditionEffect("Armor Broken", ARMOR_BROKEN_BIT, [0]),
-		new ConditionEffect("Hidden", HIDDEN_BIT, [9])
+		new ConditionEffect("Nothing"),
+		new ConditionEffect("Dead"),
+		new ConditionEffect("Weak"),
+		new ConditionEffect("Slowed"),
+		new ConditionEffect("Sick"),
+		new ConditionEffect("Speedy"),
+		new ConditionEffect("Bleeding"),
+		new ConditionEffect("Healing"),
+		new ConditionEffect("Damaging"),
+		new ConditionEffect("Invulnerable"),
+		new ConditionEffect("Armored"),
+		new ConditionEffect("Armor Broken"),
+		new ConditionEffect("Hidden")
 	];
+
+	public static var effectRects: Array<Rect>;
+
 	private static var conditionEffectFromName: StringMap<Int> = null;
-	private static var bitToIcon: Map<Int, Array<BitmapData>> = null;
 
 	public var name = "";
 	public var bit = 0;
 	public var iconOffsets: Array<Int>;
+
+	public static function initRects() {
+		effectRects = [
+			null,
+			AssetLibrary.getRectFromSet("conditions", 5),
+			AssetLibrary.getRectFromSet("conditions", 7),
+			AssetLibrary.getRectFromSet("conditions", 10),
+			AssetLibrary.getRectFromSet("conditions", 6),
+			AssetLibrary.getRectFromSet("conditions", 2),
+			AssetLibrary.getRectFromSet("conditions", 1),
+			AssetLibrary.getRectFromSet("conditions", 4),
+			AssetLibrary.getRectFromSet("conditions", 11),
+			AssetLibrary.getRectFromSet("conditions", 3),
+			AssetLibrary.getRectFromSet("conditions", 0),
+			AssetLibrary.getRectFromSet("conditions", 9)
+		];
+	}
 
 	public static function getConditionEffectFromName(name: String) {
 		if (conditionEffectFromName == null) {
@@ -69,49 +89,7 @@ class ConditionEffect {
 		return conditionEffectFromName.get(name);
 	}
 
-	public static function getConditionEffectIcons(condition: Int, icons: Array<BitmapData>, index: Int) {
-		var newCondition = 0;
-		var bit = 0;
-		var iconList: Array<BitmapData> = null;
-		while (condition != 0) {
-			newCondition = condition & condition - 1;
-			bit = condition ^ newCondition;
-			iconList = getIconsFromBit(bit);
-			if (iconList != null)
-				icons.push(iconList[index & (iconList.length - 1)]);
-
-			condition = newCondition;
-		}
-	}
-
-	private static function getIconsFromBit(bit: Int) {
-		var drawMatrix: Matrix = null;
-		var icons: Array<BitmapData> = null;
-		var icon: BitmapData = null;
-		if (bitToIcon == null) {
-			bitToIcon = new Map<Int, Array<BitmapData>>();
-			drawMatrix = new Matrix();
-			drawMatrix.translate(2, 2);
-			for (ce in 0...effects.length) {
-				icons = null;
-				if (effects[ce].iconOffsets != null) {
-					icons = new Array<BitmapData>();
-					for (i in 0...effects[ce].iconOffsets.length) {
-						icon = new BitmapData(20, 20, true, 0);
-						icon.draw(AssetLibrary.getImageFromSet("conditions", effects[ce].iconOffsets[i]), drawMatrix);
-						icons.push(icon);
-					}
-				}
-				bitToIcon.set(effects[ce].bit, icons);
-			}
-		}
-
-		return bitToIcon.get(bit);
-	}
-
-	public function new(name: String, bit: Int, iconOffsets: Array<Int>) {
+	public function new(name: String) {
 		this.name = name;
-		this.bit = bit;
-		this.iconOffsets = iconOffsets;
 	}
 }

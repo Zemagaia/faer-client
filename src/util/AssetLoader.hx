@@ -24,6 +24,7 @@ class AssetLoader {
 		AssetLibrary.addImageSet("keyIndicators", Assets.getBitmapData("assets/sheets/KeyIndicators.png"), 100, 100, true);
 		AssetLibrary.addImageSet("cursors", Assets.getBitmapData("assets/sheets/Cursors.png"), 32, 32, true);
 		AssetLibrary.addImageSet("items", Assets.getBitmapData("assets/sheets/Items.png"), 8, 8, true);
+		AssetLibrary.addImageSet("skinItems", Assets.getBitmapData("assets/sheets/Players.png"), 8, 8, true);
 		AssetLibrary.addImageSet("tieredItems", Assets.getBitmapData("assets/sheets/TieredItems.png"), 8, 8, true);
 		
 		AssetLibrary.addImageSet("bars", Assets.getBitmapData("assets/sheets/Bars.png"), 24, 8);
@@ -38,14 +39,14 @@ class AssetLoader {
 		AssetLibrary.addImageSet("props16", Assets.getBitmapData("assets/sheets/Props16.png"), 16, 16);
 		AssetLibrary.addImageSet("tieredProjectiles", Assets.getBitmapData("assets/sheets/TieredProjectiles.png"), 8, 8);
 
-		AnimatedChars.add("miscChars", Assets.getBitmapData("assets/sheets/MiscChars.png"), null, 8, 8, 56, 8);
-		AnimatedChars.add("lowrealm", Assets.getBitmapData("assets/sheets/LowRealm.png"), null, 8, 8, 56, 8);
-		AnimatedChars.add("lowrealm16", Assets.getBitmapData("assets/sheets/LowRealm16.png"), null, 16, 16, 112, 16);
-		AnimatedChars.add("midrealm", Assets.getBitmapData("assets/sheets/MidRealm.png"), null, 8, 8, 56, 8);
-		AnimatedChars.add("midrealm16", Assets.getBitmapData("assets/sheets/MidRealm16.png"), null, 16, 16, 112, 16);
-		AnimatedChars.add("players", Assets.getBitmapData("assets/sheets/Players.png"), Assets.getBitmapData("assets/sheets/PlayersMask.png"), 8, 8, 56, 24);
+		AnimatedChars.add("miscChars", Assets.getBitmapData("assets/sheets/MiscChars.png"), null, 8, 8, 48, 8);
+		AnimatedChars.add("lowrealm", Assets.getBitmapData("assets/sheets/LowRealm.png"), null, 8, 8, 48, 8);
+		AnimatedChars.add("lowrealm16", Assets.getBitmapData("assets/sheets/LowRealm16.png"), null, 16, 16, 96, 16);
+		AnimatedChars.add("midrealm", Assets.getBitmapData("assets/sheets/MidRealm.png"), null, 8, 8, 48, 8);
+		AnimatedChars.add("midrealm16", Assets.getBitmapData("assets/sheets/MidRealm16.png"), null, 16, 16, 96, 16);
+		AnimatedChars.add("players", Assets.getBitmapData("assets/sheets/Players.png"), Assets.getBitmapData("assets/sheets/PlayersMask.png"), 8, 8, 48, 24);
 		AnimatedChars.add("playerskins", Assets.getBitmapData("assets/sheets/PlayerSkins.png"), Assets.getBitmapData("assets/sheets/PlayerSkinsMask.png"), 8,
-			8, 56, 24);
+			8, 48, 24);
 
 		for (name in GROUND_FILES)
 			GroundLibrary.parseFromXML(Assets.getText("assets/xmls/" + name + ".xml").asXml());
