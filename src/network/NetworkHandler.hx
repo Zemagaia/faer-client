@@ -106,9 +106,11 @@ enum abstract BuyResultType(Int8) from Int8 to Int8 {
 }
 
 enum abstract FailureType(Int8) from Int8 to Int8 {
-	final IncorrectVersion = 0;
-	final ForceCloseGame = 1;
-	final InvalidTeleportTarget = 2;
+	final MessageNoDisconnect = -1;
+	final MessageDisconnect = 0;
+	final IncorrectVersion = 1;
+	final ForceCloseGame = 2;
+	final InvalidTeleportTarget = 3;
 }
 
 enum abstract ShowEffectType(Int8) from Int8 to Int8 {
@@ -548,7 +550,7 @@ class NetworkHandler {
 									dialog.parent.removeChild(dialog);
 								});
 								Global.layers.dialogs.openDialog(dialog);
-							case ForceCloseGame:
+							case ForceCloseGame | MessageDisconnect:
 								disconnect();
 
 								var dialog: Dialog = new Dialog(errorDescription, "Connection error", "Ok", null);
@@ -560,6 +562,8 @@ class NetworkHandler {
 							case InvalidTeleportTarget:
 								Global.gameSprite.textBox.addText(errorDescription, 0xFF0000);
 								player.nextTeleportAt = 0;
+							case MessageDisconnect:
+								Global.gameSprite.textBox.addText(errorDescription, 0xFF0000);
 							default:
 								disconnect();
 
