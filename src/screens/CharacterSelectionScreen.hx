@@ -1,6 +1,7 @@
 package screens;
 
-import discord_rpc.DiscordRpc;
+import hxdiscord_rpc.Types;
+import hxdiscord_rpc.Discord;
 import util.Settings;
 import appengine.SavedCharacter;
 import classes.model.CharacterClass;
@@ -44,14 +45,15 @@ class CharacterSelectionScreen extends Sprite {
 	}
 
 	private function onAdded(_: Event) {
-		if (Main.rpcReady)
-			DiscordRpc.presence({
-				details: 'Character Select',
-				state: '',
-				largeImageKey: 'logo',
-				largeImageText: 'v${Settings.BUILD_VERSION}',
-				startTimestamp: Main.startTime
-			});
+		if (Main.rpcReady) {
+			var discordPresence = DiscordRichPresence.create();
+			discordPresence.state = 'Character Select';
+			discordPresence.details = '';
+			discordPresence.largeImageKey = 'logo';
+			discordPresence.largeImageText = 'v${Settings.BUILD_VERSION}';
+			discordPresence.startTimestamp = Main.startTime;
+			Discord.UpdatePresence(cpp.RawConstPointer.addressOf(discordPresence));
+		}
 
 		removeEventListener(Event.ADDED_TO_STAGE, onAdded);
 		addEventListener(Event.REMOVED_FROM_STAGE, onRemoved);

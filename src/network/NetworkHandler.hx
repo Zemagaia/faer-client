@@ -140,9 +140,7 @@ enum abstract StatType(Int) from Int to Int {
 	final Strength = 20;
 	final Defense = 21;
 	final Speed = 22;
-	final Sight = 26;
 	final Stamina = 27;
-	final Luck = 28;
 	final Condition = 29;
 	final Penetration = 30;
 	final MaxHPBoost = 46;
@@ -150,9 +148,7 @@ enum abstract StatType(Int) from Int to Int {
 	final StrengthBoost = 48;
 	final DefenseBoost = 49;
 	final SpeedBoost = 50;
-	final SightBoost = 51;
 	final StaminaBoost = 52;
-	final LuckBoost = 53;
 	final PenetrationBoost = 57;
 	final Inv0 = 8;
 	final Inv1 = 9;
@@ -198,6 +194,18 @@ enum abstract StatType(Int) from Int to Int {
 	final HealthVialStack = 65;
 	final MagicVialStack = 66;
 	final Texture = 76;
+	final Wit = 77;
+	final Resistance = 78;
+	final Haste = 79;
+	final Intelligence = 80;
+	final Piercing = 81;
+	final Tenacity = 82;
+	final WitBoost = 83;
+	final ResistanceBoost = 84;
+	final HasteBoost = 85;
+	final IntelligenceBoost = 86;
+	final PiercingBoost = 87;
+	final TenacityBoost = 88;
 }
 
 @:headerCode("#include <appengine/RequestHandler.h>")
@@ -1638,42 +1646,66 @@ class NetworkHandler {
 					return;
 
 				cast(go, Player).strength = strength;
+			case Wit:
+				var wit = socket.readShort();
+				if (go == null)
+					return;
+
+				cast(go, Player).wit = wit;
 			case Defense:
 				var defense = socket.readShort();
 				if (go == null)
 					return;
 
 				go.defense = defense;
+			case Resistance:
+				var res = socket.readShort();
+				if (go == null)
+					return;
+
+				cast(go, Player).resistance = res;
 			case Speed:
 				var speed = socket.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).speed = speed;
-			case Luck:
-				var luck = socket.readShort();
+			case Haste:
+				var haste = socket.readShort();
 				if (go == null)
 					return;
 
-				cast(go, Player).luck = luck;
-			case Sight:
-				var sight = socket.readShort();
-				if (go == null)
-					return;
-
-				cast(go, Player).sight = sight;
+				cast(go, Player).haste = haste;
 			case Stamina:
 				var stam = socket.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).stamina = stam;
+			case Intelligence:
+				var int = socket.readShort();
+				if (go == null)
+					return;
+
+				cast(go, Player).intelligence = int;
+			case Piercing:
+				var pier = socket.readShort();
+				if (go == null)
+					return;
+
+				cast(go, Player).piercing = pier;
 			case Penetration:
 				var pen = socket.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).penetration = pen;
+			case Tenacity:
+				var ten = socket.readShort();
+				if (go == null)
+					return;
+
+				cast(go, Player).tenacity = ten;
 			case Condition:
 				var cond = socket.readInt();
 				if (go == null)
@@ -1731,59 +1763,83 @@ class NetworkHandler {
 
 			// go.merchCount = merchCount;
 			case MaxHPBoost:
-				var maxHPBoost = socket.readUnsignedShort();
+				var maxHPBoost = socket.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).maxHPBoost = maxHPBoost;
 			case MaxMPBoost:
-				var maxMPBoost = socket.readUnsignedShort();
+				var maxMPBoost = socket.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).maxMPBoost = maxMPBoost;
 			case StrengthBoost:
-				var strengthBoost = socket.readUnsignedShort();
+				var strengthBoost = socket.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).strengthBoost = strengthBoost;
+			case WitBoost:
+				var witBoost = socket.readShort();
+				if (go == null)
+					return;
+
+				cast(go, Player).witBoost = witBoost;
 			case DefenseBoost:
-				var defenseBoost = socket.readUnsignedShort();
+				var defenseBoost = socket.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).defenseBoost = defenseBoost;
+			case ResistanceBoost:
+				var resBoost = socket.readShort();
+				if (go == null)
+					return;
+
+				cast(go, Player).resistanceBoost = resBoost;
 			case SpeedBoost:
-				var speedBoost = socket.readUnsignedShort();
+				var speedBoost = socket.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).speedBoost = speedBoost;
-			case SightBoost:
-				var sightBoost = socket.readUnsignedShort();
+			case HasteBoost:
+				var hasteBoost = socket.readShort();
 				if (go == null)
 					return;
 
-				cast(go, Player).sightBoost = sightBoost;
+				cast(go, Player).hasteBoost = hasteBoost;
 			case StaminaBoost:
-				var staminaBoost = socket.readUnsignedShort();
+				var staminaBoost = socket.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).staminaBoost = staminaBoost;
-			case LuckBoost:
-				var luckBoost = socket.readUnsignedShort();
+			case IntelligenceBoost:
+				var intBoost = socket.readShort();
 				if (go == null)
 					return;
 
-				cast(go, Player).luckBoost = luckBoost;
+				cast(go, Player).intelligenceBoost = intBoost;
+			case PiercingBoost:
+				var pierBoost = socket.readShort();
+				if (go == null)
+					return;
+
+				cast(go, Player).piercingBoost = pierBoost;
 			case PenetrationBoost:
-				var penBoost = socket.readUnsignedShort();
+				var penBoost = socket.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).penetrationBoost = penBoost;
+			case TenacityBoost:
+				var tenBoost = socket.readShort();
+				if (go == null)
+					return;
+
+				cast(go, Player).tenacityBoost = tenBoost;
 			case OwnerAccId:
 				var ownerId = socket.readInt();
 				if (go == null)
@@ -1863,6 +1919,7 @@ class NetworkHandler {
 					return;
 
 				cast(go, Player).tier = tier;
+				cast(go, Player).updateMaxValues();
 			case Gems:
 				var gems = socket.readInt();
 				if (go == null)

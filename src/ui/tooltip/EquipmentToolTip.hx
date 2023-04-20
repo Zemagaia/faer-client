@@ -68,18 +68,26 @@ class EquipmentToolTip extends ToolTip {
 				return "MP";
 			case Strength:
 				return "Strength";
+			case Wit:
+				return "Wit";
 			case Defense:
 				return "Defense";
+			case Resistance:
+				return "Resistance";
 			case Speed:
 				return "Speed";
-			case Sight:
-				return "Sight";
+			case Haste:
+				return "Haste";
 			case Stamina:
 				return "Stamina";
-			case Luck:
-				return "Luck";
+			case Intelligence:
+				return "Intelligence";
+			case Piercing:
+				return "Piercing";
 			case Penetration:
 				return "Penetration";
+			case Tenacity:
+				return "Tenacity";
 			default:
 				return "Unknown Stat";
 		}

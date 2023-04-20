@@ -1,6 +1,7 @@
 package mapeditor;
 import util.Settings;
-import discord_rpc.DiscordRpc;
+import hxdiscord_rpc.Types;
+import hxdiscord_rpc.Discord;
 import servers.Server;
 import core.PlayerModel;
 import openfl.display.Sprite;
@@ -17,14 +18,15 @@ class MapEditor extends Sprite {
 		this.editingScreen = new EditingScreen();
 		addChild(this.editingScreen);
 
-		if (Main.rpcReady)
-			DiscordRpc.presence({
-				details: 'Map Editor',
-				state: '',
-				largeImageKey: 'logo',
-				largeImageText: 'v${Settings.BUILD_VERSION}',
-				startTimestamp: Main.startTime
-			});
+		if (Main.rpcReady) {
+			var discordPresence = DiscordRichPresence.create();
+			discordPresence.state = 'Map Editor';
+			discordPresence.details = '';
+			discordPresence.largeImageKey = 'logo';
+			discordPresence.largeImageText = 'v${Settings.BUILD_VERSION}';
+			discordPresence.startTimestamp = Main.startTime;
+			Discord.UpdatePresence(cpp.RawConstPointer.addressOf(discordPresence));
+		}
 	}
 
 	public function initialize(model: PlayerModel, server: Server) {

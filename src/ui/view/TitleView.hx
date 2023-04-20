@@ -1,6 +1,7 @@
 package ui.view;
 
-import discord_rpc.DiscordRpc;
+import hxdiscord_rpc.Discord;
+import hxdiscord_rpc.Types;
 import mapeditor.MapEditor;
 import account.Account;
 import util.Settings;
@@ -44,14 +45,15 @@ class TitleView extends Sprite {
 		removeEventListener(Event.ADDED_TO_STAGE, onAdded);
 		addEventListener(Event.REMOVED_FROM_STAGE, onRemoved);
 
-		if (Main.rpcReady)
-			DiscordRpc.presence({
-				details: 'Main Menu',
-				state: '',
-				largeImageKey: 'logo',
-				largeImageText: 'v${Settings.BUILD_VERSION}',
-				startTimestamp: Main.startTime
-			});
+		if (Main.rpcReady) {
+			var discordPresence = DiscordRichPresence.create();
+			discordPresence.state = 'Main Menu';
+			discordPresence.details = '';
+			discordPresence.largeImageKey = 'logo';
+			discordPresence.largeImageText = 'v${Settings.BUILD_VERSION}';
+			discordPresence.startTimestamp = Main.startTime;
+			Discord.UpdatePresence(cpp.RawConstPointer.addressOf(discordPresence));
+		}
 
 		this.initialize();
 		this.playClicked.on(handleIntentionToPlay);

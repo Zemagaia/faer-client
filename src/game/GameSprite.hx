@@ -2,7 +2,8 @@ package game;
 
 import util.Utils.StringUtils;
 import util.Settings;
-import discord_rpc.DiscordRpc;
+import hxdiscord_rpc.Types;
+import hxdiscord_rpc.Discord;
 import map.Camera;
 import network.NetworkHandler;
 import openfl.display.OpenGLRenderer;
@@ -240,15 +241,15 @@ class GameSprite extends Sprite {
 					this.characterDetails.init(player);
 					if (Main.rpcReady) {
 						final className = player.props.displayId;
-						DiscordRpc.presence({
-							details: 'In Game',
-							state: '',
-							largeImageKey: 'logo',
-							largeImageText: 'v${Settings.BUILD_VERSION}',
-							smallImageKey: className.toLowerCase().replace(' ', '_'),
-							smallImageText: 'Tier ${StringUtils.toRoman(player.tier)} $className',
-							startTimestamp: Main.startTime
-						});
+						var discordPresence = DiscordRichPresence.create();
+						discordPresence.state = 'In ${this.map.mapName}';
+						discordPresence.details = '';
+						discordPresence.largeImageKey = 'logo';
+						discordPresence.largeImageText = 'v${Settings.BUILD_VERSION}';
+						discordPresence.smallImageKey = className.toLowerCase().replace(' ', '_');
+						discordPresence.smallImageText = 'Tier ${StringUtils.toRoman(player.tier)} $className';
+						discordPresence.startTimestamp = Main.startTime;
+						Discord.UpdatePresence(cpp.RawConstPointer.addressOf(discordPresence));
 					}
 						
 					this.uiInited = true;

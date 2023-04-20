@@ -1,6 +1,7 @@
 package;
 
-import discord_rpc.DiscordRpc;
+import hxdiscord_rpc.Discord;
+import hxdiscord_rpc.Types;
 import engine.GLTextureData;
 import util.BinPacker;
 import openfl.display.BitmapData;
@@ -54,18 +55,11 @@ class Main extends Sprite {
 		AssetLoader.load();
 
 		startTime = Std.int(Date.now().getTime() / 1000);
-		DiscordRpc.start({
-			clientID: "1095646272171552811",
-			onReady: () -> {
-				rpcReady = true;
-			},
-			onError: (code: Int, message: String) -> {
-				trace('Discord RPC Error (code $code): $message');
-			},
-			onDisconnected: (code: Int, message: String) -> {
-				trace('Discord RPC Disconnected (code $code): $message');
-			}
-		});
+		var handlers = DiscordEventHandlers.create();
+		handlers.ready = cpp.Function.fromStaticFunction(onReady);
+		handlers.errored = cpp.Function.fromStaticFunction(onError);
+		handlers.disconnected = cpp.Function.fromStaticFunction(onDisconnected);
+		Discord.Initialize("1095646272171552811", cpp.RawPointer.addressOf(handlers), 1, null);
 
 		refreshCursor();
 
@@ -91,6 +85,18 @@ class Main extends Sprite {
 		stage.addEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUp);
 	}
 
+	private static function onReady(request: cpp.RawConstPointer<DiscordUser>) {
+		rpcReady = true;
+	}
+
+	private static function onDisconnected(errorCode: Int, message: cpp.ConstCharStar) {
+		trace('Discord RPC Disconnected (code $errorCode): ${cast(message, String)}');
+	}
+
+	private static function onError(errorCode: Int, message: cpp.ConstCharStar) {
+		trace('Discord RPC Error (code $errorCode): ${cast(message, String)}');
+	}
+
 	public static function refreshCursor() {
 		if (Settings.selectedCursor == -1) {
 			Mouse.show();
@@ -114,7 +120,7 @@ class Main extends Sprite {
 	}
 
 	private final function onEnterFrame(_: Event) {
-		DiscordRpc.process();
+		Discord.RunCallbacks();
 
 		if (baseCursorSprite == null)
 			return;

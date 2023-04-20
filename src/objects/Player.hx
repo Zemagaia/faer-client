@@ -54,24 +54,36 @@ class Player extends GameObject {
 	public var maxMPMax = 0;
 	public var defenseBoost = 0;
 	public var defenseMax = 0;
+	public var resistance = 0;
+	public var resistanceBoost = 0;
+	public var resistanceMax = 0;
 	public var strength = 0;
 	public var strengthBoost = 0;
 	public var strengthMax = 0;
+	public var wit = 0;
+	public var witBoost = 0;
+	public var witMax = 0;
 	public var speed = 0;
 	public var speedBoost = 0;
 	public var speedMax = 0;
-	public var luck = 0;
-	public var luckBoost = 0;
-	public var luckMax = 0;
-	public var sight = 0;
-	public var sightBoost = 0;
-	public var sightMax = 0;
+	public var haste = 0;
+	public var hasteBoost = 0;
+	public var hasteMax = 0;
 	public var stamina = 0;
 	public var staminaBoost = 0;
 	public var staminaMax = 0;
+	public var intelligence = 0;
+	public var intelligenceBoost = 0;
+	public var intelligenceMax = 0;
+	public var piercing = 0;
+	public var piercingBoost = 0;
+	public var piercingMax = 0;
 	public var penetration = 0;
 	public var penetrationBoost = 0;
 	public var penetrationMax = 0;
+	public var tenacity = 0;
+	public var tenacityBoost = 0;
+	public var tenacityMax = 0;
 	public var healthVialCount = 0;
 	public var magicVialCount = 0;
 	public var damageMult = 1.0;
@@ -93,6 +105,7 @@ class Player extends GameObject {
 	private var relMoveVec: Point = null;
 	private var lastAttackError = -1;
 	private var needsBlinkingClear = false;
+	private var objectXML: Xml;
 
 	public static function fromPlayerXML(name: String, playerXML: Xml) {
 		var player = new Player(ObjectLibrary.xmlLibrary.get(playerXML.intElement("ObjectType")));
@@ -101,12 +114,16 @@ class Player extends GameObject {
 		player.maxHP = player.hp = playerXML.intElement("Health");
 		player.maxMP = player.mp = playerXML.intElement("Mana");
 		player.strength = playerXML.intElement("Strength");
+		player.wit = playerXML.intElement("Wit");
 		player.defense = playerXML.intElement("Defense");
+		player.resistance = playerXML.intElement("Resistance");
 		player.speed = playerXML.intElement("Speed");
-		player.luck = playerXML.intElement("Luck");
-		player.sight = playerXML.intElement("Sight");
+		player.haste = playerXML.intElement("Haste");
 		player.stamina = playerXML.intElement("Stamina");
+		player.intelligence = playerXML.intElement("Intelligence");
+		player.piercing = playerXML.intElement("Piercing");
 		player.penetration = playerXML.intElement("Penetration");
+		player.tenacity = playerXML.intElement("Tenacity");
 		player.tier = playerXML.intElement("Tier");
 		return player;
 	}
@@ -123,16 +140,25 @@ class Player extends GameObject {
 			.next()
 			.firstChild()
 			.nodeValue : "monster/default_death";
-		this.maxHPMax = objectXML.elementsNamed("Health").next().intAttribute("max");
-		this.maxMPMax = objectXML.elementsNamed("Mana").next().intAttribute("max");
-		this.strengthMax = objectXML.elementsNamed("Strength").next().intAttribute("max");
-		this.defenseMax = objectXML.elementsNamed("Defense").next().intAttribute("max");
-		this.speedMax = objectXML.elementsNamed("Speed").next().intAttribute("max");
-		this.luckMax = objectXML.elementsNamed("Luck").next().intAttribute("max");
-		this.sightMax = objectXML.elementsNamed("Sight").next().intAttribute("max");
-		this.staminaMax = objectXML.elementsNamed("Stamina").next().intAttribute("max");
-		this.penetrationMax = objectXML.elementsNamed("Penetration").next().intAttribute("max");
 		this.tier = objectXML.intElement("Tier");
+		this.objectXML = objectXML;
+		this.updateMaxValues();
+	}
+
+	public function updateMaxValues() {
+		this.maxHPMax = this.objectXML.elementsNamed("Health").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
+		this.maxMPMax = this.objectXML.elementsNamed("Mana").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
+		this.strengthMax = this.objectXML.elementsNamed("Strength").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
+		this.witMax = this.objectXML.elementsNamed("Wit").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
+		this.defenseMax = this.objectXML.elementsNamed("Defense").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
+		this.resistanceMax = this.objectXML.elementsNamed("Resistance").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
+		this.speedMax = this.objectXML.elementsNamed("Speed").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
+		this.hasteMax = this.objectXML.elementsNamed("Haste").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
+		this.staminaMax = this.objectXML.elementsNamed("Stamina").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
+		this.intelligenceMax = this.objectXML.elementsNamed("Intelligence").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
+		this.piercingMax = this.objectXML.elementsNamed("Piercing").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
+		this.penetrationMax = this.objectXML.elementsNamed("Penetration").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
+		this.tenacityMax = this.objectXML.elementsNamed("Tenacity").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
 	}
 
 	override public function update(time: Int32, dt: Int16) {
