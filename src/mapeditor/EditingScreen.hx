@@ -197,12 +197,30 @@ class EditingScreen extends Sprite {
 
 				this.addModifyCommandList(tiles, this.chooser.layer, selType);
 			case MECommandMenu.RANDOM_COMMAND:
-				var modTiles: Array<IntPoint> = [];
-				var chance = Std.parseFloat(this.randomChance.text());
-				for (ip in tiles)
-					if (Math.random() < chance)
-						modTiles.push(ip);
-				this.addModifyCommandList(modTiles, this.chooser.layer, this.chooser.selectedType());
+				if (tiles.length == 1) {
+					var finalTiles: Array<IntPoint> = [];
+					var modTiles: Array<IntPoint> = [];
+					var cX = tiles[0].x, cY = tiles[0].y;
+					var radius = Std.parseFloat(this.brushSize.text());
+					for (y in Math.floor(cY - radius)...Math.ceil(cY + radius))
+						for (x in Math.floor(cX - radius)...Math.ceil(cX + radius))
+							if (this.inRadius(cX, cY, x, y, radius))
+								modTiles.push({x: x, y: y});
+
+					var chance = Std.parseFloat(this.randomChance.text());
+					for (ip in modTiles)
+						if (Math.random() < chance)
+							finalTiles.push(ip);
+					this.addModifyCommandList(finalTiles, this.chooser.layer, this.chooser.selectedType());
+				} else {
+					var modTiles: Array<IntPoint> = [];
+					var chance = Std.parseFloat(this.randomChance.text());
+					for (ip in tiles)
+						if (Math.random() < chance)
+							modTiles.push(ip);
+					this.addModifyCommandList(modTiles, this.chooser.layer, this.chooser.selectedType());
+				}
+				
 			case MECommandMenu.DRAW_COMMAND:
 				if (tiles.length == 1) {
 					var modTiles: Array<IntPoint> = [];
