@@ -7,9 +7,5 @@ class RegionChooser extends Chooser {
 		super(Layer.REGION);
 		for (regionXML in RegionLibrary.xmlLibrary)
 			addElement(new RegionElement(regionXML));
-		for (regionXML in RegionLibrary.xmlLibrary)
-			addElement(new RegionElement(regionXML));
-		for (regionXML in RegionLibrary.xmlLibrary)
-			addElement(new RegionElement(regionXML));
 	}
 }

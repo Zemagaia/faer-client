@@ -63,12 +63,8 @@ class MEMap extends Sprite {
 		addEventListener(Event.REMOVED_FROM_STAGE, this.onRemovedFromStage);
 	}
 
-	public function getType(x: Int, y: Int, layer: Int) {
-		var tile = this.getTile(x, y);
-		if (tile == null)
-			return (layer == Layer.REGION ? 255 : 65535);
-
-		return tile.types[layer];
+	public inline function getType(x: Int, y: Int, layer: Int) {
+		return this.getTile(x, y)?.types[layer] ?? (layer == Layer.REGION ? 255 : 65535);
 	}
 
 	public function getTile(x: Int, y: Int) {
