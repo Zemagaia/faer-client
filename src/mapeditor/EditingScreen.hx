@@ -97,11 +97,13 @@ class EditingScreen extends Sprite {
 			case MECommandMenu.DRAW_COMMAND:
 				this.addModifyCommandList(event.tiles, this.chooser.layer, this.chooser.selectedType());
 			case MECommandMenu.ERASE_COMMAND:
-				this.addModifyCommandList(event.tiles, this.chooser.layer, 65535);
+				this.addModifyCommandList(event.tiles, this.chooser.layer, this.chooser.layer == Layer.REGION ? 255 : 65535);
 			case MECommandMenu.SAMPLE_COMMAND:
 				type = this.meMap.getType(tile.x, tile.y, this.chooser.layer);
 				if ((this.chooser.layer == Layer.GROUND || this.chooser.layer == Layer.OBJECT)
-					&& type == 65535 || this.chooser.layer == Layer.REGION && type == 255)
+					&& type == 65535
+					|| this.chooser.layer == Layer.REGION
+					&& type == 255)
 					return;
 
 				this.chooser.setSelectedType(type);
