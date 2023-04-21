@@ -1,4 +1,5 @@
 package mapeditor;
+
 import haxe.ds.Vector;
 import openfl.display.BitmapData;
 import openfl.geom.Matrix;
@@ -10,6 +11,7 @@ class BigBitmapData {
 	public var width: Int;
 	public var height: Int;
 	public var fillColor: UInt;
+
 	private var maxChunkX: Int;
 	private var maxChunkY: Int;
 	private var chunks: Vector<BitmapData>;
@@ -51,10 +53,10 @@ class BigBitmapData {
 	public function copyFrom(sourceRect: Rectangle, dest: BitmapData, destRect: Rectangle) {
 		var scaleX = destRect.width / sourceRect.width;
 		var scaleY = destRect.height / sourceRect.height;
-		var startChunkX = Std.int(Math.max(0, Std.int(sourceRect.x / CHUNK_SIZE)));
-		var startChunkY = Std.int(Math.max(0, Std.int(sourceRect.y / CHUNK_SIZE)));
-		var endChunkX = Std.int(Math.min(this.maxChunkX - 1, Std.int(sourceRect.right / CHUNK_SIZE)));
-		var endChunkY = Std.int(Math.min(this.maxChunkY - 1, Std.int(sourceRect.bottom / CHUNK_SIZE)));
+		var startChunkX = Math.floor(Math.max(0, sourceRect.x / CHUNK_SIZE));
+		var startChunkY = Math.floor(Math.max(0, sourceRect.y / CHUNK_SIZE));
+		var endChunkX = Math.ceil(Math.min(this.maxChunkX - 1, sourceRect.right / CHUNK_SIZE));
+		var endChunkY = Math.ceil(Math.min(this.maxChunkY - 1, sourceRect.bottom / CHUNK_SIZE));
 		var m = new Matrix();
 		for (cX in startChunkX...endChunkX)
 			for (cY in startChunkY...endChunkY) {
@@ -67,8 +69,8 @@ class BigBitmapData {
 	}
 
 	public function erase(rect: Rectangle) {
-		var startChunkX = Std.int(rect.x / CHUNK_SIZE);
-		var startChunkY = Std.int(rect.y / CHUNK_SIZE);
+		var startChunkX = Math.floor(rect.x / CHUNK_SIZE);
+		var startChunkY = Math.floor(rect.y / CHUNK_SIZE);
 		var endChunkX = Math.ceil(rect.right / CHUNK_SIZE);
 		var endChunkY = Math.ceil(rect.bottom / CHUNK_SIZE);
 		var chunkRect = new Rectangle();

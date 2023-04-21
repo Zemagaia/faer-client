@@ -39,8 +39,11 @@ class MEMap extends Sprite {
 	private var mouseMoveAnchorT: IntPoint = null;
 	private var invisibleTexture: BitmapData;
 	private var replaceTexture: BitmapData;
+	private var mouseDown = false;
+	private var editScreen: EditingScreen;
 
-	public function new() {
+	public function new(editScreen: EditingScreen) {
+		this.editScreen = editScreen;
 		this.tileDict = new IntMap<METile>();
 		this.fullMap = new BigBitmapData(NUM_SQUARES * SQUARE_SIZE, NUM_SQUARES * SQUARE_SIZE, true, 0);
 		this.regionMap = new BitmapData(NUM_SQUARES, NUM_SQUARES, true, 0);
@@ -251,7 +254,9 @@ class MEMap extends Sprite {
 	private function onAddedToStage(_: Event) {
 		addEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
 		addEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
+		addEventListener(MouseEvent.MOUSE_UP, this.onMouseUp);
 		addEventListener(MouseEvent.MOUSE_MOVE, this.onMouseMove);
+		addEventListener(Event.ENTER_FRAME, this.onEnterFrame);
 		stage.addEventListener(KeyboardEvent.KEY_DOWN, this.onKeyDown);
 		stage.addEventListener(KeyboardEvent.KEY_UP, this.onKeyUp);
 	}
@@ -259,7 +264,9 @@ class MEMap extends Sprite {
 	private function onRemovedFromStage(_: Event) {
 		removeEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
 		removeEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
+		removeEventListener(MouseEvent.MOUSE_UP, this.onMouseUp);
 		removeEventListener(MouseEvent.MOUSE_MOVE, this.onMouseMove);
+		removeEventListener(Event.ENTER_FRAME, this.onEnterFrame);
 		stage.removeEventListener(KeyboardEvent.KEY_DOWN, this.onKeyDown);
 		stage.removeEventListener(KeyboardEvent.KEY_UP, this.onKeyUp);
 	}
@@ -322,7 +329,24 @@ class MEMap extends Sprite {
 			for (yT in Std.int(rectT.y)...Std.int(rectT.bottom))
 				tilesT.push(new IntPoint(xT, yT));
 
-		dispatchEvent(new TilesEvent(tilesT));
+		this.mouseDown = true;
+		this.editScreen.editTiles(tilesT);
+	}
+
+	private function onMouseUp(_: MouseEvent) {
+		var rectT = this.mouseRectT();
+		var tilesT = new Array<IntPoint>();
+		for (xT in Std.int(rectT.x)...Std.int(rectT.right))
+			for (yT in Std.int(rectT.y)...Std.int(rectT.bottom))
+				tilesT.push(new IntPoint(xT, yT));
+
+		this.mouseDown = false;
+		this.editScreen.editTiles(tilesT);
+	}
+
+	private function onEnterFrame(_: Event) {
+		if (this.mouseDown)
+			this.editScreen.editTiles([this.mousePosT()]);
 	}
 
 	private function onMouseMove(event: MouseEvent) {
@@ -336,9 +360,6 @@ class MEMap extends Sprite {
 			this.mouseMoveAnchorT = null;
 		else if (this.mouseMoveAnchorT == null)
 			this.mouseMoveAnchorT = this.mousePosT();
-
-		if (event.buttonDown)
-			dispatchEvent(new TilesEvent([this.mousePosT()]));
 
 		if (this.mouseMoveAnchorT != null) {
 			mpT = this.mousePosT();

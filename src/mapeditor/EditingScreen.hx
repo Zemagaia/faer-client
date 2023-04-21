@@ -55,8 +55,8 @@ class EditingScreen extends Sprite {
 		addChild(this.commandMenu);
 
 		this.commandQueue = new CommandQueue();
-		this.meMap = new MEMap();
-		this.meMap.addEventListener(TilesEvent.TILES_EVENT, this.onTilesEvent);
+		this.meMap = new MEMap(this);
+		this.meMap.addEventListener(TilesEvent.TILES_EVENT, this.editTiles);
 		this.meMap.x = 800 / 2 - MEMap.SIZE / 2;
 		this.meMap.y = MAP_Y;
 		addChild(this.meMap);
@@ -87,19 +87,15 @@ class EditingScreen extends Sprite {
 		this.regionChooser.y = this.chooserDropDown.y + this.chooserDropDown.height + 4;
 	}
 
-	private function onTilesEvent(event: TilesEvent) {
-		var tile: IntPoint = null;
-		var type = 0;
-		var oldName: String = null;
-		var props: EditTileProperties = null;
-		tile = event.tiles[0];
+	public function editTiles(tiles: Array<IntPoint>) {
 		switch (this.commandMenu.getCommand()) {
 			case MECommandMenu.DRAW_COMMAND:
-				this.addModifyCommandList(event.tiles, this.chooser.layer, this.chooser.selectedType());
+				this.addModifyCommandList(tiles, this.chooser.layer, this.chooser.selectedType());
 			case MECommandMenu.ERASE_COMMAND:
-				this.addModifyCommandList(event.tiles, this.chooser.layer, this.chooser.layer == Layer.REGION ? 255 : 65535);
+				this.addModifyCommandList(tiles, this.chooser.layer, this.chooser.layer == Layer.REGION ? 255 : 65535);
 			case MECommandMenu.SAMPLE_COMMAND:
-				type = this.meMap.getType(tile.x, tile.y, this.chooser.layer);
+				var tile = tiles[0];
+				var type = this.meMap.getType(tile.x, tile.y, this.chooser.layer);
 				if ((this.chooser.layer == Layer.GROUND || this.chooser.layer == Layer.OBJECT)
 					&& type == 65535
 					|| this.chooser.layer == Layer.REGION
