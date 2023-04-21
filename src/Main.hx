@@ -90,11 +90,11 @@ class Main extends Sprite {
 	}
 
 	private static function onDisconnected(errorCode: Int, message: cpp.ConstCharStar) {
-		trace('Discord RPC Disconnected (code $errorCode): ${cast(message, String)}');
+		trace('Discord RPC Disconnected (code $errorCode): ${cast (message, String)}');
 	}
 
 	private static function onError(errorCode: Int, message: cpp.ConstCharStar) {
-		trace('Discord RPC Error (code $errorCode): ${cast(message, String)}');
+		trace('Discord RPC Error (code $errorCode): ${cast (message, String)}');
 	}
 
 	public static function refreshCursor() {
