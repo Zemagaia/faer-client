@@ -20,14 +20,15 @@ import openfl.ui.Keyboard;
 import util.Utils;
 
 class MEMap extends Sprite {
-	public static inline var NUM_SQUARES = 256;
+	public static inline var NUM_SQUARES = 2048;
 	public static inline var SQUARE_SIZE = 16;
 	public static inline var SIZE = 512;
-	public static inline var MIN_ZOOM = 0.125;
+	public static inline var MIN_ZOOM = 0.125 * 0.5 * 0.5 * 0.5 * 0.5 * 0.5;
 	public static inline var MAX_ZOOM = 16;
 
 	public var tileDict: IntMap<METile>;
 	public var fullMap: BigBitmapData;
+
 	public var regionMap: BitmapData;
 	public var map: BitmapData;
 	public var overlay: Shape;
