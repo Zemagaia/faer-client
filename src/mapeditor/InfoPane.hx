@@ -79,15 +79,14 @@ class InfoPane extends Sprite {
 		this.rectText.useTextDimensions();
 		var tile = this.meMap.getTile(Std.int(mouseRectT.x), Std.int(mouseRectT.y));
 		var types = tile == null ? Layer.EMPTY_TILE : tile.types;
-		var groundId = types[Layer.GROUND] == -1 ? "None" : GroundLibrary.getIdFromType(types[Layer.GROUND]);
-		var objectId = types[Layer.OBJECT] == -1 ? "None" : ObjectLibrary.getIdFromType(types[Layer.OBJECT]);
-		var regionId = types[Layer.REGION] == -1 ? "None" : RegionLibrary.getIdFromType(types[Layer.REGION]);
+		var groundId = types[Layer.GROUND] == 65535 ? "None" : GroundLibrary.getIdFromType(types[Layer.GROUND]);
+		var objectId = types[Layer.OBJECT] == 65535 ? "None" : ObjectLibrary.getIdFromType(types[Layer.OBJECT]);
+		var regionId = types[Layer.REGION] == 255 ? "None" : RegionLibrary.getIdFromType(types[Layer.REGION]);
 		this.typeText.text = "<span class=\'in\'>"
 			+ "Ground: "
 			+ groundId
 			+ "\nObject: "
 			+ objectId
-			+ (tile == null || tile.objName == null ? "" : " (" + tile.objName + ")")
 			+ "\nRegion: "
 			+ regionId
 			+ "</span>";

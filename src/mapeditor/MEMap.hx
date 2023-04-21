@@ -61,7 +61,7 @@ class MEMap extends Sprite {
 	public function getType(x: Int, y: Int, layer: Int) {
 		var tile = this.getTile(x, y);
 		if (tile == null)
-			return -1;
+			return (layer == Layer.REGION ? 255 : 65535);
 
 		return tile.types[layer];
 	}
