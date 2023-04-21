@@ -1,5 +1,6 @@
 package mapeditor;
 
+import game.model.GameInitData;
 import haxe.Exception;
 import map.RegionLibrary;
 import objects.ObjectLibrary;
@@ -280,8 +281,8 @@ class EditingScreen extends Sprite {
 			var w: UInt16 = data.readUnsignedShort();
 			var h: UInt16 = data.readUnsignedShort();
 
-			for (y in xStart...xStart + h)
-				for (x in yStart...yStart + w) {
+			for (y in yStart...yStart + h)
+				for (x in xStart...xStart + w) {
 					this.meMap.modifyTile(x, y, Layer.GROUND, data.readUnsignedShort());
 					this.meMap.modifyTile(x, y, Layer.OBJECT, data.readUnsignedShort());
 					this.meMap.modifyTile(x, y, Layer.REGION, data.readUnsignedByte());
@@ -322,6 +323,13 @@ class EditingScreen extends Sprite {
 	}
 
 	private function onTest(_: Event) {
-		// dispatchEvent(new MapTestEvent(this.createMapJSON()));
+		var savedChars = Global.playerModel.getSavedCharacters();
+		if (savedChars == null || savedChars.length == 0)
+			return;
+
+		var data = new GameInitData();
+		data.charId = savedChars[0].charId();
+		data.fmMap = this.createMap();
+		Global.playGame(data);
 	}
 }

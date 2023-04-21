@@ -1467,10 +1467,10 @@ class Map extends Sprite {
 	@:nonVirtual public final function draw(time: Int32) {
 		var camX = Camera.mapX, camY = Camera.mapY;
 		if (time - this.lastTileUpdate > TILE_UPDATE_MS && camX >= 0 && camY >= 0) {
-			var xMin = Std.int(camX - Camera.maxDist),
-				xMax = Std.int(camX + Camera.maxDist);
-			var yMin = Std.int(camY - Camera.maxDist),
-				yMax = Std.int(camY + Camera.maxDist);
+			var xMin = Std.int(Math.max(0, camX - Camera.maxDist)),
+				xMax = Std.int(Math.min(this.mapWidth, camX + Camera.maxDist));
+			var yMin = Std.int(Math.max(0, camY - Camera.maxDist)),
+				yMax = Std.int(Math.min(this.mapHeight, camY + Camera.maxDist));
 
 			var visIdx: UInt16 = 0;
 			for (x in xMin...xMax)

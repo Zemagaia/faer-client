@@ -98,6 +98,7 @@ enum abstract PacketType(Int8) from Int8 to Int8 {
 	final Reskin = 70;
 	final ReskinVault = 71;
 	final Failure = 72;
+	final MapHello = 73;
 }
 
 enum abstract BuyResultType(Int8) from Int8 to Int8 {
@@ -219,6 +220,7 @@ class NetworkHandler {
 	public static var createCharacter = false;
 	public static var charId = 0;
 	public static var lastTickId: Int = -1;
+	public static var fmMap: ByteArray;
 
 	private static var playerId: Int = -1;
 	private static var player: Player;
@@ -235,11 +237,12 @@ class NetworkHandler {
 		socket.endian = Endian.LITTLE_ENDIAN;
 	}
 
-	public static function reset(newServer: Server, newGameId: Int, newCreateCharacter: Bool, newCharId: Int) {
+	public static function reset(newServer: Server, newGameId: Int, newCreateCharacter: Bool, newCharId: Int, newFmMap: ByteArray) {
 		server = newServer;
 		gameId = newGameId;
 		createCharacter = newCreateCharacter;
 		charId = newCharId;
+		fmMap = newFmMap;
 	}
 
 	public static function connect() {
@@ -280,33 +283,57 @@ class NetworkHandler {
 	private static function onConnect(_: Event) {
 		Global.gameSprite.textBox.addText("Connected!", 0x0000FF);
 
-		outgoingData.writeUTF(Settings.BUILD_VERSION);
-		outgoingData.writeInt(gameId);
-		outgoingData.writeUTF(Account.email);
-		outgoingData.writeUTF(Account.password);
-		outgoingData.writeShort(charId);
-		outgoingData.writeBoolean(createCharacter);
-		if (createCharacter) {
-			var charClass = Global.classModel.getSelected();
-			outgoingData.writeShort(charClass.id);
-			outgoingData.writeShort(0); // todo skin
+		if (fmMap == null || fmMap.length == 0) {
+			outgoingData.writeUTF(Settings.BUILD_VERSION);
+			outgoingData.writeInt(gameId);
+			outgoingData.writeUTF(Account.email);
+			outgoingData.writeUTF(Account.password);
+			outgoingData.writeShort(charId);
+			outgoingData.writeBoolean(createCharacter);
+			if (createCharacter) {
+				var charClass = Global.classModel.getSelected();
+				outgoingData.writeShort(charClass.id);
+				outgoingData.writeShort(0); // todo skin
+			}
+
+			sendPacket(PacketType.Hello);
+
+			#if log_packets
+			trace(Global.gameSprite.lastUpdate,
+				"Hello: buildVer="
+				+ Settings.BUILD_VERSION
+				+ ", gameId="
+				+ gameId
+				+ ", email="
+				+ Account.email
+				+ ", pwd="
+				+ Account.password
+				+ ", charId="
+				+ charId);
+			#end
+		} else {
+			outgoingData.writeUTF(Settings.BUILD_VERSION);
+			outgoingData.writeUTF(Account.email);
+			outgoingData.writeUTF(Account.password);
+			outgoingData.writeShort(charId);
+			outgoingData.writeShort(fmMap.length);
+			outgoingData.writeBytes(fmMap);
+
+			sendPacket(PacketType.MapHello);
+
+			#if log_packets
+			trace(Global.gameSprite.lastUpdate,
+				"MapHello: buildVer="
+				+ Settings.BUILD_VERSION
+				+ ", email="
+				+ Account.email
+				+ ", pwd="
+				+ Account.password
+				+ ", charId="
+				+ charId);
+			#end
 		}
-
-		sendPacket(PacketType.Hello);
-
-		#if log_packets
-		trace(Global.gameSprite.lastUpdate,
-			"Hello: buildVer="
-			+ Settings.BUILD_VERSION
-			+ ", gameId="
-			+ gameId
-			+ ", email="
-			+ Account.email
-			+ ", pwd="
-			+ Account.password
-			+ ", charId="
-			+ charId);
-		#end
+		
 	}
 
 	private static function onClose(_: Event) {

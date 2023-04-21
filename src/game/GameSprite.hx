@@ -26,6 +26,7 @@ import ui.TextBox;
 import ui.view.CharacterDetailsView;
 import ui.view.Inventory;
 import util.PointUtil;
+import openfl.utils.ByteArray;
 
 using StringTools;
 
@@ -53,13 +54,13 @@ class GameSprite extends Sprite {
 	private var uiInited = false;
 	private var inited = false;
 
-	public function new(server: Server, gameId: Int, createCharacter: Bool, charId: Int) {
+	public function new(server: Server, gameId: Int, createCharacter: Bool, charId: Int, fmMap: ByteArray) {
 		super();
 
 		this.moveRecords = new MoveRecords();
 		this.map = new Map();
 		addChild(this.map);
-		NetworkHandler.reset(server, gameId, createCharacter, charId);
+		NetworkHandler.reset(server, gameId, createCharacter, charId, fmMap);
 		this.inputHandler = new InputHandler(this);
 		this.textBox = new TextBox(this, 600, 600);
 		this.textBox.y = Math.max(0, Main.stageHeight - 600);
