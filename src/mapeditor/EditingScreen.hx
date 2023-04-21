@@ -1,5 +1,7 @@
 package mapeditor;
 
+import ui.TextInputField;
+import haxe.display.Server.ModuleId;
 import util.Stack;
 import haxe.ds.GenericStack;
 import game.model.GameInitData;
@@ -38,6 +40,7 @@ class EditingScreen extends Sprite {
 	public var commandMenu: MECommandMenu;
 	public var meMap: MEMap;
 	public var infoPane: InfoPane;
+	public var brushSize: TextInputField;
 	public var chooserDropDown: DropDown;
 	public var groundChooser: GroundChooser;
 	public var objChooser: ObjectChooser;
@@ -52,6 +55,12 @@ class EditingScreen extends Sprite {
 
 		addChild(new ScreenBase());
 		addChild(new AccountScreen());
+
+		this.brushSize = new TextInputField("Brush Size", false, "");
+		this.brushSize.inputText.text = "0.5";
+		this.brushSize.x = 800 / 2 - MEMap.SIZE / 2;
+		this.brushSize.y = MAP_Y - 70;
+		addChild(this.brushSize);
 
 		this.commandMenu = new MECommandMenu();
 		this.commandMenu.x = 15;
@@ -103,6 +112,11 @@ class EditingScreen extends Sprite {
 				return true;
 
 		return false;
+	}
+
+	private function inRadius(cX: Float, cY: Float, x: Float, y: Float, radius: Float) {
+		var dx = cX - x, dy = cY - y;
+		return Math.sqrt(dx * dx + dy * dy) <= radius;
 	}
 
 	public function editTiles(tiles: Array<IntPoint>) {
@@ -178,9 +192,23 @@ class EditingScreen extends Sprite {
 
 				this.addModifyCommandList(tiles, this.chooser.layer, selType);
 			case MECommandMenu.DRAW_COMMAND:
-				this.addModifyCommandList(tiles, this.chooser.layer, this.chooser.selectedType());
+				var modTiles: Array<IntPoint> = [];
+				var cX = tiles[0].x, cY = tiles[0].y;
+				var radius = Std.parseFloat(this.brushSize.text());
+				for (y in Math.floor(cY - radius)...Math.ceil(cY + radius))
+					for (x in Math.floor(cX - radius)...Math.ceil(cX + radius))
+						if (this.inRadius(cX, cY, x, y, radius))
+							modTiles.push({x: x, y: y});
+				this.addModifyCommandList(modTiles, this.chooser.layer, this.chooser.selectedType());
 			case MECommandMenu.ERASE_COMMAND:
-				this.addModifyCommandList(tiles, this.chooser.layer, this.chooser.layer == Layer.REGION ? 255 : 65535);
+				var modTiles: Array<IntPoint> = [];
+				var cX = tiles[0].x, cY = tiles[0].y;
+				var radius = Std.parseFloat(this.brushSize.text());
+				for (y in Math.floor(cY - radius)...Math.ceil(cY + radius))
+					for (x in Math.floor(cX - radius)...Math.ceil(cX + radius))
+						if (this.inRadius(cX, cY, x, y, radius))
+							modTiles.push({x: x, y: y});
+				this.addModifyCommandList(modTiles, this.chooser.layer, this.chooser.layer == Layer.REGION ? 255 : 65535);
 			case MECommandMenu.SAMPLE_COMMAND:
 				var tile = tiles[0];
 				var type = this.meMap.getType(tile.x, tile.y, this.chooser.layer);
