@@ -1,7 +1,9 @@
 package ui.view;
 
+#if !disable_rpc
 import hxdiscord_rpc.Discord;
 import hxdiscord_rpc.Types;
+#end
 import mapeditor.MapEditor;
 import account.Account;
 import util.Settings;
@@ -45,6 +47,7 @@ class TitleView extends Sprite {
 		removeEventListener(Event.ADDED_TO_STAGE, onAdded);
 		addEventListener(Event.REMOVED_FROM_STAGE, onRemoved);
 
+		#if !disable_rpc
 		if (Main.rpcReady) {
 			var discordPresence = DiscordRichPresence.create();
 			discordPresence.state = 'Main Menu';
@@ -54,6 +57,7 @@ class TitleView extends Sprite {
 			discordPresence.startTimestamp = Main.startTime;
 			Discord.UpdatePresence(cpp.RawConstPointer.addressOf(discordPresence));
 		}
+		#end
 
 		this.initialize();
 		this.playClicked.on(handleIntentionToPlay);

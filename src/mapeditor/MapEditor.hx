@@ -1,7 +1,9 @@
 package mapeditor;
 import util.Settings;
+#if !disable_rpc
 import hxdiscord_rpc.Types;
 import hxdiscord_rpc.Discord;
+#end
 import servers.Server;
 import core.PlayerModel;
 import openfl.display.Sprite;
@@ -18,6 +20,7 @@ class MapEditor extends Sprite {
 		this.editingScreen = new EditingScreen();
 		addChild(this.editingScreen);
 
+		#if !disable_rpc
 		if (Main.rpcReady) {
 			var discordPresence = DiscordRichPresence.create();
 			discordPresence.state = 'Map Editor';
@@ -27,6 +30,7 @@ class MapEditor extends Sprite {
 			discordPresence.startTimestamp = Main.startTime;
 			Discord.UpdatePresence(cpp.RawConstPointer.addressOf(discordPresence));
 		}
+		#end
 	}
 
 	public function initialize(model: PlayerModel, server: Server) {

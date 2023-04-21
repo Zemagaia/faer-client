@@ -1,7 +1,9 @@
 package screens;
 
+#if !disable_rpc
 import hxdiscord_rpc.Types;
 import hxdiscord_rpc.Discord;
+#end
 import util.Settings;
 import appengine.SavedCharacter;
 import classes.model.CharacterClass;
@@ -45,6 +47,7 @@ class CharacterSelectionScreen extends Sprite {
 	}
 
 	private function onAdded(_: Event) {
+		#if !disable_rpc
 		if (Main.rpcReady) {
 			var discordPresence = DiscordRichPresence.create();
 			discordPresence.state = 'Character Select';
@@ -54,6 +57,7 @@ class CharacterSelectionScreen extends Sprite {
 			discordPresence.startTimestamp = Main.startTime;
 			Discord.UpdatePresence(cpp.RawConstPointer.addressOf(discordPresence));
 		}
+		#end
 
 		removeEventListener(Event.ADDED_TO_STAGE, onAdded);
 		addEventListener(Event.REMOVED_FROM_STAGE, onRemoved);

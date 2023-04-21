@@ -1,7 +1,9 @@
 package;
 
+#if !disable_rpc
 import hxdiscord_rpc.Discord;
 import hxdiscord_rpc.Types;
+#end
 import engine.GLTextureData;
 import util.BinPacker;
 import openfl.display.BitmapData;
@@ -36,8 +38,10 @@ class Main extends Sprite {
 	public static var tempAtlas: BitmapData;
 	public static var atlasPacker: BinPacker;
 	public static var atlas: GLTextureData;
+	#if !disable_rpc
 	public static var startTime: Int;
 	public static var rpcReady: Bool;
+	#end
 
 	private static var baseCursorSprite: Bitmap;
 	private static var clickCursorSprite: Bitmap;
@@ -54,12 +58,14 @@ class Main extends Sprite {
 		Settings.load();
 		AssetLoader.load();
 
+		#if !disable_rpc
 		startTime = Std.int(Date.now().getTime() / 1000);
 		var handlers = DiscordEventHandlers.create();
 		handlers.ready = cpp.Function.fromStaticFunction(onReady);
 		handlers.errored = cpp.Function.fromStaticFunction(onError);
 		handlers.disconnected = cpp.Function.fromStaticFunction(onDisconnected);
 		Discord.Initialize("1095646272171552811", cpp.RawPointer.addressOf(handlers), 1, null);
+		#end
 
 		refreshCursor();
 
@@ -85,6 +91,7 @@ class Main extends Sprite {
 		stage.addEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUp);
 	}
 
+	#if !disable_rpc
 	private static function onReady(request: cpp.RawConstPointer<DiscordUser>) {
 		rpcReady = true;
 	}
@@ -96,6 +103,7 @@ class Main extends Sprite {
 	private static function onError(errorCode: Int, message: cpp.ConstCharStar) {
 		trace('Discord RPC Error (code $errorCode): ${cast (message, String)}');
 	}
+	#end
 
 	public static function refreshCursor() {
 		if (Settings.selectedCursor == -1) {
@@ -120,7 +128,9 @@ class Main extends Sprite {
 	}
 
 	private final function onEnterFrame(_: Event) {
+		#if !disable_rpc
 		Discord.RunCallbacks();
+		#end
 
 		if (baseCursorSprite == null)
 			return;

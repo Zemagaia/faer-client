@@ -1,7 +1,9 @@
 package screens;
 
+#if !disable_rpc
 import hxdiscord_rpc.Types;
 import hxdiscord_rpc.Discord;
+#end
 import util.Settings;
 import openfl.display.Shape;
 import openfl.display.Sprite;
@@ -66,6 +68,7 @@ class ServersScreen extends Sprite {
 		this.doneButton.x = Main.stageWidth / 2 - this.doneButton.width / 2;
 		this.doneButton.y = Main.stageHeight - 76;
 
+		#if !disable_rpc
 		if (Main.rpcReady) {
 			var discordPresence = DiscordRichPresence.create();
 			discordPresence.state = 'Server Select';
@@ -75,6 +78,7 @@ class ServersScreen extends Sprite {
 			discordPresence.startTimestamp = Main.startTime;
 			Discord.UpdatePresence(cpp.RawConstPointer.addressOf(discordPresence));
 		}
+		#end
 	}
 
 	public function initialize(servers: Array<Server>) {}

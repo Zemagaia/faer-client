@@ -2,8 +2,10 @@ package game;
 
 import util.Utils.StringUtils;
 import util.Settings;
+#if !disable_rpc
 import hxdiscord_rpc.Types;
 import hxdiscord_rpc.Discord;
+#end
 import map.Camera;
 import network.NetworkHandler;
 import openfl.display.OpenGLRenderer;
@@ -240,6 +242,7 @@ class GameSprite extends Sprite {
 				if (!this.uiInited) {
 					this.inventory.init(player);
 					this.characterDetails.init(player);
+					#if !disable_rpc
 					if (Main.rpcReady) {
 						final className = player.props.displayId;
 						var discordPresence = DiscordRichPresence.create();
@@ -252,6 +255,7 @@ class GameSprite extends Sprite {
 						discordPresence.startTimestamp = Main.startTime;
 						Discord.UpdatePresence(cpp.RawConstPointer.addressOf(discordPresence));
 					}
+					#end
 						
 					this.uiInited = true;
 				}

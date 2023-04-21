@@ -7,10 +7,11 @@
 	<!--<define name="log_packets" />-->
 	<!--<define name="tracing" />-->
 	<!--<define name="print_atlas" />-->
+	<!--<define name="disable_rpc" />-->
 	<source path="src" />
 	<haxelib name="openfl" />
 	<!-- haxelib git hxdiscord_rpc https://github.com/MAJigsaw77/hxdiscord_rpc.git -->
-	<haxelib name="hxdiscord_rpc" />
+	<haxelib name="hxdiscord_rpc" unless="disable_rpc"/>
 	<haxelib name="hxcpp-debug-server" if="debug" />
 	<haxedef name="HXCPP_STACK_TRACE" if="debug" />
 	<haxedef name="analyzer-optimize" />
