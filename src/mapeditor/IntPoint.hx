@@ -1,5 +1,6 @@
 package mapeditor;
 
+@:structInit
 class IntPoint {
 	public var x = 0;
 	public var y = 0;

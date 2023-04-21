@@ -1,5 +1,7 @@
 package mapeditor;
 
+import util.Stack;
+import haxe.ds.GenericStack;
 import game.model.GameInitData;
 import haxe.Exception;
 import map.RegionLibrary;
@@ -21,6 +23,14 @@ import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import openfl.net.FileFilter;
 import openfl.net.FileReference;
+
+@:structInit
+class FillData {
+	public var x1: Int;
+	public var x2: Int;
+	public var y1: Int;
+	public var y2: Int;
+}
 
 class EditingScreen extends Sprite {
 	private static inline var MAP_Y = 600 - MEMap.SIZE - 10;
@@ -87,8 +97,86 @@ class EditingScreen extends Sprite {
 		this.regionChooser.y = this.chooserDropDown.y + this.chooserDropDown.height + 4;
 	}
 
+	private function ipArrContains(arr: Array<IntPoint>, x: Int, y: Int) {
+		for (ip in arr)
+			if (ip.x == x && ip.y == y)
+				return true;
+
+		return false;
+	}
+
 	public function editTiles(tiles: Array<IntPoint>) {
 		switch (this.commandMenu.getCommand()) {
+			case MECommandMenu.FILL_COMMAND:
+				var tile = tiles[0];
+				var currType = this.meMap.getType(tile.x, tile.y, this.chooser.layer);
+				var selType = this.chooser.selectedType();
+				if ((this.chooser.layer == Layer.GROUND || this.chooser.layer == Layer.OBJECT)
+					&& selType == 65535
+					|| this.chooser.layer == Layer.REGION
+					&& selType == 255)
+					return;
+
+				var tiles: Array<IntPoint> = [];
+				var stack = new Stack<FillData>();
+				stack.add({
+					x1: tile.x,
+					x2: tile.x,
+					y1: tile.y,
+					y2: 1
+				});
+				stack.add({
+					x1: tile.x,
+					x2: tile.x,
+					y1: tile.y - 1,
+					y2: -1
+				});
+				while (!stack.isEmpty()) {
+					var pop = stack.pop();
+					var x = pop.x1;
+					var y = pop.y1;
+					if (!this.ipArrContains(tiles, x, y) && this.meMap.getType(x, y, this.chooser.layer) == currType)
+						while (!this.ipArrContains(tiles, x - 1, y) && this.meMap.getType(x - 1, y, this.chooser.layer) == currType) {
+							tiles.push(new IntPoint(x - 1, y));
+							x--;
+						}
+
+					if (x < pop.x1)
+						stack.add({
+							x1: x,
+							x2: pop.x1 - 1,
+							y1: y - pop.y2,
+							y2: -pop.y2
+						});
+
+					var x1 = pop.x1;
+					var x2 = pop.x2;
+					while (x1 <= x2) {
+						while (!this.ipArrContains(tiles, x1, y) && this.meMap.getType(x1, y, this.chooser.layer) == currType) {
+							tiles.push(new IntPoint(x1, y));
+							x1++;
+							stack.add({
+								x1: x,
+								x2: x1 - 1,
+								y1: y + pop.y2,
+								y2: pop.y2
+							});
+							if (x1 - 1 > pop.y2)
+								stack.add({
+									x1: x2 + 1,
+									x2: x1 - 1,
+									y1: y - pop.y2,
+									y2: -pop.y2
+								});
+						}
+						x1++;
+						while (x1 < x2 && !this.ipArrContains(tiles, x1, y) && this.meMap.getType(x1, y, this.chooser.layer) != currType)
+							x1++;
+						x = x1;
+					}
+				}
+
+				this.addModifyCommandList(tiles, this.chooser.layer, selType);
 			case MECommandMenu.DRAW_COMMAND:
 				this.addModifyCommandList(tiles, this.chooser.layer, this.chooser.selectedType());
 			case MECommandMenu.ERASE_COMMAND:
