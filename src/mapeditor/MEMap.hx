@@ -22,7 +22,8 @@ import util.Utils;
 class MEMap extends Sprite {
 	public static inline var NUM_SQUARES = 512;
 	public static inline var SQUARE_SIZE = 16;
-	public static inline var SIZE = 512;
+	public static inline var WIDTH = 640;
+	public static inline var HEIGHT = 640;
 	public static inline var MIN_ZOOM = 0.125 * 0.5;
 	public static inline var MAX_ZOOM = 16;
 
@@ -47,11 +48,11 @@ class MEMap extends Sprite {
 		this.tileDict = new IntMap<METile>();
 		this.fullMap = new BigBitmapData(NUM_SQUARES * SQUARE_SIZE, NUM_SQUARES * SQUARE_SIZE, true, 0);
 		this.regionMap = new BitmapData(NUM_SQUARES, NUM_SQUARES, true, 0);
-		this.map = new BitmapData(SIZE, SIZE, true, 0);
+		this.map = new BitmapData(WIDTH, HEIGHT, true, 0);
 		this.overlay = new Shape();
 		super();
 		graphics.beginBitmapFill(Assets.getBitmapData("assets/sheets/TransBG.png"), null, true);
-		graphics.drawRect(0, 0, SIZE, SIZE);
+		graphics.drawRect(0, 0, WIDTH, HEIGHT);
 		addChild(new Bitmap(this.map));
 		addChild(this.overlay);
 		this.posT = new IntPoint(Std.int(NUM_SQUARES / 2 - this.sizeInTiles() / 2), Std.int(NUM_SQUARES / 2 - this.sizeInTiles() / 2));
@@ -146,7 +147,7 @@ class MEMap extends Sprite {
 	}
 
 	private function sizeInTiles() {
-		return SIZE / (SQUARE_SIZE * this.zoom);
+		return Math.max(WIDTH, HEIGHT) / (SQUARE_SIZE * this.zoom);
 	}
 
 	private function modifyZoom(mult: Float) {
@@ -212,15 +213,13 @@ class MEMap extends Sprite {
 	}
 
 	private function movePosT(dX: Int, dY: Int) {
-		var minT = 0;
-		var maxT = NUM_SQUARES - this.sizeInTiles();
-		this.posT.x = Std.int(Math.max(minT, Math.min(maxT, this.posT.x + dX)));
-		this.posT.y = Std.int(Math.max(minT, Math.min(maxT, this.posT.y + dY)));
+		this.posT.x = Std.int(Math.max(0, Math.min(NUM_SQUARES - WIDTH / (SQUARE_SIZE * this.zoom), this.posT.x + dX)));
+		this.posT.y = Std.int(Math.max(0, Math.min(NUM_SQUARES - HEIGHT / (SQUARE_SIZE * this.zoom), this.posT.y + dY)));
 	}
 
 	private function mousePosT() {
-		var mX = Math.max(0, Math.min(SIZE - 1, mouseX));
-		var mY = Math.max(0, Math.min(SIZE - 1, mouseY));
+		var mX = Math.max(0, Math.min(WIDTH - 1, mouseX));
+		var mY = Math.max(0, Math.min(HEIGHT - 1, mouseY));
 		return new IntPoint(Std.int(this.posT.x + mX / (SQUARE_SIZE * this.zoom)), Std.int(this.posT.y + mY / (SQUARE_SIZE * this.zoom)));
 	}
 
@@ -428,14 +427,14 @@ class MEMap extends Sprite {
 		var m: Matrix = null;
 		var ss = 0.0;
 		var temp: BitmapData = null;
-		var s = SIZE / this.zoom;
+		var s = Math.max(WIDTH, HEIGHT) / this.zoom;
 		this.map.fillRect(this.map.rect, 0);
 		this.fullMap.copyFrom(new Rectangle(this.posT.x * SQUARE_SIZE, this.posT.y * SQUARE_SIZE, s, s), this.map, this.map.rect);
 		m = new Matrix();
 		m.identity();
 		ss = SQUARE_SIZE * this.zoom;
 		if (this.zoom > 2) {
-			temp = new BitmapData(Std.int(SIZE / ss), Std.int(SIZE / ss));
+			temp = new BitmapData(Std.int(Math.max(WIDTH, HEIGHT) / ss), Std.int(Math.max(WIDTH, HEIGHT) / ss));
 			temp.copyPixels(this.regionMap, new Rectangle(this.posT.x, this.posT.y, s, s), new Point(0, 0));
 			m.scale(ss, ss);
 			this.map.draw(temp, m);

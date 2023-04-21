@@ -35,12 +35,11 @@ class FillData {
 }
 
 class EditingScreen extends Sprite {
-	private static inline var MAP_Y = 600 - MEMap.SIZE - 10;
-
 	public var commandMenu: MECommandMenu;
 	public var meMap: MEMap;
 	public var infoPane: InfoPane;
 	public var brushSize: TextInputField;
+	public var randomChance: TextInputField;
 	public var chooserDropDown: DropDown;
 	public var groundChooser: GroundChooser;
 	public var objChooser: ObjectChooser;
@@ -58,13 +57,19 @@ class EditingScreen extends Sprite {
 
 		this.brushSize = new TextInputField("Brush Size", false, "");
 		this.brushSize.inputText.text = "0.5";
-		this.brushSize.x = 800 / 2 - MEMap.SIZE / 2;
-		this.brushSize.y = MAP_Y - 70;
+		this.brushSize.x = Main.stageWidth / 2 - MEMap.WIDTH / 2;
+		this.brushSize.y = Main.stageHeight - MEMap.HEIGHT - 10 - 70;
 		addChild(this.brushSize);
+
+		this.randomChance = new TextInputField("Random Chance", false, "");
+		this.randomChance.inputText.text = "0.05";
+		this.randomChance.x = Main.stageWidth / 2 - MEMap.WIDTH / 2 + 250;
+		this.randomChance.y = Main.stageHeight - MEMap.HEIGHT - 10 - 70;
+		addChild(this.randomChance);
 
 		this.commandMenu = new MECommandMenu();
 		this.commandMenu.x = 15;
-		this.commandMenu.y = MAP_Y;
+		this.commandMenu.y = Main.stageHeight - MEMap.HEIGHT - 10;
 		this.commandMenu.addEventListener(CommandEvent.UNDO_COMMAND_EVENT, this.onUndo);
 		this.commandMenu.addEventListener(CommandEvent.REDO_COMMAND_EVENT, this.onRedo);
 		this.commandMenu.addEventListener(CommandEvent.CLEAR_COMMAND_EVENT, this.onClear);
@@ -76,18 +81,18 @@ class EditingScreen extends Sprite {
 		this.commandQueue = new CommandQueue();
 		this.meMap = new MEMap(this);
 		this.meMap.addEventListener(TilesEvent.TILES_EVENT, this.editTiles);
-		this.meMap.x = 800 / 2 - MEMap.SIZE / 2;
-		this.meMap.y = MAP_Y;
+		this.meMap.x = Main.stageWidth / 2 - MEMap.WIDTH / 2;
+		this.meMap.y = Main.stageHeight - MEMap.HEIGHT - 10;
 		addChild(this.meMap);
 
 		this.infoPane = new InfoPane(this.meMap);
 		this.infoPane.x = 4;
-		this.infoPane.y = 600 - InfoPane.HEIGHT - 10;
+		this.infoPane.y = Main.stageHeight - InfoPane.HEIGHT - 10;
 		addChild(this.infoPane);
 
 		this.chooserDropDown = new DropDown(["Ground", "Objects", "Regions"], Chooser.WIDTH, 26);
-		this.chooserDropDown.x = this.meMap.x + MEMap.SIZE + 4;
-		this.chooserDropDown.y = MAP_Y;
+		this.chooserDropDown.x = this.meMap.x + MEMap.WIDTH + 4;
+		this.chooserDropDown.y = Main.stageHeight - MEMap.HEIGHT - 10;
 		this.chooserDropDown.addEventListener(Event.CHANGE, this.onDropDownChange);
 		addChild(this.chooserDropDown);
 
@@ -191,6 +196,13 @@ class EditingScreen extends Sprite {
 				}
 
 				this.addModifyCommandList(tiles, this.chooser.layer, selType);
+			case MECommandMenu.RANDOM_COMMAND:
+				var modTiles: Array<IntPoint> = [];
+				var chance = Std.parseFloat(this.randomChance.text());
+				for (ip in tiles)
+					if (Math.random() < chance)
+						modTiles.push(ip);
+				this.addModifyCommandList(modTiles, this.chooser.layer, this.chooser.selectedType());
 			case MECommandMenu.DRAW_COMMAND:
 				var modTiles: Array<IntPoint> = [];
 				var cX = tiles[0].x, cY = tiles[0].y;

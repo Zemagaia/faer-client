@@ -8,6 +8,7 @@ class MECommandMenu extends CommandMenu {
 	public static inline var ERASE_COMMAND = 2;
 	public static inline var SAMPLE_COMMAND = 3;
 	public static inline var FILL_COMMAND = 4;
+	public static inline var RANDOM_COMMAND = 5;
 
 	public function new() {
 		super();
@@ -15,6 +16,7 @@ class MECommandMenu extends CommandMenu {
 		addCommandMenuItem("(E)rase", KeyCode.E, this.select, ERASE_COMMAND);
 		addCommandMenuItem("S(A)mple", KeyCode.A, this.select, SAMPLE_COMMAND);
 		addCommandMenuItem("(F)ill", KeyCode.F, this.select, FILL_COMMAND);
+		addCommandMenuItem("Ra(N)dom", KeyCode.N, this.select, RANDOM_COMMAND);
 		addCommandMenuItem("(U)ndo", KeyCode.U, this.onUndo, NONE_COMMAND);
 		addCommandMenuItem("(R)edo", KeyCode.R, this.onRedo, NONE_COMMAND);
 		addCommandMenuItem("(C)lear", KeyCode.C, this.onClear, NONE_COMMAND);
