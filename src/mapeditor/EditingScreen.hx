@@ -204,23 +204,29 @@ class EditingScreen extends Sprite {
 						modTiles.push(ip);
 				this.addModifyCommandList(modTiles, this.chooser.layer, this.chooser.selectedType());
 			case MECommandMenu.DRAW_COMMAND:
-				var modTiles: Array<IntPoint> = [];
-				var cX = tiles[0].x, cY = tiles[0].y;
-				var radius = Std.parseFloat(this.brushSize.text());
-				for (y in Math.floor(cY - radius)...Math.ceil(cY + radius))
-					for (x in Math.floor(cX - radius)...Math.ceil(cX + radius))
-						if (this.inRadius(cX, cY, x, y, radius))
-							modTiles.push({x: x, y: y});
-				this.addModifyCommandList(modTiles, this.chooser.layer, this.chooser.selectedType());
+				if (tiles.length == 1) {
+					var modTiles: Array<IntPoint> = [];
+					var cX = tiles[0].x, cY = tiles[0].y;
+					var radius = Std.parseFloat(this.brushSize.text());
+					for (y in Math.floor(cY - radius)...Math.ceil(cY + radius))
+						for (x in Math.floor(cX - radius)...Math.ceil(cX + radius))
+							if (this.inRadius(cX, cY, x, y, radius))
+								modTiles.push({x: x, y: y});
+					this.addModifyCommandList(modTiles, this.chooser.layer, this.chooser.selectedType());
+				} else
+					this.addModifyCommandList(tiles, this.chooser.layer, this.chooser.selectedType());
 			case MECommandMenu.ERASE_COMMAND:
-				var modTiles: Array<IntPoint> = [];
-				var cX = tiles[0].x, cY = tiles[0].y;
-				var radius = Std.parseFloat(this.brushSize.text());
-				for (y in Math.floor(cY - radius)...Math.ceil(cY + radius))
-					for (x in Math.floor(cX - radius)...Math.ceil(cX + radius))
-						if (this.inRadius(cX, cY, x, y, radius))
-							modTiles.push({x: x, y: y});
-				this.addModifyCommandList(modTiles, this.chooser.layer, this.chooser.layer == Layer.REGION ? 255 : 65535);
+				if (tiles.length == 1) {
+					var modTiles: Array<IntPoint> = [];
+					var cX = tiles[0].x, cY = tiles[0].y;
+					var radius = Std.parseFloat(this.brushSize.text());
+					for (y in Math.floor(cY - radius)...Math.ceil(cY + radius))
+						for (x in Math.floor(cX - radius)...Math.ceil(cX + radius))
+							if (this.inRadius(cX, cY, x, y, radius))
+								modTiles.push({x: x, y: y});
+					this.addModifyCommandList(modTiles, this.chooser.layer, this.chooser.layer == Layer.REGION ? 255 : 65535);
+				} else
+					this.addModifyCommandList(tiles, this.chooser.layer, this.chooser.layer == Layer.REGION ? 255 : 65535);
 			case MECommandMenu.SAMPLE_COMMAND:
 				var tile = tiles[0];
 				var type = this.meMap.getType(tile.x, tile.y, this.chooser.layer);

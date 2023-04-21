@@ -55,6 +55,7 @@ class GameSprite extends Sprite {
 
 	private var uiInited = false;
 	private var inited = false;
+	private var fromEditor = false;
 
 	public function new(server: Server, gameId: Int, createCharacter: Bool, charId: Int, fmMap: ByteArray) {
 		super();
@@ -62,6 +63,7 @@ class GameSprite extends Sprite {
 		this.moveRecords = new MoveRecords();
 		this.map = new Map();
 		addChild(this.map);
+		this.fromEditor = fmMap?.length > 0;
 		NetworkHandler.reset(server, gameId, createCharacter, charId, fmMap);
 		this.inputHandler = new InputHandler(this);
 		this.textBox = new TextBox(this, 600, 600);
@@ -88,7 +90,7 @@ class GameSprite extends Sprite {
 			this.miniMap.dispose();
 		Projectile.disposeBullId();
 		Global.layers.dialogs.closeDialogs();
-		Global.layers.screens.setScreen(new CharacterSelectionScreen());
+		Global.layers.screens.setScreen(fromEditor ? Global.currentEditor : new CharacterSelectionScreen());
 	}
 
 	public function setFocus(focus: Player) {

@@ -1,5 +1,6 @@
 package;
 
+import mapeditor.MapEditor;
 import openfl.Assets;
 import openfl.display.PNGEncoderOptions;
 import engine.TextureFactory;
@@ -53,6 +54,8 @@ final class Global {
 	public static var currentInteractiveTarget = 0;
 	public static var gameSprite: GameSprite;
 	public static var layers: Layers;
+
+	public static var currentEditor: MapEditor;
 
 	public static var projPool: ObjectPool<Projectile>;
 	public static var sparkerParticlePool: ObjectPool<SparkerParticle>;

@@ -97,7 +97,7 @@ class TitleView extends Sprite {
 	}
 
 	private static function showEditorScreen() {
-		Global.layers.screens.setScreen(new MapEditor());
+		Global.layers.screens.setScreen(Global.currentEditor = new MapEditor());
 	}
 
 	private static function handleIntentionToReviewAccount() {
