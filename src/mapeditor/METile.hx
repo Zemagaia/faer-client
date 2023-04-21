@@ -5,7 +5,7 @@ class METile {
 	public var objName = "";
 
 	public function new() {
-		this.types = [-1, -1, -1];
+		this.types = [65535, 65535, 255];
 	}
 
 	public function clone() {
@@ -17,9 +17,12 @@ class METile {
 	}
 
 	public function isEmpty() {
-		for (i in 0...Layer.NUM_LAYERS)
-			if (this.types[i] != -1)
-				return false;
+		if (this.types[Layer.GROUND] != 65535)
+			return false;
+		if (this.types[Layer.OBJECT] != 65535)
+			return false;
+		if (this.types[Layer.REGION] != 255)
+			return false;
 
 		return true;
 	}

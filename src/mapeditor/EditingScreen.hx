@@ -1,5 +1,15 @@
 package mapeditor;
 
+import haxe.Exception;
+import map.RegionLibrary;
+import objects.ObjectLibrary;
+import map.GroundLibrary;
+import haxe.format.JsonParser;
+import openfl.utils.ByteArray;
+import openfl.geom.Rectangle;
+import openfl.utils.Object;
+import haxe.format.JsonPrinter;
+import haxe.crypto.Base64;
 import util.NativeTypes;
 import haxe.ValueException;
 import ui.dropdown.DropDown;
@@ -119,7 +129,7 @@ class EditingScreen extends Sprite {
 
 		if (commandList.empty())
 			return;
-		
+
 		this.commandQueue.addCommandList(commandList);
 	}
 
@@ -134,7 +144,7 @@ class EditingScreen extends Sprite {
 
 		if (commandList.empty())
 			return;
-		
+
 		this.commandQueue.addCommandList(commandList);
 	}
 
@@ -189,59 +199,51 @@ class EditingScreen extends Sprite {
 
 		if (commandList.empty())
 			return;
-		
+
 		this.commandQueue.addCommandList(commandList);
 		this.meMap.draw();
 	}
 
-	private function createMapJSON() {
-		/*var xi = 0;
-			var tile: METile = null;
-			var entry: Object = null;
-			var entryJSON: String = null;
-			var index = 0;
-			var bounds: Rectangle = this.meMap.getTileBounds();
-			if (bounds == null) {
-				return null;
-			}
-			var jm: Object = {};
-			jm["width"] = Std.int(bounds.width);
-			jm["height"] = Std.int(bounds.height);
-			var dict: Object = {};
-			var entries: Array<Object> = [];
-			var byteArray: ByteArray = new ByteArray();
-			for (yi in Std.int(bounds.y)...Std.int(bounds.bottom))
-				for (xi in Std.int(bounds.x)...Std.int(bounds.right)) {
-					tile = this.meMap.getTile(xi, yi);
-					entry = this.getEntry(tile);
-					entryJSON = JsonPrinter.print(entry);
-					if (!dict.hasOwnProperty(entryJSON)) {
-						index = entries.length;
-						dict[entryJSON] = index;
-						entries.push(entry);
-					} else
-						index = dict[entryJSON];
+	private function createMap() {
+		var bounds: Rectangle = this.meMap.getTileBounds();
+		if (bounds == null)
+			return null;
 
-					byteArray.writeUnsignedShort(index);
+		var byteArray = new ByteArray();
+		byteArray.writeByte(1); // version
+		byteArray.writeShort(Std.int(bounds.x));
+		byteArray.writeShort(Std.int(bounds.y));
+		byteArray.writeShort(Std.int(bounds.width));
+		byteArray.writeShort(Std.int(bounds.height));
+		for (yi in Std.int(bounds.y)...Std.int(bounds.bottom))
+			for (xi in Std.int(bounds.x)...Std.int(bounds.right)) {
+				var tile = this.meMap.getTile(xi, yi);
+				if (tile?.types == null) {
+					byteArray.writeShort(65535);
+					byteArray.writeShort(65535);
+					byteArray.writeByte(255);
+				} else {
+					byteArray.writeShort(tile.types[Layer.GROUND]);
+					byteArray.writeShort(tile.types[Layer.OBJECT]);
+					byteArray.writeByte(tile.types[Layer.REGION]);
 				}
-			jm["dict"] = entries;
-			byteArray.compress();
-			jm["data"] = Base64.encode(byteArray);
-			return JsonPrinter.print(jm);*/
+			}
+		byteArray.compress();
+		return byteArray;
 	}
 
 	private function onSave(event: CommandEvent) {
-		/*var mapJSON = this.createMapJSON();
-			if (mapJSON == null)
-				return;
+		var mapJSON = this.createMap();
+		if (mapJSON == null)
+			return;
 
-			new FileReference().save(mapJSON, this.filename_ == null ? "map.fm" : this.filename_); */
+		new FileReference().save(mapJSON, "map.fm");
 	}
 
 	private function onLoad(event: CommandEvent) {
 		this.loadedFile = new FileReference();
 		this.loadedFile.addEventListener(Event.SELECT, this.onFileBrowseSelect);
-		this.loadedFile.browse([new FileFilter("Faer Map (*.fm)", "*.fm")]);
+		this.loadedFile.browse([new FileFilter("Faer Map (*.fm) or JSON Map (*.jm)", "*.fm;*.jm")]);
 	}
 
 	private function onFileBrowseSelect(event: Event) {
@@ -250,45 +252,67 @@ class EditingScreen extends Sprite {
 		loadedFile.addEventListener(IOErrorEvent.IO_ERROR, this.onFileLoadIOError);
 		try {
 			loadedFile.load();
-		} catch (e) {
-			trace("Error: " + e);
+		} catch (e: Exception) {
+			trace('File load error: ${e.details}, stack trace: ${e.stack}');
 		}
 	}
 
 	private function onFileLoadComplete(event: Event) {
-		var data = cast(event.target, FileReference).data;
-		data.uncompress();
-		var version: UInt8 = data.readUnsignedByte();
-		if (version != 1)
-			throw new ValueException("Version not supported");
+		var fileRef: FileReference = cast event.target;
+		var data = fileRef.data;
 
-		var w: UInt16 = data.readUnsignedShort();
-		var h: UInt16 = data.readUnsignedShort();
-		var objTypes = new Array<UInt16>(), layerTypes = new Array<UInt8>();
-		var len = data.readUnsignedShort();
-		var byteRead = len <= 256;
-		for (i in 0...len) {
-			objTypes.push(data.readUnsignedShort());
-			layerTypes.push(data.readUnsignedByte());
-		}		
+		var split = fileRef.name.split('.');
+		if (split.length < 2)
+			return;
 
 		this.meMap.clear();
 		this.commandQueue.clear();
-		for (y in 0...h)
-			for (x in 0...w) {
-				var layer = layerTypes[byteRead ? data.readUnsignedByte() : data.readUnsignedShort()];
-				var objType = objTypes[byteRead ? data.readUnsignedByte() : data.readUnsignedShort()];
-				switch (layer) {
-					case Layer.GROUND:
-						this.meMap.modifyTile(x, y, Layer.GROUND, objType);
-					case Layer.OBJECT:
-						this.meMap.modifyTile(x, y, Layer.OBJECT, objType);
-					case Layer.REGION:
-						this.meMap.modifyTile(x, y, Layer.REGION, objType);
-					default:
-						throw new ValueException('Unknown layer $layer (objType: $objType)');
+
+		var ext = split[1];
+		if (ext == "fm") {
+			data.uncompress();
+			var version: UInt8 = data.readUnsignedByte();
+			if (version != 1)
+				throw new ValueException("Version not supported");
+
+			var xStart: UInt16 = data.readUnsignedShort();
+			var yStart: UInt16 = data.readUnsignedShort();
+			var w: UInt16 = data.readUnsignedShort();
+			var h: UInt16 = data.readUnsignedShort();
+
+			for (y in xStart...xStart + h)
+				for (x in yStart...yStart + w) {
+					this.meMap.modifyTile(x, y, Layer.GROUND, data.readUnsignedShort());
+					this.meMap.modifyTile(x, y, Layer.OBJECT, data.readUnsignedShort());
+					this.meMap.modifyTile(x, y, Layer.REGION, data.readUnsignedByte());
 				}
-			}
+		} else if (ext == "jm") {
+			var jm = JsonParser.parse(data.toString());
+
+			var bytes: ByteArray = Base64.decode(jm.data);
+			bytes.uncompress();
+			for (yi in 0...jm.height)
+				for (xi in 0...jm.width) {
+					var bas = Std.int(bytes.readShort() / 256);
+					var entry: Object = jm.dict[bas];
+					if (!(xi < 0 || xi >= 256 || yi < 0 || yi >= 256)) {
+						if (entry.hasOwnProperty("ground"))
+							this.meMap.modifyTile(xi, yi, Layer.GROUND, GroundLibrary.idToType.get(entry.ground));
+
+						if (entry.hasOwnProperty("objs")) {
+							var objs: Array<Object> = entry.objs;
+							for (obj in objs)
+								this.meMap.modifyTile(xi, yi, Layer.OBJECT, ObjectLibrary.idToType.get(obj.id));
+						}
+
+						if (entry.hasOwnProperty("regions")) {
+							var regions: Array<Object> = entry.regions;
+							for (region in regions)
+								this.meMap.modifyTile(xi, yi, Layer.REGION, RegionLibrary.idToType.get(region.id));
+						}
+					}
+				}
+		}
 
 		this.meMap.draw();
 	}

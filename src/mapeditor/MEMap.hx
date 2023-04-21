@@ -371,12 +371,12 @@ class MEMap extends Sprite {
 		if (tile == null)
 			return;
 
-		if (tile.types[Layer.GROUND] != -1) {
+		if (tile.types[Layer.GROUND] != 65535) {
 			goundBD = GroundLibrary.getBitmapData(tile.types[Layer.GROUND]);
 			this.fullMap.copyTo(goundBD, goundBD.rect, rect);
 		}
 
-		if (tile.types[Layer.OBJECT] != -1) {
+		if (tile.types[Layer.OBJECT] != 65535) {
 			objBD = ObjectLibrary.getTextureFromType(tile.types[Layer.OBJECT]);
 			if (objBD == null || objBD == this.invisibleTexture)
 				this.fullMap.copyTo(this.replaceTexture, this.replaceTexture.rect, rect);
@@ -384,7 +384,8 @@ class MEMap extends Sprite {
 				this.fullMap.copyTo(objBD, objBD.rect, rect);
 		}
 
-		if (tile.types[Layer.REGION] != -1) {
+		if (tile.types[Layer.REGION] != 255) {
+			trace("region", tile.types[Layer.REGION]);
 			regionColor = RegionLibrary.getColor(tile.types[Layer.REGION]);
 			this.regionMap.setPixel32(x, y, 1593835520 | regionColor);
 		}

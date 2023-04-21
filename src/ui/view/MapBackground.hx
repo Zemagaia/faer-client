@@ -1,5 +1,6 @@
 package ui.view;
 
+import haxe.ValueException;
 import openfl.utils.Object;
 import haxe.crypto.Base64;
 import objects.GameObject;
@@ -26,32 +27,35 @@ class MapBackground extends Sprite {
 	private static var backgroundMap: Map;
 
 	private static function makeMap() {
-		var jm = MacroUtil.readJson("assets/misc/BackgroundMap.jm");
+		var data: ByteArray = Assets.getBytes("assets/misc/MapBackground.fm");
+		data.uncompress();
+		var version: Int8 = data.readUnsignedByte();
+		if (version != 1)
+			throw new ValueException("Version not supported");
+
 		var map = new Map();
-		map.setProps(jm.width, jm.height, "Background Map", 0, false, false);
+		var xStart: UInt16 = data.readUnsignedShort();
+		var yStart: UInt16 = data.readUnsignedShort();
+		var w: UInt16 = data.readUnsignedShort();
+		var h: UInt16 = data.readUnsignedShort();
+		map.setProps(w, h, "Background Map", 0, false, false);
 		map.initialize();
 
-		var bytes: ByteArray = Base64.decode(jm.data);
-		bytes.uncompress();
-		for (yi in 0...jm.height)
-			for (xi in 0...jm.width) {
-				var bas = Std.int(bytes.readShort() / 256);
-				var entry: Object = jm.dict[bas];
-				if (!(xi < 0 || xi >= map.mapWidth || yi < 0 || yi >= map.mapHeight)) {
-					if (entry.hasOwnProperty("ground"))
-						map.setGroundTile(xi, yi, GroundLibrary.idToType.get(entry.ground));
+		for (y in 0...h)
+			for (x in 0...w) {
+				var ground: UInt16 = data.readUnsignedShort();
+				if (ground != 65535)
+					map.setGroundTile(x, y, ground);
 
-					if (entry.hasOwnProperty("objs")) {
-						var objs: Array<Object> = entry.objs;
-						for (obj in objs) {
-							var objType = ObjectLibrary.idToType.get(obj.id);
-							var go = ObjectLibrary.getObjectFromType(objType);
-							go.size = go.props.getSize() / 100;
-							go.objectId = BasicObject.getNextFakeObjectId();
-							map.addGameObject(go, xi + 0.5, yi + 0.5);
-						}
-					}
-				}
+				var object: UInt16 = data.readUnsignedShort();
+				if (object != 65535) {
+					var go = ObjectLibrary.getObjectFromType(object);
+					go.size = go.props.getSize() / 100;
+					go.objectId = BasicObject.getNextFakeObjectId();
+					map.addGameObject(go, x + 0.5, y + 0.5);
+				}	
+				
+				var region = data.readUnsignedByte();
 			}
 
 		return map;

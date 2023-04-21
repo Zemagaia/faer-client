@@ -590,7 +590,7 @@ class Map extends Sprite {
 		var texW = obj.width * Main.ATLAS_WIDTH,
 			texH = obj.height * Main.ATLAS_HEIGHT;
 
-		if (obj.props.drawOnGround) {
+		if (obj.props.drawOnGround && obj.curSquare != null) {
 			final xScaledCos = Camera.xScaledCos;
 			final yScaledCos = Camera.yScaledCos;
 			final xScaledSin = Camera.xScaledSin;
