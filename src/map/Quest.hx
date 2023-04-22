@@ -31,7 +31,7 @@ class Quest {
 		if (time < this.questAvailableAt)
 			return null;
 
-		return this.map.gameObjects.get(this.objectId);
+		return this.map.getGameObject(this.objectId);
 	}
 
 	public function isNew(time: Int) {

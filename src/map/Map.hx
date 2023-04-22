@@ -34,7 +34,6 @@ import lime.graphics.opengl.GLProgram;
 import lime.graphics.opengl.GLTexture;
 import lime.utils.Float32Array;
 import lime.utils.Int16Array;
-import objects.BasicObject;
 import objects.Projectile;
 import openfl.display.Sprite;
 import openfl.display3D.Context3D;
@@ -43,15 +42,8 @@ import util.AssetLibrary;
 
 using util.Utils.ArrayUtils;
 
-enum abstract BarTypes(Float32) from Float32 to Float32 {
-	final None = -1.0;
-	final Health = 0.0;
-	final Mana = 1.0;
-	final Oxygen = 2.0;
-	final Shield = 3.0;
-}
-
-class Map extends Sprite {
+@:unreflective
+class Map {
 	private static inline var TILE_UPDATE_MS = 100; // tick rate
 	private static inline var BUFFER_UPDATE_MS = 500;
 	private static inline var MAX_VISIBLE_SQUARES = 729;
@@ -91,13 +83,12 @@ class Map extends Sprite {
 	public var showDisplays = false;
 	public var mapOverlay: MapOverlay;
 	public var squares: Vector<Square>;
-	public var gameObjects: IntMap<GameObject>;
 	public var gameObjectsLen: Int32 = 0;
-	public var players: IntMap<Player>;
 	public var playersLen: Int32 = 0;
-	public var projectiles: IntMap<Projectile>;
 	public var projectilesLen: Int32 = 0;
 	public var enemies: Array<GameObject>;
+	public var playersArr: Array<Player>;
+	public var projsArr: Array<Projectile>;
 	public var player: Player = null;
 	public var quest: Quest = null;
 	public var lastWidth: Int16 = -1;
@@ -123,9 +114,9 @@ class Map extends Sprite {
 	public var objIBO: GLBuffer;
 	public var objIBOLen: Int32 = 0;
 	public var vertexData: RawPointer<Float32>;
-	public var vertexLen: UInt32 = 65536;
+	public var vertexLen: UInt32 = 262144;
 	public var indexData: RawPointer<UInt32>;
-	public var indexLen: UInt32 = 65536;
+	public var indexLen: UInt32 = 262144;
 
 	private var i: Int32 = 0;
 	private var vIdx: Int32 = 0;
@@ -137,13 +128,10 @@ class Map extends Sprite {
 	private var frontBufferTexture: GLTexture;
 
 	public function new() {
-		super();
-
 		this.mapOverlay = new MapOverlay();
-		this.gameObjects = new IntMap<GameObject>();
-		this.players = new IntMap<Player>();
-		this.projectiles = new IntMap<Projectile>();
 		this.enemies = [];
+		this.playersArr = [];
+		this.projsArr = [];
 		this.quest = new Quest(this);
 		this.visSquares = new Vector<Square>(MAX_VISIBLE_SQUARES);
 	}
@@ -159,8 +147,6 @@ class Map extends Sprite {
 	}
 
 	@:nonVirtual public function initialize() {
-		addChild(this.mapOverlay);
-
 		this.vertexData = cast Stdlib.nativeMalloc(this.vertexLen * 4);
 		this.indexData = cast Stdlib.nativeMalloc(this.indexLen * 4);
 
@@ -257,8 +243,6 @@ class Map extends Sprite {
 
 		this.lastWidth = Main.stageWidth;
 		this.lastHeight = Main.stageHeight;
-		this.x = Main.stageWidth >> 1;
-		this.y = Main.stageHeight >> 1;
 		RenderUtils.clipSpaceScaleX = 2 / Main.stageWidth;
 		RenderUtils.clipSpaceScaleY = 2 / Main.stageHeight;
 	}
@@ -270,20 +254,17 @@ class Map extends Sprite {
 		this.mapOverlay = null;
 		this.squares = null;
 
-		if (this.gameObjects != null)
-			for (obj in this.gameObjects)
+		if (this.enemies != null)
+			for (obj in this.enemies)
 				obj.dispose();
-		this.gameObjects = null;
+		this.enemies = null;
 
-		if (this.players != null)
-			for (obj in this.players)
+		if (this.playersArr != null)
+			for (obj in this.playersArr)
 				obj.dispose();
-		this.players = null;
+		this.playersArr = null;
 
-		if (this.projectiles != null)
-			for (obj in this.projectiles)
-				obj.dispose();
-		this.projectiles = null;
+		this.projsArr = null;
 
 		this.player = null;
 		this.quest = null;
@@ -291,17 +272,43 @@ class Map extends Sprite {
 	}
 
 	@:nonVirtual public function update(time: Int32, dt: Int16) {
-		for (obj in this.gameObjects)
-			if (!obj.update(time, dt))
-				this.removeGameObject(obj.objectId);
+		var i = 0;
+		while (i < this.gameObjectsLen) {
+			var go = this.enemies.unsafeGet(i);
+			if (!go.update(time, dt)) {
+				go.removeFromMap();
+				this.enemies.remove(go);
+				this.gameObjectsLen--;
+				return;
+			}
+			i++;
+		}
+		
+		i = 0;
 
-		for (obj in this.players)
-			if (!obj.update(time, dt))
-				this.removePlayer(obj.objectId);
+		while (i < this.playersLen) {
+			var player = this.playersArr.unsafeGet(i);
+			if (!player.update(time, dt)) {
+				player.removeFromMap();
+				this.playersArr.remove(player);
+				this.playersLen--;
+				return;
+			}
+			i++;
+		}
 
-		for (obj in this.projectiles)
-			if (!obj.update(time, dt))
-				this.removeProjectile(obj.objectId);
+		i = 0;
+
+		while (i < this.projectilesLen) {
+			var proj = this.projsArr.unsafeGet(i);
+			if (!proj.update(time, dt)) {
+				proj.removeFromMap();
+				this.projsArr.remove(proj);
+				this.projectilesLen--;
+				return;
+			}
+			i++;
+		}
 	}
 
 	@:nonVirtual private inline function validPos(x: UInt16, y: UInt16) {
@@ -398,9 +405,7 @@ class Map extends Sprite {
 		if (!go.addTo(this, go.mapX, go.mapY))
 			return;
 
-		this.gameObjects.set(go.objectId, go);
-		if (go.props.isEnemy)
-			this.enemies.push(go);
+		this.enemies.push(go);
 		this.gameObjectsLen++;
 	}
 
@@ -411,7 +416,7 @@ class Map extends Sprite {
 		if (!player.addTo(this, player.mapX, player.mapY))
 			return;
 
-		this.players.set(player.objectId, player);
+		this.playersArr.push(player);
 		this.playersLen++;
 	}
 
@@ -422,45 +427,125 @@ class Map extends Sprite {
 		if (!proj.addTo(this, proj.mapX, proj.mapY))
 			return;
 
-		this.projectiles.set(proj.objectId, proj);
+		this.projsArr.push(proj);
 		this.projectilesLen++;
 	}
 
 	@:nonVirtual public function removeObj(objectId: Int32) {
-		if (this.gameObjects.exists(objectId))
-			removeGameObject(objectId);
-		else if (this.players.exists(objectId))
-			removePlayer(objectId);
-		else if (this.projectiles.exists(objectId))
-			removeProjectile(objectId);
+		var i = 0;
+		while (i < this.gameObjectsLen) {
+			var go = this.enemies.unsafeGet(i);
+			if (go.objectId == objectId) {
+				go.removeFromMap();
+				this.enemies.remove(go);
+				this.gameObjectsLen--;
+				return;
+			}
+			i++;
+		}
+		
+		i = 0;
+
+		while (i < this.playersLen) {
+			var player = this.playersArr.unsafeGet(i);
+			if (player.objectId == objectId) {
+				player.removeFromMap();
+				this.playersArr.remove(player);
+				this.playersLen--;
+				return;
+			}
+			i++;
+		}
+
+		i = 0;
+
+		while (i < this.projectilesLen) {
+			var proj = this.projsArr.unsafeGet(i);
+			if (proj.objectId == objectId) {
+				proj.removeFromMap();
+				this.projsArr.remove(proj);
+				this.projectilesLen--;
+				return;
+			}
+			i++;
+		}
+	}
+
+	@:nonVirtual public function getGameObject(objectId: Int32) {
+		var i = 0;
+		while (i < this.gameObjectsLen) {
+			var go = this.enemies.unsafeGet(i);
+			if (go.objectId == objectId)
+				return go;
+			i++;
+		}
+
+		return null;
+	}
+
+	@:nonVirtual public function getPlayer(objectId: Int32) {
+		var i = 0;
+		while (i < this.playersLen) {
+			var player = this.playersArr.unsafeGet(i);
+			if (player.objectId == objectId)
+				return player;
+			i++;
+		}
+
+		return null;
+	}
+
+	@:nonVirtual public function getProjectile(objectId: Int32) {
+		var i = 0;
+		while (i < this.projectilesLen) {
+			var proj = this.projsArr.unsafeGet(i);
+			if (proj.objectId == objectId)
+				return proj;
+			i++;
+		}
+
+		return null;
 	}
 
 	@:nonVirtual public function removeGameObject(objectId: Int32) {
-		var go = this.gameObjects.get(objectId);
-		if (go != null) {
-			go.removeFromMap();
-			this.gameObjects.remove(objectId);
-			if (go.props.isEnemy)
+		var i = 0;
+		while (i < this.gameObjectsLen) {
+			var go = this.enemies.unsafeGet(i);
+			if (go.objectId == objectId) {
+				go.removeFromMap();
 				this.enemies.remove(go);
-			this.gameObjectsLen--;
+				this.gameObjectsLen--;
+				return;
+			}
+			i++;
 		}
 	}
 
 	@:nonVirtual public function removePlayer(objectId: Int32) {
-		var player = this.players.get(objectId);
-		if (player != null) {
-			player.removeFromMap();
-			this.players.remove(objectId);
-			this.playersLen--;
+		var i = 0;
+		while (i < this.playersLen) {
+			var player = this.playersArr.unsafeGet(i);
+			if (player.objectId == objectId) {
+				player.removeFromMap();
+				this.playersArr.remove(player);
+				this.playersLen--;
+				return;
+			}
+			i++;
 		}
 	}
 
 	@:nonVirtual public function removeProjectile(objectId: Int32) {
-		var proj = this.projectiles.get(objectId);
-		if (proj != null) {
-			proj.removeFromMap();
-			this.projectiles.remove(objectId);
-			this.projectilesLen--;
+		var i = 0;
+		while (i < this.projectilesLen) {
+			var proj = this.projsArr.unsafeGet(i);
+			if (proj.objectId == objectId) {
+				proj.removeFromMap();
+				this.projsArr.remove(proj);
+				this.projectilesLen--;
+				return;
+			}
+			i++;
 		}
 	}
 
@@ -487,7 +572,7 @@ class Map extends Sprite {
 		return square;
 	}
 
-	@:nonVirtual private final inline function drawSquares() {
+	@:nonVirtual private final #if !tracing inline #end function drawSquares() {
 		final xScaledCos = Camera.xScaledCos;
 		final yScaledCos = Camera.yScaledCos;
 		final xScaledSin = Camera.xScaledSin;
@@ -584,8 +669,10 @@ class Map extends Sprite {
 		}
 	}
 
-	@:nonVirtual private final inline function drawGameObject(time: Int32, obj: GameObject) {
-		obj.calcScreenCoords();
+	@:nonVirtual private final #if !tracing inline #end function drawGameObject(time: Int32, obj: GameObject) {
+		var screenX = obj.mapX * Camera.cos + obj.mapY * Camera.sin + Camera.csX;
+		obj.screenYNoZ = obj.mapX * -Camera.sin + obj.mapY * Camera.cos + Camera.csY;
+		var screenY = obj.screenYNoZ + obj.mapZ * -Camera.PX_PER_TILE;
 
 		var texW = obj.width * Main.ATLAS_WIDTH,
 			texH = obj.height * Main.ATLAS_HEIGHT;
@@ -714,8 +801,8 @@ class Map extends Sprite {
 		var hBase = size * texH;
 		var w = size * texW * RenderUtils.clipSpaceScaleX * 0.5;
 		var h = hBase * RenderUtils.clipSpaceScaleY * 0.5 / sink;
-		var yBase = (obj.screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
-		var xBase = obj.screenX * RenderUtils.clipSpaceScaleX;
+		var yBase = (screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+		var xBase = screenX * RenderUtils.clipSpaceScaleX;
 		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
 		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
 
@@ -789,7 +876,7 @@ class Map extends Sprite {
 				var barThreshU: Float32 = hpBarU + scaledBarW * (obj.hp / obj.maxHP);
 				w = hpBarW * RenderUtils.clipSpaceScaleX;
 				h = hpBarH * RenderUtils.clipSpaceScaleY;
-				yBase = (obj.screenY + yPos - (hpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+				yBase = (screenY + yPos - (hpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
 				texelW = 0.5 / Main.ATLAS_WIDTH;
 				texelH = 0.5 / Main.ATLAS_HEIGHT;
 
@@ -875,8 +962,8 @@ class Map extends Sprite {
 					var scaledV: Float32 = rect.y / Main.ATLAS_HEIGHT;
 					w = rect.width * RenderUtils.clipSpaceScaleX;
 					h = rect.height * RenderUtils.clipSpaceScaleY;
-					xBase = (obj.screenX - rect.width * len + i * rect.width) * RenderUtils.clipSpaceScaleX;
-					yBase = (obj.screenY + yPos - (rect.height / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+					xBase = (screenX - rect.width * len + i * rect.width) * RenderUtils.clipSpaceScaleX;
+					yBase = (screenY + yPos - (rect.height / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
 					texelW = 0.5 / Main.ATLAS_WIDTH;
 					texelH = 0.5 / Main.ATLAS_HEIGHT;
 
@@ -962,8 +1049,10 @@ class Map extends Sprite {
 		}*/
 	}
 
-	@:nonVirtual private final inline function drawPlayer(time: Int32, player: Player) {
-		player.calcScreenCoords();
+	@:nonVirtual private final #if !tracing inline #end function drawPlayer(time: Int32, player: Player) {
+		var screenX = player.mapX * Camera.cos + player.mapY * Camera.sin + Camera.csX;
+		player.screenYNoZ = player.mapX * -Camera.sin + player.mapY * Camera.cos + Camera.csY;
+		var screenY = player.screenYNoZ + player.mapZ * -Camera.PX_PER_TILE;
 
 		var texW = player.width * Main.ATLAS_WIDTH,
 			texH = player.height * Main.ATLAS_HEIGHT;
@@ -1022,8 +1111,8 @@ class Map extends Sprite {
 		var w = size * texW * RenderUtils.clipSpaceScaleX * 0.5;
 		var hBase = size * texH;
 		var h = hBase * RenderUtils.clipSpaceScaleY * 0.5 / sink;
-		var yBase = (player.screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
-		var xBase = player.screenX * RenderUtils.clipSpaceScaleX;
+		var yBase = (screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+		var xBase = screenX * RenderUtils.clipSpaceScaleX;
 		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
 		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
 
@@ -1344,46 +1433,12 @@ class Map extends Sprite {
 
 				player.nameBitmap.x = player.screenX - texW * 2;
 				player.nameBitmap.y = player.yBaseNoZ - texH;
-
-				if (player.props == null || !player.props.noMiniMap) {
-					if (player.hp > player.maxHP)
-						player.maxHP = player.hp;
-
-					var hpPerc = player.hp / player.maxHP;
-					if (hpPerc > 0 && hpPerc < 1.1) {
-						if (player.hpBar == null)
-							player.hpBar = new Bitmap();
-
-						player.hpBar.bitmapData = TextureRedrawer.redrawHPBar(0x111111, 0x280000, ColorUtils.greenToRed(Std.int(hpPerc * 100)), 50, 8, hpPerc);
-						player.hpBar.x = player.screenX - texW * 2;
-						player.hpBar.y = player.yBaseNoZ + texH / 2;
-						if (!contains(player.hpBar))
-							addChild(player.hpBar);
-						yPos += 15;
-					}
-			}
-
-			if (player.condition > 0) {
-				var icon: BitmapData = null;
-				if (player.icons == null)
-					player.icons = new Array<BitmapData>();
-
-				player.icons.splice(0, player.icons.length);
-				ConditionEffect.getConditionEffectIcons(player.condition, player.icons, Std.int(time / 500));
-				var len: Int32 = player.icons.length;
-				var lenDiv2: Int32 = len >> 1;
-				for (i in 0...len) {
-					icon = player.icons[i];
-					var iconData = TextureFactory.make(icon);
-						var iconW: Int32 = iconData.width;
-						RenderUtils.baseRender(iconW, iconData.height, player.screenX - iconW * lenDiv2 + i * iconW, player.yBaseNoZ + player.dh + yPos, player.width,
-							player.height, player.uValue, player.vValue, 1);
-				}
 		}*/
 	}
 
-	@:nonVirtual private final inline function drawProjectile(time: Int32, proj: Projectile) {
-		proj.calcScreenCoords();
+	@:nonVirtual private final #if !tracing inline #end function drawProjectile(time: Int32, proj: Projectile) {
+		var screenX = proj.mapX * Camera.cos + proj.mapY * Camera.sin + Camera.csX;
+		var screenY = proj.mapX * -Camera.sin + proj.mapY * Camera.cos + Camera.csY;
 
 		var texW = proj.width * Main.ATLAS_WIDTH,
 			texH = proj.height * Main.ATLAS_HEIGHT;
@@ -1391,8 +1446,8 @@ class Map extends Sprite {
 		final size = Camera.SIZE_MULT * proj.size;
 		final w = size * texW;
 		final h = size * texH;
-		final yBase = (proj.screenY - (h / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
-		final xBase = proj.screenX * RenderUtils.clipSpaceScaleX;
+		final yBase = (screenY - (h / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+		final xBase = screenX * RenderUtils.clipSpaceScaleX;
 		final texelW = 2 / Main.ATLAS_WIDTH / size;
 		final texelH = 2 / Main.ATLAS_HEIGHT / size;
 		final rotation = proj.props.rotation;
@@ -1502,8 +1557,6 @@ class Map extends Sprite {
 
 				this.lastWidth = Main.stageWidth;
 				this.lastHeight = Main.stageHeight;
-				this.x = Main.stageWidth >> 1;
-				this.y = Main.stageHeight >> 1;
 				RenderUtils.clipSpaceScaleX = 2 / Main.stageWidth;
 				RenderUtils.clipSpaceScaleY = 2 / Main.stageHeight;
 			}
@@ -1582,25 +1635,31 @@ class Map extends Sprite {
 		}
 
 		this.i = this.vIdx = this.iIdx = 0;
-		for (obj in this.gameObjects) {
-			if (obj.curSquare?.lastVisible < time || obj.props.fullOccupy)
-				continue;
 
-			drawGameObject(time, obj);
+		var i = 0;
+		while (i < this.gameObjectsLen) {
+			var obj = this.enemies.unsafeGet(i);
+			if (obj.curSquare?.lastVisible >= time && !obj.props.fullOccupy)
+				drawGameObject(time, obj);
+			i++;
 		}
 
-		for (player in this.players) {
-			if (player.curSquare?.lastVisible < time)
-				continue;
+		i = 0;
 
-			drawPlayer(time, player);
+		while (i < this.playersLen) {
+			var player = this.playersArr.unsafeGet(i);
+			if (player.curSquare?.lastVisible >= time)
+				drawPlayer(time, player);
+			i++;
 		}
 
-		for (proj in this.projectiles) {
-			if (proj.curSquare?.lastVisible < time)
-				continue;
+		i = 0;
 
-			drawProjectile(time, proj);
+		while (i < this.projectilesLen) {
+			var proj = this.projsArr.unsafeGet(i);
+			if (proj.curSquare?.lastVisible >= time)
+				drawProjectile(time, proj);
+			i++;
 		}
 
 		GL.blendEquation(GL.FUNC_ADD);

@@ -62,7 +62,6 @@ class GameSprite extends Sprite {
 
 		this.moveRecords = new MoveRecords();
 		this.map = new Map();
-		addChild(this.map);
 		this.fromEditor = fmMap?.length > 0;
 		NetworkHandler.reset(server, gameId, createCharacter, charId, fmMap);
 		this.inputHandler = new InputHandler(this);
@@ -80,8 +79,6 @@ class GameSprite extends Sprite {
 	public function close() {
 		stage.removeEventListener(Event.ENTER_FRAME, this.onEnterFrame);
 		stage.removeEventListener(Event.RESIZE, this.onResize);
-		if (contains(this.map))
-			removeChild(this.map);
 		if (contains(this.miniMap))
 			removeChild(this.miniMap);
 		if (this.map != null)
@@ -128,17 +125,15 @@ class GameSprite extends Sprite {
 	public function initialize() {
 		if (this.inited) {
 			this.miniMap.update();
-			for (go in this.map.gameObjects)
+			for (go in this.map.enemies)
 				go.dispose();
-			this.map.gameObjects.clear();
+			this.map.enemies.resize(0);
 
-			for (player in this.map.players)
+			for (player in this.map.playersArr)
 				player.dispose();
-			this.map.players.clear();
+			this.map.playersArr.resize(0);
 
-			for (proj in this.map.projectiles)
-				proj.dispose();
-			this.map.projectiles.clear();
+			this.map.projsArr.resize(0);
 			this.connect();
 			return;
 		}
@@ -228,7 +223,7 @@ class GameSprite extends Sprite {
 			var closestInteractive = -1;
 			var playerX = this.map.player.mapX;
 			var playerY = this.map.player.mapY;
-			for (go in this.map.gameObjects)
+			for (go in this.map.enemies)
 				if (go?.props != null && go.objClass == "Portal" && (Math.abs(playerX - go.mapX) < 1 || Math.abs(playerY - go.mapY) < 1)) {
 					var dist = PointUtil.distanceXY(go.mapX, go.mapY, playerX, playerY);
 					if (dist < minDist) {

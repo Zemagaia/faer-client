@@ -196,7 +196,7 @@ class MiniMap extends Sprite {
 		var mX = mouseX - (this.mapWidth >> 1);
 		var mY = mouseY - (this.mapHeight >> 1);
 		this.players.splice(this.players.length, 0);
-		for (go in this.map.gameObjects) {
+		for (go in this.map.enemies) {
 			if (!(go.props.noMiniMap || go == focus)) {
 				if (Std.isOfType(go, Player))
 					fillColor = cast(go, Player).isFellowGuild ? 65280 : 16776960;

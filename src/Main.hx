@@ -31,6 +31,8 @@ class Main extends Sprite {
 	public static inline final ATLAS_WIDTH = 1024;
 	public static inline final ATLAS_HEIGHT = 1024;
 
+	public static var mouseXOffset: Int = 0;
+	public static var mouseYOffset: Int = 0;
 	public static var stageWidth = 1024;
 	public static var stageHeight = 768;
 	public static var primaryStage: Stage;
@@ -125,6 +127,8 @@ class Main extends Sprite {
 	private final function onResize(_: Event) {
 		stageHeight = stage.stageHeight;
 		stageWidth = stage.stageWidth;
+		mouseXOffset = stageWidth >> 1;
+		mouseYOffset = stageHeight >> 1;
 	}
 
 	private final function onEnterFrame(_: Event) {

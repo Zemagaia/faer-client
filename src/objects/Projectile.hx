@@ -1,12 +1,12 @@
 package objects;
 
+import map.Square;
 import network.NetworkHandler;
 import map.Camera;
 import util.Utils;
 import engine.TextureFactory;
 import haxe.ds.IntMap;
 import map.Map;
-import objects.BasicObject;
 import openfl.display.BitmapData;
 import openfl.geom.Point;
 import util.BloodComposition;
@@ -14,9 +14,21 @@ import util.Utils;
 import util.NativeTypes;
 import util.PointUtil;
 
-class Projectile extends BasicObject {
-	private static var objBullIdToObjId: IntMap<Int> = new IntMap<Int>();
+using util.Utils.ArrayUtils;
 
+class Projectile {
+	private static var objBullIdToObjId: IntMap<Int> = new IntMap<Int>();
+	private static var nextFakeObjectId = 0;
+
+	public var map: Map;
+	public var curSquare: Square;
+	public var objectId: Int32 = 0;
+	public var mapX: Float32 = 0.0;
+	public var mapY: Float32 = 0.0;
+	public var screenX: Float32 = 0.0;
+	public var screenY: Float32 = 0.0;
+	public var screenYNoZ: Float32 = 0.0;
+	public var sortVal: Int16 = 0;
 	public var props: ObjectProperties;
 	public var containerProps: ObjectProperties;
 	public var projProps: ProjectileProperties;
@@ -54,7 +66,7 @@ class Projectile extends BasicObject {
 	}
 
 	public static inline function getNewObjId(ownerId: Int32, bulletId: Int32) {
-		var objId = BasicObject.getNextFakeObjectId();
+		var objId = 0x7F000000 | nextFakeObjectId++;
 		objBullIdToObjId.set(bulletId << 24 | ownerId, objId);
 		return objId;
 	}
@@ -68,22 +80,22 @@ class Projectile extends BasicObject {
 	}
 
 	public function new() {
-		super();
-
 		this.staticPoint = new Point();
 	}
 
-	override public function addTo(map: Map, x: Float32, y: Float32) {
+	public function addTo(map: Map, x: Float32, y: Float32) {
 		this.startX = x;
 		this.startY = y;
-		if (!super.addTo(map, x, y))
-			return false;
-
+		this.map = map;
+		this.curSquare = this.map.lookupSquare(Std.int(x), Std.int(y));
+		this.mapX = x;
+		this.mapY = y;
 		return true;
 	}
 
-	override public function removeFromMap() {
-		super.removeFromMap();
+	public function removeFromMap() {
+		this.map = null;
+		this.curSquare = null;
 		removeObjId(this.ownerId, this.bulletId);
 		Global.projPool.release(this);
 		if (this.multiHitDict != null) {
@@ -92,7 +104,7 @@ class Projectile extends BasicObject {
 		}
 	}
 
-	override public function update(time: Int32, dt: Int16) {
+	public function update(time: Int32, dt: Int16) {
 		var player: Player = null;
 		var isPlayer = false;
 		var isTargetAnEnemy = false;
@@ -154,7 +166,10 @@ class Projectile extends BasicObject {
 	}
 
 	public function reset(containerType: Int32, bulletType: Int32, ownerId: Int32, bulletId: Int32, angle: Float32, startTime: Int32) {
-		clear();
+		this.map = null;
+		this.curSquare = null;
+		this.objectId = -1;
+		this.mapX = this.mapY = 0;
 		this.containerType = containerType;
 		this.bulletType = bulletType;
 		this.ownerId = ownerId;
@@ -204,16 +219,24 @@ class Projectile extends BasicObject {
 		var minDistSqr = MathUtil.FLOAT_MAX;
 		var target: GameObject = null;
 
-		if (damagesEnemies)
-			for (go in map.enemies) {
+		var i = 0; 
+		if (damagesEnemies) {
+			var enLen = map.enemies.length;
+			while (i < enLen) {
+				var go = map.enemies.unsafeGet(i);
 				distSqr = PointUtil.distanceSquaredXY(go.mapX, go.mapY, pX, pY);
 				if (distSqr < 0.25 && distSqr < minDistSqr && (!this.projProps.multiHit || !(this.multiHitDict.exists(go.objectId)))) {
 					minDistSqr = distSqr;
 					target = go;
 				}
+				i++;
 			}
-		else if (damagesPlayers)
-			for (player in map.players) {
+		}
+			
+		else if (damagesPlayers) {
+			var playersLen = map.playersArr.length;
+			while (i < playersLen) {
+				var player = map.playersArr.unsafeGet(i);
 				distSqr = PointUtil.distanceSquaredXY(player.mapX, player.mapY, pX, pY);
 				if (distSqr < 0.25 && (!this.projProps.multiHit || !(this.multiHitDict.exists(player.objectId)))) {
 					if (player.objectId == map.player.objectId)
@@ -224,7 +247,9 @@ class Projectile extends BasicObject {
 						target = cast(player, GameObject);
 					}
 				}
+				i++;
 			}
+		}
 
 		return target;
 	}

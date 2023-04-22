@@ -26,6 +26,7 @@ import util.TextureRedrawer;
 
 using util.Utils;
 
+@:unreflective
 class Player extends GameObject {
 	public static inline var MS_BETWEEN_TELEPORT: Int32 = 10000;
 	private static inline var MOVE_THRESHOLD: Float32 = 0.4;
@@ -206,7 +207,7 @@ class Player extends GameObject {
 			SoundEffectLibrary.play(this.hurtSound);
 	}
 
-	override public function draw(time: Int32) {
+	/*override public function draw(time: Int32) {
 		if (hp < maxHP * 0.2) {
 			if (this.flashPeriodMs == 0) {
 				this.flashStartTime = System.getTimer();
@@ -222,8 +223,7 @@ class Player extends GameObject {
 
 		super.draw(time);
 		this.drawName();
-	}
-
+	}*/
 	/*override private function getTexture(time: Int32) {
 		var image: MaskedImage;
 		var walkPer = 0;
@@ -276,7 +276,7 @@ class Player extends GameObject {
 		this.guildName = guildName;
 		var myPlayer = map?.player;
 		if (myPlayer == this)
-			for (player in map.players) {
+			for (player in map.playersArr) {
 				if (player != null && player != this)
 					player.setGuildName(player.guildName);
 			}

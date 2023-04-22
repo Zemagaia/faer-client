@@ -129,7 +129,7 @@ class InputHandler {
 		if (!this.shootDown)
 			return;
 
-		Global.gameSprite.map.player?.attemptAttackAngle(Math.atan2(Global.gameSprite.map.mouseY + 20, Global.gameSprite.map.mouseX));
+		Global.gameSprite.map.player?.attemptAttackAngle(Math.atan2(Main.primaryStage.mouseY - Main.mouseYOffset + 20, Main.primaryStage.mouseX - Main.mouseXOffset));
 	}
 
 	private function onKeyDown(event: KeyboardEvent) {
@@ -151,7 +151,7 @@ class InputHandler {
 
 		if (keyCode == Settings.shoot) {
 			if (shootCheck)
-				player?.attemptAttackAngle(Math.atan2(Global.gameSprite.map.mouseY + 20, Global.gameSprite.map.mouseX));
+				player?.attemptAttackAngle(Math.atan2(Main.primaryStage.mouseY - Main.mouseYOffset + 20, Main.primaryStage.mouseX - Main.mouseXOffset));
 			else
 				return;
 
@@ -173,7 +173,7 @@ class InputHandler {
 		else if (keyCode == Settings.resetCamera)
 			Camera.angleRad = 0;
 		else if (keyCode == Settings.useAbility)
-			player?.useAltWeapon(Global.gameSprite.map.mouseX, Global.gameSprite.map.mouseY, UseType.START_USE);
+			player?.useAltWeapon(Main.primaryStage.mouseX - Main.mouseXOffset, Main.primaryStage.mouseY - Main.mouseYOffset, UseType.START_USE);
 		else if (keyCode == Settings.inv1)
 			this.useItem(4);
 		else if (keyCode == Settings.inv2)

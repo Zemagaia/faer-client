@@ -1,30 +1,23 @@
 package ui.view;
 
 import haxe.ValueException;
-import openfl.utils.Object;
-import haxe.crypto.Base64;
-import objects.GameObject;
 import openfl.utils.ByteArray;
 import objects.ObjectLibrary;
-import objects.ObjectLibrary;
-import map.GroundLibrary;
-import objects.BasicObject;
 import util.Utils;
 import map.Camera;
 import util.NativeTypes;
-import haxe.format.JsonParser;
 import lime.system.System;
 import map.Map;
 import openfl.Assets;
 import openfl.display.Sprite;
 import openfl.events.Event;
-import util.MacroUtil;
 import util.Settings;
 
 class MapBackground extends Sprite {
 	private static inline var ANGLE: Float32 = 7 * MathUtil.PI / 4;
 	private static inline var TO_SEC_HALF: Float32 = 0.5 / 1000;
 	private static var backgroundMap: Map;
+	private static var nextFakeObjectId = 0;
 
 	private static function makeMap() {
 		var data: ByteArray = Assets.getBytes("assets/misc/MapBackground.fm");
@@ -51,7 +44,7 @@ class MapBackground extends Sprite {
 				if (object != 65535) {
 					var go = ObjectLibrary.getObjectFromType(object);
 					go.size = go.props.getSize() / 100;
-					go.objectId = BasicObject.getNextFakeObjectId();
+					go.objectId = 0x7F000000 | nextFakeObjectId++;
 					map.addGameObject(go, x + 0.5, y + 0.5);
 				}	
 				
@@ -72,7 +65,7 @@ class MapBackground extends Sprite {
 	}
 
 	private function onAddedToStage(_: Event) {
-		addChild(backgroundMap = makeMap());
+		backgroundMap = makeMap();
 		addEventListener(Event.ENTER_FRAME, onEnterFrame);
 	}
 

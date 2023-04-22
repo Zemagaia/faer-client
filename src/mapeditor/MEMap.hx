@@ -402,7 +402,6 @@ class MEMap extends Sprite {
 		}
 
 		if (tile.types[Layer.REGION] != 255) {
-			trace("region", tile.types[Layer.REGION]);
 			regionColor = RegionLibrary.getColor(tile.types[Layer.REGION]);
 			this.regionMap.setPixel32(x, y, 1593835520 | regionColor);
 		}

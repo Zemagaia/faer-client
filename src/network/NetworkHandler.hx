@@ -34,6 +34,8 @@ import ui.panels.TradeRequestPanel;
 import util.NativeTypes;
 import util.Settings;
 
+using util.Utils.ArrayUtils;
+
 enum abstract PacketType(Int8) from Int8 to Int8 {
 	final CreateSuccess = 1;
 	final Create = 2;
@@ -333,7 +335,6 @@ class NetworkHandler {
 				+ charId);
 			#end
 		}
-		
 	}
 
 	private static function onClose(_: Event) {
@@ -486,12 +487,12 @@ class NetworkHandler {
 						var proj: Projectile = null;
 						if (objectId >= 0 && bulletId > 0) {
 							var projId = Projectile.findObjId(objectId, bulletId);
-							proj = map.projectiles.get(projId);
+							proj = map.getProjectile(projId);
 							if (proj != null && !proj.projProps.multiHit)
 								map.removeProjectile(projId);
 						}
 
-						var go = map.gameObjects.get(targetId);
+						var go = map.getGameObject(targetId);
 						if (go != null)
 							go.damage(-1, damageAmount, effects, kill, proj);
 					case PacketType.Death:
@@ -542,7 +543,7 @@ class NetworkHandler {
 							+ angleInc);
 						#end
 
-						var owner: GameObject = Global.gameSprite.map.gameObjects.get(ownerId);
+						var owner: GameObject = Global.gameSprite.map.getGameObject(ownerId);
 						if (owner == null || owner.dead) {
 							shootAck(-1);
 							return;
@@ -610,7 +611,7 @@ class NetworkHandler {
 						trace(Global.gameSprite.lastUpdate, "Goto: objId=" + objId + ", x=" + x + ", y=" + y);
 						#end
 
-						var go = Global.gameSprite.map.gameObjects.get(objId);
+						var go = Global.gameSprite.map.getGameObject(objId);
 						if (go == null)
 							return;
 
@@ -694,26 +695,62 @@ class NetworkHandler {
 							var y = socket.readFloat();
 
 							var map = Global.gameSprite.map;
-							var go = map.gameObjects.get(objId);
-							if (go == null) {
-								go = map.players.get(objId);
-								if (go == null) {
-									go = cast(map.projectiles.get(objId), GameObject);
-									if (go == null) {
-										trace('Could not find NewTick GameObject: objId=$objId, x=$x, y=$y');
-										for (j in 0...socket.readShort())
-											parseStat(null, socket.readUnsignedByte());
-										continue;
-									}
+							var cont = false;
+							var i = 0;
+							while (i < map.gameObjectsLen) {
+								var go = map.enemies.unsafeGet(i);
+								if (go.objectId == objId) {
+									if (tickTime != 0)
+										go.onTickPos(x, y, tickTime, tickId);
+									for (j in 0...socket.readShort())
+										parseStat(go, socket.readUnsignedByte());
+									cont = true;
+									break;
 								}
+								i++;
 							}
 
-							var self = objId == playerId;
-							if (tickTime != 0 && !self)
-								go.onTickPos(x, y, tickTime, tickId);
+							if (cont)
+								continue;
 
+							i = 0;
+
+							while (i < map.playersLen) {
+								var player = map.playersArr.unsafeGet(i);
+								if (player.objectId == objId) {
+									var self = objId == playerId;
+									if (tickTime != 0 && !self)
+										player.onTickPos(x, y, tickTime, tickId);
+									for (j in 0...socket.readShort())
+										parseStat(player, socket.readUnsignedByte());
+									cont = true;
+									break;
+								}
+								i++;
+							}
+
+							if (cont)
+								continue;
+
+							i = 0;
+
+							while (i < map.projectilesLen) {
+								var proj = map.projsArr.unsafeGet(i);
+								if (proj.objectId == objId) {
+									for (j in 0...socket.readShort())
+										parseStat(null, socket.readUnsignedByte());
+									cont = true;
+									break;
+								}
+								i++;
+							}
+
+							if (cont)
+								continue;
+
+							trace('Could not find NewTick GameObject: objId=$objId, x=$x, y=$y');
 							for (j in 0...socket.readShort())
-								parseStat(go, socket.readUnsignedByte());
+								parseStat(null, socket.readUnsignedByte());
 						}
 
 						#if log_packets
@@ -731,7 +768,7 @@ class NetworkHandler {
 						trace(Global.gameSprite.lastUpdate, "Notification: objId=" + objectId + ", text=" + text + ", color=" + color);
 						#end
 
-						var go = Global.gameSprite.map.gameObjects.get(objectId);
+						var go = Global.gameSprite.map.getGameObject(objectId);
 
 						if (go != null) {
 							Global.gameSprite.map.mapOverlay.addStatusText(new CharacterStatusText(go, text, color, 2000));
@@ -753,7 +790,7 @@ class NetworkHandler {
 						trace(Global.gameSprite.lastUpdate, "PlaySound: ownerId=" + ownerId + ", soundId=" + soundId);
 						#end
 
-						var obj = Global.gameSprite.map.gameObjects.get(ownerId);
+						var obj = Global.gameSprite.map.getGameObject(ownerId);
 						if (obj != null)
 							obj.playSound(soundId);
 					case PacketType.QuestObjId:
@@ -792,7 +829,7 @@ class NetworkHandler {
 						#end
 
 						var needsAck: Bool = ownerId == playerId;
-						var owner = Global.gameSprite.map.gameObjects.get(ownerId);
+						var owner = Global.gameSprite.map.getGameObject(ownerId);
 						if (owner == null || owner.dead) {
 							if (needsAck)
 								shootAck(-1);
@@ -917,7 +954,7 @@ class NetworkHandler {
 						#end
 
 						if (objectId != -1) {
-							var go = Global.gameSprite.map.gameObjects.get(objectId);
+							var go = Global.gameSprite.map.getGameObject(objectId);
 							if (go != null) {
 								var colors = [0xE1DFDC, 0xFFFFFF, 0x545454];
 
@@ -1055,7 +1092,8 @@ class NetworkHandler {
 						#end
 				}
 			}
-		} /*catch (e: Exception) {
+		}
+		/*catch (e: Exception) {
 			Global.gameSprite?.textBox.addText('Socket Read Error: $e', 0xFF0000);
 			trace('Socket Read Error: $e, stack trace: ${e.stack}');
 			disconnect();

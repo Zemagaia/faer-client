@@ -30,11 +30,22 @@ import util.TextureRedrawer;
 
 using util.Utils;
 
-class GameObject extends BasicObject {
+@:unreflective
+class GameObject {
 	public static inline var ZERO_LIMIT: Float32 = 0.00001;
 	public static inline var NEGATIVE_ZERO_LIMIT: Float32 = -ZERO_LIMIT;
 	public static inline var ATTACK_PERIOD: Int32 = 300;
 
+	public var map: Map;
+	public var curSquare: Square;
+	public var objectId: Int32 = 0;
+	public var mapX: Float32 = 0.0;
+	public var mapY: Float32 = 0.0;
+	public var mapZ: Float32 = 0.0;
+	public var screenX: Float32 = 0.0;
+	public var screenY: Float32 = 0.0;
+	public var screenYNoZ: Float32 = 0.0;
+	public var sortVal: Int16 = 0;
 	public var props: ObjectProperties;
 	public var name = "";
 	public var facing: Float32 = 0.0;
@@ -115,8 +126,6 @@ class GameObject extends BasicObject {
 	}
 
 	public function new(objectXML: Xml, objClass: String) {
-		super();
-
 		this.props = ObjectLibrary.defaultProps;
 		this.objClass = objClass;
 		this.posAtTick = new Point();
@@ -161,8 +170,9 @@ class GameObject extends BasicObject {
 			this.name = this.props.displayId;
 	}
 
-	override public function dispose() {
-		super.dispose();
+	public function dispose() {
+		this.map = null;
+		this.curSquare = null;
 		if (this.portrait != null) {
 			this.portrait.dispose();
 			this.portrait = null;
@@ -174,7 +184,7 @@ class GameObject extends BasicObject {
 		}
 	}
 
-	override public function addTo(map: Map, x: Float32, y: Float32) {
+	public function addTo(map: Map, x: Float32, y: Float32) {
 		this.map = map;
 		this.posAtTick.x = this.tickPosition.x = x;
 		this.posAtTick.y = this.tickPosition.y = y;
@@ -198,7 +208,7 @@ class GameObject extends BasicObject {
 		return true;
 	}
 
-	override public function removeFromMap() {
+	public function removeFromMap() {
 		if (this.props.staticObj && curSquare != null) {
 			if (curSquare.obj == this)
 				curSquare.obj = null;
@@ -206,11 +216,12 @@ class GameObject extends BasicObject {
 			curSquare = null;
 		}
 
-		super.removeFromMap();
+		this.map = null;
+		this.curSquare = null;
 		this.dispose();
 	}
 
-	override public function update(time: Int32, dt: Int16) {
+	public function update(time: Int32, dt: Int16) {
 		if (this.objectId != this.map.player.objectId) {
 			var scaleDt: Float32 = dt * 0.005;
 			this.moveTo(scaleDt * this.tickPosition.x + (1 - scaleDt) * this.mapX, scaleDt * this.tickPosition.y + (1 - scaleDt) * this.mapY);

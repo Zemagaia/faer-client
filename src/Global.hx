@@ -2,14 +2,10 @@ package;
 
 import mapeditor.MapEditor;
 import openfl.Assets;
-import openfl.display.PNGEncoderOptions;
 import engine.TextureFactory;
-import util.MacroUtil;
 import util.Signal;
 import lib.tasks.Task;
 import openfl.events.Event;
-import objects.particles.SparkParticle;
-import objects.particles.SparkerParticle;
 import lime.system.System;
 import account.services.BuyCharacterSlotTask;
 import account.services.BuySkinTask;
@@ -58,8 +54,6 @@ final class Global {
 	public static var currentEditor: MapEditor;
 
 	public static var projPool: ObjectPool<Projectile>;
-	public static var sparkerParticlePool: ObjectPool<SparkerParticle>;
-	public static var sparkParticlePool: ObjectPool<SparkParticle>;
 
 	public static var serverModel: ServerModel;
 	public static var classModel: ClassModel;
@@ -83,20 +77,6 @@ final class Global {
 	public static function init(root: Sprite) {
 		projPool = new ObjectPool<Projectile>(() -> {
 			return new Projectile();
-		}, (proj: Projectile) -> {
-			proj.dispose();
-		});
-
-		sparkerParticlePool = new ObjectPool<SparkerParticle>(() -> {
-			return new SparkerParticle();
-		}, (prt: SparkerParticle) -> {
-			prt.dispose();
-		});
-
-		sparkParticlePool = new ObjectPool<SparkParticle>(() -> {
-			return new SparkParticle();
-		}, (prt: SparkParticle) -> {
-			prt.dispose();
 		});
 
 		loadTask = new LoadAccountTask();
