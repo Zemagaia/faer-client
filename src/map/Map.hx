@@ -748,8 +748,8 @@ class Map {
 		}
 
 		var rect: Rect = null;
+		var action = AnimatedChar.STAND;
 		if (obj.animatedChar != null) {
-			var action = AnimatedChar.STAND;
 			var p: Float32 = 0.0;
 			if (time < obj.attackStart + GameObject.ATTACK_PERIOD) {
 				if (!obj.props.dontFaceAttacks)
@@ -802,7 +802,15 @@ class Map {
 		var w = size * texW * RenderUtils.clipSpaceScaleX * 0.5;
 		var h = hBase * RenderUtils.clipSpaceScaleY * 0.5 / sink;
 		var yBase = (screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
-		var xBase = screenX * RenderUtils.clipSpaceScaleX;
+		var xOffset: Float32 = 0.0;
+		if (action == AnimatedChar.ATTACK) {
+			var dir = player.animatedChar.facingToDir(player.facing);
+			if (dir == AnimatedChar.LEFT)
+				xOffset = -texW;
+			else if (dir == AnimatedChar.RIGHT)
+				xOffset = texW;
+		}
+		var xBase = (screenX + (action == AnimatedChar.ATTACK ? xOffset : 0)) * RenderUtils.clipSpaceScaleX;
 		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
 		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
 
@@ -1057,9 +1065,9 @@ class Map {
 		var texW = player.width * Main.ATLAS_WIDTH,
 			texH = player.height * Main.ATLAS_HEIGHT;
 
+		var action = AnimatedChar.STAND;
 		var rect: Rect = null;
 		if (player.animatedChar != null) {
-			var action = AnimatedChar.STAND;
 			var p: Float32 = 0.0;
 			if (time < player.attackStart + GameObject.ATTACK_PERIOD) {
 				if (!player.props.dontFaceAttacks)
@@ -1112,7 +1120,15 @@ class Map {
 		var hBase = size * texH;
 		var h = hBase * RenderUtils.clipSpaceScaleY * 0.5 / sink;
 		var yBase = (screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
-		var xBase = screenX * RenderUtils.clipSpaceScaleX;
+		var xOffset: Float32 = 0.0;
+		if (action == AnimatedChar.ATTACK) {
+			var dir = player.animatedChar.facingToDir(player.facing);
+			if (dir == AnimatedChar.LEFT)
+				xOffset = -texW;
+			else if (dir == AnimatedChar.RIGHT)
+				xOffset = texW;
+		}
+		var xBase = (screenX + (action == AnimatedChar.ATTACK ? xOffset : 0)) * RenderUtils.clipSpaceScaleX;
 		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
 		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
 

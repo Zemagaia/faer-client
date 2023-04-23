@@ -1,5 +1,6 @@
 package util;
 
+import util.NativeTypes.Float32;
 import util.BinPacker.Rect;
 import util.Utils;
 import map.Camera;
@@ -126,6 +127,17 @@ class AnimatedChar {
 		return texVec[Std.int(p * texVec.length)];
 	}
 
+	public function facingToDir(facing: Float32) {
+		var ca = MathUtil.halfBound(facing - Camera.angleRad);
+		var sec = Std.int(Math.abs(Std.int(ca / PI_DIV_4 + 4) % 8));
+		var dirs = SEC_TO_DIRS[sec];
+		if (!this.rectDict.exists(dirs[0])) {
+			if (!this.rectDict.exists(dirs[1]))
+				return dirs[2];
+			else return dirs[1];
+		} else return dirs[0];
+	}
+
 	public function rectFromFacing(facing: Float, action: Int, p: Float) {
 		var ca = MathUtil.halfBound(facing - Camera.angleRad);
 		var sec = Std.int(Math.abs(Std.int(ca / PI_DIV_4 + 4) % 8));
@@ -146,7 +158,7 @@ class AnimatedChar {
 		var imageDict = new IntMap<Array<MaskedImage>>();
 		imageDict.set(STAND, [frames.images[offset + 0]]);
 		imageDict.set(WALK, [frames.images[offset + 1], frames.images[offset + 2]]);
-		imageDict.set(ATTACK, [frames.images[offset + 4], frames.images[offset + 5]]);
+		imageDict.set(ATTACK, [frames.images[offset + 3], frames.images[offset + 4]]);
 		return imageDict;
 	}
 
@@ -154,7 +166,7 @@ class AnimatedChar {
 		var rectDict = new IntMap<Array<Rect>>();
 		rectDict.set(STAND, [frames.imageRects[offset + 0]]);
 		rectDict.set(WALK, [frames.imageRects[offset + 1], frames.imageRects[offset + 2]]);
-		rectDict.set(ATTACK, [frames.imageRects[offset + 4], frames.imageRects[offset + 5]]);
+		rectDict.set(ATTACK, [frames.imageRects[offset + 3], frames.imageRects[offset + 4]]);
 		return rectDict;
 	}
 }

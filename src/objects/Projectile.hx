@@ -224,6 +224,11 @@ class Projectile {
 			var enLen = map.enemies.length;
 			while (i < enLen) {
 				var go = map.enemies.unsafeGet(i);
+				if (!go.props.isEnemy) {
+					i++;
+					continue;
+				}
+				
 				distSqr = PointUtil.distanceSquaredXY(go.mapX, go.mapY, pX, pY);
 				if (distSqr < 0.25 && distSqr < minDistSqr && (!this.projProps.multiHit || !(this.multiHitDict.exists(go.objectId)))) {
 					minDistSqr = distSqr;
