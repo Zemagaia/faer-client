@@ -749,8 +749,8 @@ class Map {
 
 		var rect: Rect = null;
 		var action = AnimatedChar.STAND;
+		var p: Float32 = 0.0;
 		if (obj.animatedChar != null) {
-			var p: Float32 = 0.0;
 			if (time < obj.attackStart + GameObject.ATTACK_PERIOD) {
 				if (!obj.props.dontFaceAttacks)
 					obj.facing = obj.attackAngle;
@@ -803,11 +803,11 @@ class Map {
 		var h = hBase * RenderUtils.clipSpaceScaleY * 0.5 / sink;
 		var yBase = (screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
 		var xOffset: Float32 = 0.0;
-		if (action == AnimatedChar.ATTACK) {
+		if (action == AnimatedChar.ATTACK && p >= 0.5) {
 			var dir = player.animatedChar.facingToDir(player.facing);
 			if (dir == AnimatedChar.LEFT)
 				xOffset = -texW;
-			else if (dir == AnimatedChar.RIGHT)
+			else
 				xOffset = texW;
 		}
 		var xBase = (screenX + (action == AnimatedChar.ATTACK ? xOffset : 0)) * RenderUtils.clipSpaceScaleX;
@@ -875,6 +875,8 @@ class Map {
 
 		var yPos: Int32 = 15 + (sink != 0 ? 5 : 0);
 		if (obj.props == null || !obj.props.noMiniMap) {
+			xBase = screenX * RenderUtils.clipSpaceScaleX;
+
 			if (obj.hp > obj.maxHP)
 				obj.maxHP = obj.hp;
 
@@ -1066,9 +1068,9 @@ class Map {
 			texH = player.height * Main.ATLAS_HEIGHT;
 
 		var action = AnimatedChar.STAND;
+		var p: Float32 = 0.0;
 		var rect: Rect = null;
 		if (player.animatedChar != null) {
-			var p: Float32 = 0.0;
 			if (time < player.attackStart + GameObject.ATTACK_PERIOD) {
 				if (!player.props.dontFaceAttacks)
 					player.facing = player.attackAngle;
@@ -1121,11 +1123,11 @@ class Map {
 		var h = hBase * RenderUtils.clipSpaceScaleY * 0.5 / sink;
 		var yBase = (screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
 		var xOffset: Float32 = 0.0;
-		if (action == AnimatedChar.ATTACK) {
+		if (action == AnimatedChar.ATTACK && p >= 0.5) {
 			var dir = player.animatedChar.facingToDir(player.facing);
 			if (dir == AnimatedChar.LEFT)
 				xOffset = -texW;
-			else if (dir == AnimatedChar.RIGHT)
+			else
 				xOffset = texW;
 		}
 		var xBase = (screenX + (action == AnimatedChar.ATTACK ? xOffset : 0)) * RenderUtils.clipSpaceScaleX;
@@ -1193,6 +1195,8 @@ class Map {
 
 		var yPos: Int32 = 15 + (sink != 0 ? 5 : 0);
 		if (player.props == null || !player.props.noMiniMap) {
+			xBase = screenX * RenderUtils.clipSpaceScaleX;
+
 			if (player.hp > player.maxHP)
 				player.maxHP = player.hp;
 
@@ -1205,7 +1209,7 @@ class Map {
 				var barThreshU: Float32 = hpBarU + scaledBarW * (player.hp / player.maxHP);
 				w = hpBarW * RenderUtils.clipSpaceScaleX;
 				h = hpBarH * RenderUtils.clipSpaceScaleY;
-				yBase = (player.screenY + yPos - (hpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+				yBase = (screenY + yPos - (hpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
 				texelW = 0.5 / Main.ATLAS_WIDTH;
 				texelH = 0.5 / Main.ATLAS_HEIGHT;
 
@@ -1277,7 +1281,7 @@ class Map {
 				var barThreshU: Float32 = mpBarU + scaledBarW * (player.mp / player.maxMP);
 				w = mpBarW * RenderUtils.clipSpaceScaleX;
 				h = mpBarH * RenderUtils.clipSpaceScaleY;
-				yBase = (player.screenY + yPos - (mpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+				yBase = (screenY + yPos - (mpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
 				texelW = 0.5 / Main.ATLAS_WIDTH;
 				texelH = 0.5 / Main.ATLAS_HEIGHT;
 
@@ -1365,8 +1369,8 @@ class Map {
 					var scaledV: Float32 = rect.y / Main.ATLAS_HEIGHT;
 					w = rect.width * RenderUtils.clipSpaceScaleX * 0.5;
 					h = rect.height * RenderUtils.clipSpaceScaleY * 0.5;
-					xBase = (player.screenX - rect.width * len + idx * rect.width) * RenderUtils.clipSpaceScaleX;
-					yBase = (player.screenY + yPos + 5 - (rect.height / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+					xBase = (screenX - rect.width * len + idx * rect.width) * RenderUtils.clipSpaceScaleX;
+					yBase = (screenY + yPos + 5 - (rect.height / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
 					texelW = 1 / Main.ATLAS_WIDTH;
 					texelH = 1 / Main.ATLAS_HEIGHT;
 
