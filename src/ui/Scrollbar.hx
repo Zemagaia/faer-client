@@ -69,6 +69,9 @@ class Scrollbar extends Sprite {
 	}
 
 	public function pos() {
+		if (this.indicatorRect.height == this.posIndicator.height)
+			return 0.0;
+
 		return (this.posIndicator.y - this.indicatorRect.y) / (this.indicatorRect.height - this.posIndicator.height);
 	}
 

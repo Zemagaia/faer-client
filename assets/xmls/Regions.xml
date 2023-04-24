@@ -24,24 +24,6 @@
   <Region type="0x08" id="Event 3">
     <Color>0xFFFF00</Color>
   </Region>
-  <Region type="0x09" id="Store 4">
-    <Color>0xFFDCF3</Color>
-  </Region>
-  <Region type="0x10" id="Store 5">
-    <Color>0xD9FFF3</Color>
-  </Region>
-  <Region type="0x11" id="Store 6">
-    <Color>0xC6B1FF</Color>
-  </Region>
-  <Region type="0x12" id="Store 7">
-    <Color>0xFFDCF3</Color>
-  </Region>
-  <Region type="0x13" id="Store 8">
-    <Color>0xD9FFF3</Color>
-  </Region>
-  <Region type="0x14" id="Store 9">
-    <Color>0xC6B1FF</Color>
-  </Region>
   <Region type="0x29" id="Biome Desert Encounter Spawn">
     <Color>0x9B00FF</Color>
   </Region>
