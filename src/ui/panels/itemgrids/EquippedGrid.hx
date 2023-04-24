@@ -16,7 +16,7 @@ class EquippedGrid extends ItemGrid {
 		this.tiles = new Array<EquipmentTile>();
 		for (i in 0...NUM_SLOTS) {
 			tile = new EquipmentTile(i, this, interactive);
-			addToGrid(tile, 1, i);
+			addToGrid(tile, 0, i);
 			tile.setType(invTypes[i]);
 			this.tiles[i] = tile;
 		}

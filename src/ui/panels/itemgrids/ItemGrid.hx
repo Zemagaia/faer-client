@@ -25,17 +25,14 @@ class ItemGrid extends Panel {
 	private static var CutsByNum = [
 		[[1, 0, 0, 1], NO_CUT, NO_CUT, [0, 1, 1, 0]],
 		[
-			[1, 0, 0, 0],
-			NO_CUT,
-			NO_CUT,
-			[0, 1, 0, 0],
-			[0, 0, 0, 1],
-			NO_CUT,
-			NO_CUT,
-			[0, 0, 1, 0]
+			[1, 0, 0, 0], NO_CUT, NO_CUT, [0, 1, 0, 0],
+			[0, 0, 0, 1], NO_CUT, NO_CUT, [0, 0, 1, 0]
 		],
 		[
-			[1, 0, 0, 1], NO_CUT, NO_CUT, [0, 1, 1, 0], [1, 0, 0, 0], NO_CUT, NO_CUT, [0, 1, 0, 0], [0, 0, 0, 1], NO_CUT, NO_CUT, [0, 0, 1, 0]]
+			[1, 0, 0, 1], NO_CUT, NO_CUT, [0, 1, 1, 0],
+			[1, 0, 0, 0], NO_CUT, NO_CUT, [0, 1, 0, 0],
+			[0, 0, 0, 1], NO_CUT, NO_CUT, [0, 0, 1, 0]
+		]
 	];
 	private static inline var padding = 4;
 	private static inline var rowLength = 4;

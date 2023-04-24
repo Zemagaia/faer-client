@@ -117,13 +117,16 @@ class Inventory extends Sprite {
 	}
 
 	public function setSelectedTab(index: Int) {
+		if (this.tabs.length == 0)
+			return;
+
 		this.selectTab(this.tabs[index]);
 	}
 
 	private function selectTab(view: TabView) {
 		if (view != null) {
 			var tabFromIndex = this.tabs[this.currentTabIndex];
-			if (tabFromIndex.index != view.index) {
+			if (tabFromIndex != null && tabFromIndex.index != view.index) {
 				this.showContent(view.index);
 				Global.tabStripModel.currentSelection = this.contents[view.index].name;
 			}

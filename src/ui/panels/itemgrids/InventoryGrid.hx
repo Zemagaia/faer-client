@@ -19,7 +19,7 @@ class InventoryGrid extends ItemGrid {
 		for (i in 0...NUM_SLOTS) {
 			tile = new InventoryTile(i + indexOffset, this, interactive);
 			tile.addTileFloat(i + 1);
-			addToGrid(tile, 2, i);
+			addToGrid(tile, 1, i);
 			this.tiles[i] = tile;
 		}
 	}
