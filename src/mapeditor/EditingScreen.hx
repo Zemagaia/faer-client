@@ -522,6 +522,8 @@ class EditingScreen extends Sprite {
 		if (savedChars == null || savedChars.length == 0)
 			return;
 
+		Global.layers.tooltips.hide();
+		
 		var data = new GameInitData();
 		data.charId = savedChars[0].charId();
 		data.fmMap = this.createMap();
@@ -529,6 +531,8 @@ class EditingScreen extends Sprite {
 	}
 
 	private function onQuit(_: Event) {
+		Global.layers.tooltips.hide();
+
 		this.meMap.fullMap.dispose();
 		this.meMap.map.dispose();
 		this.meMap.regionMap.dispose();

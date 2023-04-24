@@ -52,14 +52,11 @@ class Element extends Sprite {
 
 	private function setToolTip(newToolTip: ToolTip) {
 		this.removeTooltip();
-		toolTip = newToolTip;
-		if (toolTip != null)
-			stage.addChild(toolTip);
+		Global.layers.tooltips.show(newToolTip);
 	}
 
 	private function removeTooltip() {
-		toolTip?.parent?.removeChild(toolTip);
-		toolTip = null;
+		Global.layers.tooltips.hide();
 	}
 
 	private function getToolTip(): ToolTip {
