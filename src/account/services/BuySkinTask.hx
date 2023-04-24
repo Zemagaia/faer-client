@@ -9,7 +9,6 @@ import classes.model.CharacterSkinState;
 import lib.tasks.Task;
 import ui.dialogs.ErrorDialog;
 
-@:headerCode("#include <appengine/RequestHandler.h>")
 class BuySkinTask extends Task {
 	public static var skin: CharacterSkin;
 

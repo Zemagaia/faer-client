@@ -10,7 +10,6 @@ import ui.ClickableText;
 import ui.Frame;
 import ui.TextInputField;
 
-@:headerCode("#include <appengine/RequestHandler.h>")
 class LoginDialog extends Frame {
 	public var email: TextInputField;
 	public var password: TextInputField;

@@ -5,7 +5,6 @@ import cpp.Pointer;
 import appengine.RequestHandler;
 import lib.tasks.Task;
 
-@:headerCode("#include <appengine/RequestHandler.h>")
 class BuyCharacterSlotTask extends Task {
 	override public function startTask() {
 		RequestHandler.setParameter("email", Account.email);

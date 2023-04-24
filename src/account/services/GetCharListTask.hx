@@ -7,7 +7,6 @@ import lib.tasks.Task;
 import openfl.events.TimerEvent;
 import openfl.utils.Timer;
 
-@:headerCode("#include <appengine/RequestHandler.h>")
 class GetCharListTask extends Task {
 	private var retryTimer: Timer;
 

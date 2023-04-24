@@ -6,7 +6,6 @@ import account.AccountData;
 import appengine.RequestHandler;
 import lib.tasks.Task;
 
-@:headerCode("#include <appengine/RequestHandler.h>")
 class RegisterAccountTask extends Task {
 	public static var accountData: AccountData;
 

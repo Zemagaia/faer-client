@@ -213,7 +213,6 @@ enum abstract StatType(Int) from Int to Int {
 	final TenacityBoost = 88;
 }
 
-@:headerCode("#include <appengine/RequestHandler.h>")
 class NetworkHandler {
 	private static var socket = new Socket();
 

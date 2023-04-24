@@ -5,7 +5,6 @@ import cpp.Pointer;
 import appengine.RequestHandler;
 import lib.tasks.Task;
 
-@:headerCode("#include <appengine/RequestHandler.h>")
 class ChangePasswordTask extends Task {
 	public static var changePwData: ChangePasswordData;
 

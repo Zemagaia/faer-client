@@ -8,7 +8,6 @@ import account.AccountData;
 import appengine.RequestHandler;
 import lib.tasks.Task;
 
-@:headerCode("#include <appengine/RequestHandler.h>")
 class LoadAccountTask extends Task {
 	private var data: AccountData;
 

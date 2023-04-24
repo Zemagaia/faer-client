@@ -1,5 +1,7 @@
 package;
 
+import account.services.UploadXmlTask;
+import account.services.UploadBehaviorTask;
 import mapeditor.MapEditor;
 import openfl.Assets;
 import engine.TextureFactory;
@@ -70,6 +72,8 @@ final class Global {
 	public static var changePasswordTask: ChangePasswordTask;
 	public static var sendPasswordReminderTask: SendPasswordReminderTask;
 	public static var buySkinTask: BuySkinTask;
+	public static var uploadBehaviorTask: UploadBehaviorTask;
+	public static var uploadXmlTask: UploadXmlTask;
 
 	public static var updateAccount: EmptySignal;
 	public static var focusCharSkin: Signal<CharacterSkin>;
@@ -88,6 +92,8 @@ final class Global {
 		changePasswordTask = new ChangePasswordTask();
 		sendPasswordReminderTask = new SendPasswordReminderTask();
 		buySkinTask = new BuySkinTask();
+		uploadBehaviorTask = new UploadBehaviorTask();
+		uploadXmlTask = new UploadXmlTask();
 
 		serverModel = new ServerModel();
 		classModel = new ClassModel();

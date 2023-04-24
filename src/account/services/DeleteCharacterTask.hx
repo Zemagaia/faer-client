@@ -6,7 +6,6 @@ import account.Account;
 import appengine.RequestHandler;
 import lib.tasks.Task;
 
-@:headerCode("#include <appengine/RequestHandler.h>")
 class DeleteCharacterTask extends Task {
 	override public function startTask() {
 		RequestHandler.setParameter("email", Account.email);

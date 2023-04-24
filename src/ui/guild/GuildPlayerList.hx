@@ -13,7 +13,6 @@ import ui.Scrollbar;
 import ui.SimpleText;
 import util.GuildUtil;
 
-@:headerCode("#include <appengine/RequestHandler.h>")
 class GuildPlayerList extends Sprite {
 	private var num = 0;
 	private var offset = 0;

@@ -5,7 +5,6 @@ import cpp.Pointer;
 import appengine.RequestHandler;
 import lib.tasks.Task;
 
-@:headerCode("#include <appengine/RequestHandler.h>")
 class LoginTask extends Task {
 	public function new() {
 		super();

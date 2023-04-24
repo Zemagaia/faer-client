@@ -5,7 +5,6 @@ import cpp.Stdlib;
 import appengine.RequestHandler;
 import lib.tasks.Task;
 
-@:headerCode("#include <appengine/RequestHandler.h>")
 class SendPasswordReminderTask extends Task {
 	public static var email = "";
 
