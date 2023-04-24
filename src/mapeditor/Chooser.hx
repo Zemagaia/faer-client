@@ -71,6 +71,20 @@ class Chooser extends Sprite {
 			}
 	}
 
+	private function removeElements() {
+		this.elements = new Vector<Element>();
+		removeChild(this.elementSprite);
+		this.elementSprite = new Sprite();
+		this.elementSprite.x = 4;
+		this.elementSprite.y = 6;
+		var maskShape: Shape = new Shape();
+		maskShape.graphics.beginFill(0);
+		maskShape.graphics.drawRect(0, 2, Chooser.WIDTH - SCROLLBAR_WIDTH - 4, Chooser.HEIGHT - 4);
+		addChild(maskShape);
+		this.elementSprite.mask = maskShape;
+		addChild(this.elementSprite);
+	}
+
 	private function addElement(element: Element) {
 		var i = this.elements.length;
 		element.x = i % 2 == 0 ? 0 : 2 + Element.WIDTH;

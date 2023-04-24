@@ -1,5 +1,7 @@
 package mapeditor;
 
+import util.Utils.KeyCode;
+import openfl.events.KeyboardEvent;
 import ui.view.TitleView;
 import ui.dialogs.Dialog;
 import ui.TextInputField;
@@ -43,6 +45,7 @@ class EditingScreen extends Sprite {
 	public var infoPane: InfoPane;
 	public var brushSize: TextInputField;
 	public var randomChance: TextInputField;
+	public var searchBar: TextInputField;
 	public var chooserDropDown: DropDown;
 	public var groundChooser: GroundChooser;
 	public var objChooser: ObjectChooser;
@@ -69,6 +72,12 @@ class EditingScreen extends Sprite {
 		this.randomChance.x = Main.stageWidth / 2 - MEMap.WIDTH / 2 + 250;
 		this.randomChance.y = Main.stageHeight - MEMap.HEIGHT - 10 - 70;
 		addChild(this.randomChance);
+
+		this.searchBar = new TextInputField("Search", false, "");
+		this.searchBar.x = Main.stageWidth / 2 - MEMap.WIDTH / 2 + 500;
+		this.searchBar.y = Main.stageHeight - MEMap.HEIGHT - 10 - 70;
+		this.searchBar.inputText.addEventListener(KeyboardEvent.KEY_DOWN, this.onKeyDown);
+		addChild(this.searchBar);
 
 		this.commandMenu = new MECommandMenu();
 		this.commandMenu.x = 15;
@@ -113,6 +122,21 @@ class EditingScreen extends Sprite {
 		this.regionChooser = new RegionChooser();
 		this.regionChooser.x = this.chooserDropDown.x;
 		this.regionChooser.y = this.chooserDropDown.y + this.chooserDropDown.height + 4;
+	}
+
+	public function onKeyDown(e: KeyboardEvent) {
+		if (e.keyCode != KeyCode.Enter)
+			return;
+
+		var search = this.searchBar.text();
+		switch (this.chooserDropDown.getValue()) {
+			case "Ground":
+				this.groundChooser.reloadObjects(search);
+			case "Objects":
+				this.objChooser.reloadObjects(search);
+			case "Regions":
+				this.regionChooser.reloadObjects(search);
+		}
 	}
 
 	private function ipArrContains(arr: Array<IntPoint>, x: Int, y: Int) {
