@@ -1,5 +1,6 @@
 package mapeditor;
 
+import ui.view.TitleView;
 import ui.dialogs.Dialog;
 import ui.TextInputField;
 import haxe.display.Server.ModuleId;
@@ -78,6 +79,7 @@ class EditingScreen extends Sprite {
 		this.commandMenu.addEventListener(CommandEvent.LOAD_COMMAND_EVENT, this.onLoad);
 		this.commandMenu.addEventListener(CommandEvent.SAVE_COMMAND_EVENT, this.onSave);
 		this.commandMenu.addEventListener(CommandEvent.TEST_COMMAND_EVENT, this.onTest);
+		this.commandMenu.addEventListener(CommandEvent.QUIT_COMMAND_EVENT, this.onQuit);
 		addChild(this.commandMenu);
 
 		this.commandQueue = new CommandQueue();
@@ -500,5 +502,15 @@ class EditingScreen extends Sprite {
 		data.charId = savedChars[0].charId();
 		data.fmMap = this.createMap();
 		Global.playGame(data);
+	}
+
+	private function onQuit(_: Event) {
+		this.meMap.fullMap.dispose();
+		this.meMap.map.dispose();
+		this.meMap.regionMap.dispose();
+		this.meMap.invisibleTexture.dispose();
+		this.meMap.replaceTexture.dispose();
+
+		Global.layers.screens.setScreen(new TitleView());
 	}
 }

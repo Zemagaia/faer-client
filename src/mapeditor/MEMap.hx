@@ -35,11 +35,11 @@ class MEMap extends Sprite {
 	public var overlay: Shape;
 	public var posT: IntPoint;
 	public var zoom: Float = 1;
+	public var invisibleTexture: BitmapData;
+	public var replaceTexture: BitmapData;
 
 	private var mouseRectAnchorT: IntPoint = null;
 	private var mouseMoveAnchorT: IntPoint = null;
-	private var invisibleTexture: BitmapData;
-	private var replaceTexture: BitmapData;
 	private var mouseDown = false;
 	private var editScreen: EditingScreen;
 

@@ -24,6 +24,8 @@ class MECommandMenu extends CommandMenu {
 		addCommandMenuItem("(L)oad", KeyCode.L, this.onLoad, NONE_COMMAND);
 		addCommandMenuItem("(S)ave", KeyCode.S, this.onSave, NONE_COMMAND);
 		addCommandMenuItem("(T)est", KeyCode.T, this.onTest, NONE_COMMAND);
+		addBreak();
+		addCommandMenuItem("Quit", KeyCode.Unset, this.onQuit, NONE_COMMAND);
 	}
 
 	private function select(item: CommandMenuItem) {
@@ -52,5 +54,9 @@ class MECommandMenu extends CommandMenu {
 
 	private function onTest(_: CommandMenuItem) {
 		dispatchEvent(new CommandEvent(CommandEvent.TEST_COMMAND_EVENT));
+	}
+
+	private function onQuit(_: CommandMenuItem) {
+		dispatchEvent(new CommandEvent(CommandEvent.QUIT_COMMAND_EVENT));
 	}
 }

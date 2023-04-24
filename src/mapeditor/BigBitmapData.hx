@@ -84,4 +84,10 @@ class BigBitmapData {
 				chunk.fillRect(chunkRect, this.fillColor);
 			}
 	}
+
+	public function dispose() {
+		for (tex in this.chunks)
+			tex.dispose();
+		this.chunks = null;
+	}
 }

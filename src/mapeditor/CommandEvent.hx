@@ -8,6 +8,7 @@ class CommandEvent extends Event {
 	public static inline var LOAD_COMMAND_EVENT = "LOAD_COMMAND_EVENT";
 	public static inline var SAVE_COMMAND_EVENT = "SAVE_COMMAND_EVENT";
 	public static inline var TEST_COMMAND_EVENT = "TEST_COMMAND_EVENT";
+	public static inline var QUIT_COMMAND_EVENT = "QUIT_COMMAND_EVENT";
 
 	public function new(type: String) {
 		super(type);
