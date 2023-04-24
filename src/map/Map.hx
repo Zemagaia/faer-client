@@ -669,6 +669,342 @@ class Map {
 		}
 	}
 
+	@:nonVirtual private final #if !tracing inline #end function drawWall(time: Int32, obj: GameObject) {
+		var texW = obj.width * Main.ATLAS_WIDTH,
+			texH = obj.height * Main.ATLAS_HEIGHT;
+
+		if (obj.animations != null) {
+			var rect = obj.animations.getTexture(time);
+			obj.uValue = rect.x / Main.ATLAS_WIDTH;
+			obj.vValue = rect.y / Main.ATLAS_WIDTH;
+			texW = rect.width;
+			obj.width = texW / Main.ATLAS_WIDTH;
+			texH = rect.height;
+			obj.height = texH / Main.ATLAS_HEIGHT;
+		}
+		
+		var size = 8 / Main.ATLAS_WIDTH;
+		var middleX = obj.mapX;
+		var middleY = obj.mapY;
+		var xBaseTop = (middleX * Camera.cos + middleY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
+		var yBaseTop = (middleX * -Camera.sin + middleY * Camera.cos + Camera.csY - Camera.PX_PER_TILE) * RenderUtils.clipSpaceScaleY;
+		var xBase = (middleX * Camera.cos + middleY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
+		var yBase = (middleX * -Camera.sin + middleY * Camera.cos + Camera.csY) * RenderUtils.clipSpaceScaleY;
+
+		var xScaledCos = Camera.xScaledCos;
+		var yScaledCos = Camera.yScaledCos;
+		var xScaledSin = Camera.xScaledSin;
+		var yScaledSin = Camera.yScaledSin;
+
+		this.vertexData[this.vIdx] = -xScaledCos + xScaledSin + xBaseTop - xScaledSin * 2;
+		this.vertexData[this.vIdx + 1] = yScaledSin + yScaledCos + yBaseTop - yScaledCos * 2;
+		this.vertexData[this.vIdx + 2] = obj.uValue;
+		this.vertexData[this.vIdx + 3] = obj.vValue;
+
+		this.vertexData[this.vIdx + 4] = 0;
+		this.vertexData[this.vIdx + 5] = 0;
+		this.vertexData[this.vIdx + 6] = 0;
+		this.vertexData[this.vIdx + 7] = 0;
+		this.vertexData[this.vIdx + 8] = 0;
+		this.vertexData[this.vIdx + 9] = -1;
+
+		this.vertexData[this.vIdx + 10] = xScaledCos + xScaledSin + xBaseTop - xScaledSin * 2;
+		this.vertexData[this.vIdx + 11] = -yScaledSin + yScaledCos + yBaseTop - yScaledCos * 2;
+		this.vertexData[this.vIdx + 12] = obj.uValue + size;
+		this.vertexData[this.vIdx + 13] = obj.vValue;
+
+		this.vertexData[this.vIdx + 14] = 0;
+		this.vertexData[this.vIdx + 15] = 0;
+		this.vertexData[this.vIdx + 16] = 0;
+		this.vertexData[this.vIdx + 17] = 0;
+		this.vertexData[this.vIdx + 18] = 0;
+		this.vertexData[this.vIdx + 19] = -1;
+
+		this.vertexData[this.vIdx + 20] = -xScaledCos + xScaledSin + xBase - xScaledSin * 2;
+		this.vertexData[this.vIdx + 21] = yScaledSin + yScaledCos + yBase - yScaledCos * 2;
+		this.vertexData[this.vIdx + 22] = obj.uValue;
+		this.vertexData[this.vIdx + 23] = obj.vValue + size;
+
+		this.vertexData[this.vIdx + 24] = 0;
+		this.vertexData[this.vIdx + 25] = 0;
+		this.vertexData[this.vIdx + 26] = 0;
+		this.vertexData[this.vIdx + 27] = 0;
+		this.vertexData[this.vIdx + 28] = 0;
+		this.vertexData[this.vIdx + 29] = -1;
+
+		this.vertexData[this.vIdx + 30] = xScaledCos + xScaledSin + xBase - xScaledSin * 2;
+		this.vertexData[this.vIdx + 31] = -yScaledSin + yScaledCos + yBase - yScaledCos * 2;
+		this.vertexData[this.vIdx + 32] = obj.uValue + size;
+		this.vertexData[this.vIdx + 33] = obj.vValue + size;
+
+		this.vertexData[this.vIdx + 34] = 0;
+		this.vertexData[this.vIdx + 35] = 0;
+		this.vertexData[this.vIdx + 36] = 0;
+		this.vertexData[this.vIdx + 37] = 0;
+		this.vertexData[this.vIdx + 38] = 0;
+		this.vertexData[this.vIdx + 39] = -1;
+		this.vIdx += 40;
+
+		final i4 = this.i * 4;
+		this.indexData[this.iIdx] = i4;
+		this.indexData[this.iIdx + 1] = 1 + i4;
+		this.indexData[this.iIdx + 2] = 2 + i4;
+		this.indexData[this.iIdx + 3] = 2 + i4;
+		this.indexData[this.iIdx + 4] = 1 + i4;
+		this.indexData[this.iIdx + 5] = 3 + i4;
+		this.iIdx += 6;
+		this.i++;
+
+		this.vertexData[this.vIdx] = -xScaledCos + xScaledSin + xBaseTop;
+		this.vertexData[this.vIdx + 1] = yScaledSin + yScaledCos + yBaseTop;
+		this.vertexData[this.vIdx + 2] = obj.uValue;
+		this.vertexData[this.vIdx + 3] = obj.vValue;
+
+		this.vertexData[this.vIdx + 4] = 0;
+		this.vertexData[this.vIdx + 5] = 0;
+		this.vertexData[this.vIdx + 6] = 0;
+		this.vertexData[this.vIdx + 7] = 0;
+		this.vertexData[this.vIdx + 8] = 0;
+		this.vertexData[this.vIdx + 9] = -1;
+
+		this.vertexData[this.vIdx + 10] = xScaledCos + xScaledSin + xBaseTop;
+		this.vertexData[this.vIdx + 11] = -yScaledSin + yScaledCos + yBaseTop;
+		this.vertexData[this.vIdx + 12] = obj.uValue + size;
+		this.vertexData[this.vIdx + 13] = obj.vValue;
+
+		this.vertexData[this.vIdx + 14] = 0;
+		this.vertexData[this.vIdx + 15] = 0;
+		this.vertexData[this.vIdx + 16] = 0;
+		this.vertexData[this.vIdx + 17] = 0;
+		this.vertexData[this.vIdx + 18] = 0;
+		this.vertexData[this.vIdx + 19] = -1;
+
+		this.vertexData[this.vIdx + 20] = -xScaledCos + xScaledSin + xBase;
+		this.vertexData[this.vIdx + 21] = yScaledSin + yScaledCos + yBase;
+		this.vertexData[this.vIdx + 22] = obj.uValue;
+		this.vertexData[this.vIdx + 23] = obj.vValue + size;
+
+		this.vertexData[this.vIdx + 24] = 0;
+		this.vertexData[this.vIdx + 25] = 0;
+		this.vertexData[this.vIdx + 26] = 0;
+		this.vertexData[this.vIdx + 27] = 0;
+		this.vertexData[this.vIdx + 28] = 0;
+		this.vertexData[this.vIdx + 29] = -1;
+
+		this.vertexData[this.vIdx + 30] = xScaledCos + xScaledSin + xBase;
+		this.vertexData[this.vIdx + 31] = -yScaledSin + yScaledCos + yBase;
+		this.vertexData[this.vIdx + 32] = obj.uValue + size;
+		this.vertexData[this.vIdx + 33] = obj.vValue + size;
+
+		this.vertexData[this.vIdx + 34] = 0;
+		this.vertexData[this.vIdx + 35] = 0;
+		this.vertexData[this.vIdx + 36] = 0;
+		this.vertexData[this.vIdx + 37] = 0;
+		this.vertexData[this.vIdx + 38] = 0;
+		this.vertexData[this.vIdx + 39] = -1;
+		this.vIdx += 40;
+
+		final i4 = this.i * 4;
+		this.indexData[this.iIdx] = i4;
+		this.indexData[this.iIdx + 1] = 1 + i4;
+		this.indexData[this.iIdx + 2] = 2 + i4;
+		this.indexData[this.iIdx + 3] = 2 + i4;
+		this.indexData[this.iIdx + 4] = 1 + i4;
+		this.indexData[this.iIdx + 5] = 3 + i4;
+		this.iIdx += 6;
+		this.i++;
+
+		this.vertexData[this.vIdx] = -xScaledCos - xScaledSin + xBaseTop;
+		this.vertexData[this.vIdx + 1] = yScaledSin - yScaledCos + yBaseTop;
+		this.vertexData[this.vIdx + 2] = obj.topUValue;
+		this.vertexData[this.vIdx + 3] = obj.topVValue;
+
+		this.vertexData[this.vIdx + 4] = 0;
+		this.vertexData[this.vIdx + 5] = 0;
+		this.vertexData[this.vIdx + 6] = 0;
+		this.vertexData[this.vIdx + 7] = 0;
+		this.vertexData[this.vIdx + 8] = 0;
+		this.vertexData[this.vIdx + 9] = -1;
+
+		this.vertexData[this.vIdx + 10] = xScaledCos - xScaledSin + xBaseTop;
+		this.vertexData[this.vIdx + 11] = -yScaledSin - yScaledCos + yBaseTop;
+		this.vertexData[this.vIdx + 12] = obj.topUValue + size;
+		this.vertexData[this.vIdx + 13] = obj.topVValue;
+
+		this.vertexData[this.vIdx + 14] = 0;
+		this.vertexData[this.vIdx + 15] = 0;
+		this.vertexData[this.vIdx + 16] = 0;
+		this.vertexData[this.vIdx + 17] = 0;
+		this.vertexData[this.vIdx + 18] = 0;
+		this.vertexData[this.vIdx + 19] = -1;
+
+		this.vertexData[this.vIdx + 20] = -xScaledCos + xScaledSin + xBaseTop;
+		this.vertexData[this.vIdx + 21] = yScaledSin + yScaledCos + yBaseTop;
+		this.vertexData[this.vIdx + 22] = obj.topUValue;
+		this.vertexData[this.vIdx + 23] = obj.topVValue + size;
+
+		this.vertexData[this.vIdx + 24] = 0;
+		this.vertexData[this.vIdx + 25] = 0;
+		this.vertexData[this.vIdx + 26] = 0;
+		this.vertexData[this.vIdx + 27] = 0;
+		this.vertexData[this.vIdx + 28] = 0;
+		this.vertexData[this.vIdx + 29] = -1;
+
+		this.vertexData[this.vIdx + 30] = xScaledCos + xScaledSin + xBaseTop;
+		this.vertexData[this.vIdx + 31] = -yScaledSin + yScaledCos + yBaseTop;
+		this.vertexData[this.vIdx + 32] = obj.topUValue + size;
+		this.vertexData[this.vIdx + 33] = obj.topVValue + size;
+
+		this.vertexData[this.vIdx + 34] = 0;
+		this.vertexData[this.vIdx + 35] = 0;
+		this.vertexData[this.vIdx + 36] = 0;
+		this.vertexData[this.vIdx + 37] = 0;
+		this.vertexData[this.vIdx + 38] = 0;
+		this.vertexData[this.vIdx + 39] = -1;
+		this.vIdx += 40;
+
+		final i4 = this.i * 4;
+		this.indexData[this.iIdx] = i4;
+		this.indexData[this.iIdx + 1] = 1 + i4;
+		this.indexData[this.iIdx + 2] = 2 + i4;
+		this.indexData[this.iIdx + 3] = 2 + i4;
+		this.indexData[this.iIdx + 4] = 1 + i4;
+		this.indexData[this.iIdx + 5] = 3 + i4;
+		this.iIdx += 6;
+		this.i++;
+
+		/*var cos = (MathUtil.cos(Camera.angleRad) - MathUtil.PI / 2) * Camera.PX_PER_TILE;
+		var sin = (MathUtil.sin(Camera.angleRad) - MathUtil.PI / 2) * Camera.PX_PER_TILE;
+		var middleX = obj.mapX;
+		var middleY = obj.mapY;
+		var xBaseTop = (middleX * Camera.cos + middleY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
+		var yBaseTop = (middleX * -Camera.sin + middleY * Camera.cos + Camera.csY - Camera.PX_PER_TILE) * RenderUtils.clipSpaceScaleY;
+		var xBase = (middleX * Camera.cos + middleY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
+		var yBase = (middleX * -Camera.sin + middleY * Camera.cos + Camera.csY) * RenderUtils.clipSpaceScaleY;
+		var xScaledCos = cos * 0.5 * RenderUtils.clipSpaceScaleX;
+		var yScaledCos = cos * 0.5 * RenderUtils.clipSpaceScaleY;
+		var xScaledSin = sin * 0.5 * RenderUtils.clipSpaceScaleX;
+		var yScaledSin = sin * 0.5 * RenderUtils.clipSpaceScaleY;
+
+		this.vertexData[this.vIdx] = -xScaledCos + xScaledSin + xBaseTop - xScaledSin * 2;
+		this.vertexData[this.vIdx + 1] = yScaledSin + yScaledCos + yBaseTop - yScaledCos * 2;
+		this.vertexData[this.vIdx + 2] = obj.uValue;
+		this.vertexData[this.vIdx + 3] = obj.vValue;
+
+		this.vertexData[this.vIdx + 4] = 0;
+		this.vertexData[this.vIdx + 5] = 0;
+		this.vertexData[this.vIdx + 6] = 0;
+		this.vertexData[this.vIdx + 7] = 0;
+		this.vertexData[this.vIdx + 8] = 0;
+		this.vertexData[this.vIdx + 9] = -1;
+
+		this.vertexData[this.vIdx + 10] = xScaledCos + xScaledSin + xBaseTop - xScaledSin * 2;
+		this.vertexData[this.vIdx + 11] = -yScaledSin + yScaledCos + yBaseTop - yScaledCos * 2;
+		this.vertexData[this.vIdx + 12] = obj.uValue + size;
+		this.vertexData[this.vIdx + 13] = obj.vValue;
+
+		this.vertexData[this.vIdx + 14] = 0;
+		this.vertexData[this.vIdx + 15] = 0;
+		this.vertexData[this.vIdx + 16] = 0;
+		this.vertexData[this.vIdx + 17] = 0;
+		this.vertexData[this.vIdx + 18] = 0;
+		this.vertexData[this.vIdx + 19] = -1;
+
+		this.vertexData[this.vIdx + 20] = -xScaledCos + xScaledSin + xBase - xScaledSin * 2;
+		this.vertexData[this.vIdx + 21] = yScaledSin + yScaledCos + yBase - yScaledCos * 2;
+		this.vertexData[this.vIdx + 22] = obj.uValue;
+		this.vertexData[this.vIdx + 23] = obj.vValue + size;
+
+		this.vertexData[this.vIdx + 24] = 0;
+		this.vertexData[this.vIdx + 25] = 0;
+		this.vertexData[this.vIdx + 26] = 0;
+		this.vertexData[this.vIdx + 27] = 0;
+		this.vertexData[this.vIdx + 28] = 0;
+		this.vertexData[this.vIdx + 29] = -1;
+
+		this.vertexData[this.vIdx + 30] = xScaledCos + xScaledSin + xBase - xScaledSin * 2;
+		this.vertexData[this.vIdx + 31] = -yScaledSin + yScaledCos + yBase - yScaledCos * 2;
+		this.vertexData[this.vIdx + 32] = obj.uValue + size;
+		this.vertexData[this.vIdx + 33] = obj.vValue + size;
+
+		this.vertexData[this.vIdx + 34] = 0;
+		this.vertexData[this.vIdx + 35] = 0;
+		this.vertexData[this.vIdx + 36] = 0;
+		this.vertexData[this.vIdx + 37] = 0;
+		this.vertexData[this.vIdx + 38] = 0;
+		this.vertexData[this.vIdx + 39] = -1;
+		this.vIdx += 40;
+
+		final i4 = this.i * 4;
+		this.indexData[this.iIdx] = i4;
+		this.indexData[this.iIdx + 1] = 1 + i4;
+		this.indexData[this.iIdx + 2] = 2 + i4;
+		this.indexData[this.iIdx + 3] = 2 + i4;
+		this.indexData[this.iIdx + 4] = 1 + i4;
+		this.indexData[this.iIdx + 5] = 3 + i4;
+		this.iIdx += 6;
+		this.i++;
+
+		this.vertexData[this.vIdx] = -xScaledCos + xScaledSin + xBaseTop;
+		this.vertexData[this.vIdx + 1] = yScaledSin + yScaledCos + yBaseTop;
+		this.vertexData[this.vIdx + 2] = obj.uValue;
+		this.vertexData[this.vIdx + 3] = obj.vValue;
+
+		this.vertexData[this.vIdx + 4] = 0;
+		this.vertexData[this.vIdx + 5] = 0;
+		this.vertexData[this.vIdx + 6] = 0;
+		this.vertexData[this.vIdx + 7] = 0;
+		this.vertexData[this.vIdx + 8] = 0;
+		this.vertexData[this.vIdx + 9] = -1;
+
+		this.vertexData[this.vIdx + 10] = xScaledCos + xScaledSin + xBaseTop;
+		this.vertexData[this.vIdx + 11] = -yScaledSin + yScaledCos + yBaseTop;
+		this.vertexData[this.vIdx + 12] = obj.uValue + size;
+		this.vertexData[this.vIdx + 13] = obj.vValue;
+
+		this.vertexData[this.vIdx + 14] = 0;
+		this.vertexData[this.vIdx + 15] = 0;
+		this.vertexData[this.vIdx + 16] = 0;
+		this.vertexData[this.vIdx + 17] = 0;
+		this.vertexData[this.vIdx + 18] = 0;
+		this.vertexData[this.vIdx + 19] = -1;
+
+		this.vertexData[this.vIdx + 20] = -xScaledCos + xScaledSin + xBase;
+		this.vertexData[this.vIdx + 21] = yScaledSin + yScaledCos + yBase;
+		this.vertexData[this.vIdx + 22] = obj.uValue;
+		this.vertexData[this.vIdx + 23] = obj.vValue + size;
+
+		this.vertexData[this.vIdx + 24] = 0;
+		this.vertexData[this.vIdx + 25] = 0;
+		this.vertexData[this.vIdx + 26] = 0;
+		this.vertexData[this.vIdx + 27] = 0;
+		this.vertexData[this.vIdx + 28] = 0;
+		this.vertexData[this.vIdx + 29] = -1;
+
+		this.vertexData[this.vIdx + 30] = xScaledCos + xScaledSin + xBase;
+		this.vertexData[this.vIdx + 31] = -yScaledSin + yScaledCos + yBase;
+		this.vertexData[this.vIdx + 32] = obj.uValue + size;
+		this.vertexData[this.vIdx + 33] = obj.vValue + size;
+
+		this.vertexData[this.vIdx + 34] = 0;
+		this.vertexData[this.vIdx + 35] = 0;
+		this.vertexData[this.vIdx + 36] = 0;
+		this.vertexData[this.vIdx + 37] = 0;
+		this.vertexData[this.vIdx + 38] = 0;
+		this.vertexData[this.vIdx + 39] = -1;
+		this.vIdx += 40;
+
+		final i4 = this.i * 4;
+		this.indexData[this.iIdx] = i4;
+		this.indexData[this.iIdx + 1] = 1 + i4;
+		this.indexData[this.iIdx + 2] = 2 + i4;
+		this.indexData[this.iIdx + 3] = 2 + i4;
+		this.indexData[this.iIdx + 4] = 1 + i4;
+		this.indexData[this.iIdx + 5] = 3 + i4;
+		this.iIdx += 6;
+		this.i++;*/
+	}
+
 	@:nonVirtual private final #if !tracing inline #end function drawGameObject(time: Int32, obj: GameObject) {
 		var screenX = obj.mapX * Camera.cos + obj.mapY * Camera.sin + Camera.csX;
 		obj.screenYNoZ = obj.mapX * -Camera.sin + obj.mapY * Camera.cos + Camera.csY;
@@ -806,9 +1142,9 @@ class Map {
 		if (action == AnimatedChar.ATTACK && p >= 0.5) {
 			var dir = player.animatedChar.facingToDir(player.facing);
 			if (dir == AnimatedChar.LEFT)
-				xOffset = -texW;
+				xOffset = -(texW + size);
 			else
-				xOffset = texW;
+				xOffset = texW + size;
 		}
 		var xBase = (screenX + (action == AnimatedChar.ATTACK ? xOffset : 0)) * RenderUtils.clipSpaceScaleX;
 		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
@@ -1125,10 +1461,11 @@ class Map {
 		var xOffset: Float32 = 0.0;
 		if (action == AnimatedChar.ATTACK && p >= 0.5) {
 			var dir = player.animatedChar.facingToDir(player.facing);
+			trace(texW, size);
 			if (dir == AnimatedChar.LEFT)
-				xOffset = -texW;
+				xOffset = -(texW + size);
 			else
-				xOffset = texW;
+				xOffset = texW + size;
 		}
 		var xBase = (screenX + (action == AnimatedChar.ATTACK ? xOffset : 0)) * RenderUtils.clipSpaceScaleX;
 		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
@@ -1659,8 +1996,13 @@ class Map {
 		var i = 0;
 		while (i < this.gameObjectsLen) {
 			var obj = this.enemies.unsafeGet(i);
-			if (obj.curSquare?.lastVisible >= time && !obj.props.fullOccupy)
-				drawGameObject(time, obj);
+			if (obj.curSquare?.lastVisible >= time) {
+				if (obj.objClass == "Wall")
+					drawWall(time, obj);
+				else 
+					drawGameObject(time, obj);
+			}
+				
 			i++;
 		}
 

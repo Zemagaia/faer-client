@@ -57,6 +57,8 @@ class GameObject {
 	public var animatedChar: AnimatedChar = null;
 	public var uValue: Float32 = 0.0;
 	public var vValue: Float32 = 0.0;
+	public var topUValue: Float32 = 0.0;
+	public var topVValue: Float32 = 0.0;
 	public var width: Float32 = 0.0;
 	public var height: Float32 = 0.0;
 	public var maskUValue: Float32 = 0.0;
@@ -150,6 +152,11 @@ class GameObject {
 		this.maskHeight = textureData.maskHeight;
 		this.animatedChar = textureData.animatedChar;
 		this.randomTextureData = textureData.randomTextureData;
+		if (ObjectLibrary.typeToTopTextureData.exists(this.objectType)) {
+			var topTextureData = ObjectLibrary.typeToTopTextureData.get(this.objectType);
+			this.topUValue = topTextureData.uValue;
+			this.topVValue = topTextureData.vValue;
+		}
 
 		this.sizeMult = this.width == 0 ? 1 : this.width * (Main.ATLAS_WIDTH / 8);
 

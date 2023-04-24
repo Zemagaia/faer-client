@@ -115,7 +115,7 @@ class GameSprite extends Sprite {
 		var dt = time - this.lastFrameUpdate;
 		if (dt >= 1000) {
 			this.lastFrameUpdate = time;
-			this.statsView.text = 'FPS: ${this.frames}\nMemory: ${Math.round((untyped __global__.__hxcpp_gc_used_bytes()) / (1024 * 1024))} MB';
+			this.statsView.text = 'FPS: ${this.frames}\nMemory: ${Math.round((untyped __global__.__hxcpp_gc_used_bytes()) / (1024 * 1024))} MB\nAngle: ${Camera.angleRad}';
 			// Angle: ${Camera.angleRad}';
 			this.statsView.updateMetrics();
 			this.frames = 0;
