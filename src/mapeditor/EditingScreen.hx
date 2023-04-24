@@ -1,5 +1,6 @@
 package mapeditor;
 
+import ui.dialogs.Dialog;
 import ui.TextInputField;
 import haxe.display.Server.ModuleId;
 import util.Stack;
@@ -222,7 +223,7 @@ class EditingScreen extends Sprite {
 							modTiles.push(ip);
 					this.addModifyCommandList(modTiles, this.chooser.layer, this.chooser.selectedType());
 				}
-				
+
 			case MECommandMenu.DRAW_COMMAND:
 				if (tiles.length == 1) {
 					var modTiles: Array<IntPoint> = [];
@@ -402,7 +403,12 @@ class EditingScreen extends Sprite {
 		try {
 			loadedFile.load();
 		} catch (e: Exception) {
-			trace('File load error: ${e.details}, stack trace: ${e.stack}');
+			var dialog = new Dialog('${e.details()}', 'File Load Error', "Close", null);
+			dialog.addEventListener(Dialog.BUTTON1_EVENT, (_: Event) -> {
+				Global.layers.dialogs.closeDialogs();
+			});
+			Global.layers.dialogs.openDialog(dialog);
+			trace('File load error: ${e.details()}, stack trace: ${e.stack}');
 		}
 	}
 
@@ -436,29 +442,44 @@ class EditingScreen extends Sprite {
 					this.meMap.modifyTile(x, y, Layer.REGION, data.readUnsignedByte());
 				}
 		} else if (ext == "jm") {
-			var jm = JsonParser.parse(data.toString());
+			var jm: Dynamic;
+			try {
+				jm = JsonParser.parse(data.toString());
+			} catch (e: Exception) {
+				var dialog = new Dialog('${e.details()}', 'JM Load Error', "Close", null);
+				dialog.addEventListener(Dialog.BUTTON1_EVENT, (_: Event) -> {
+					Global.layers.dialogs.closeDialogs();
+				});
+				Global.layers.dialogs.openDialog(dialog);
+				trace('JM Load Error: ${e.details()} ${e.stack}');
+				return;
+			}
 
 			var bytes: ByteArray = Base64.decode(jm.data);
 			bytes.uncompress();
 			for (yi in 0...jm.height)
 				for (xi in 0...jm.width) {
-					var bas = Std.int(bytes.readShort() / 256);
+					var bas = bytes.readShort();
 					var entry: Object = jm.dict[bas];
 					if (!(xi < 0 || xi >= 256 || yi < 0 || yi >= 256)) {
 						if (entry.hasOwnProperty("ground"))
-							this.meMap.modifyTile(xi, yi, Layer.GROUND, GroundLibrary.idToType.get(entry.ground));
+							this.meMap.modifyTile(xi, yi, Layer.GROUND, GroundLibrary.idToType.get(entry.ground) ?? 65535);
+						else
+							this.meMap.modifyTile(xi, yi, Layer.GROUND, 65535);
 
 						if (entry.hasOwnProperty("objs")) {
 							var objs: Array<Object> = entry.objs;
 							for (obj in objs)
-								this.meMap.modifyTile(xi, yi, Layer.OBJECT, ObjectLibrary.idToType.get(obj.id));
-						}
+								this.meMap.modifyTile(xi, yi, Layer.OBJECT, ObjectLibrary.idToType.get(obj.id) ?? 65535);
+						} else
+							this.meMap.modifyTile(xi, yi, Layer.OBJECT, 65535);
 
 						if (entry.hasOwnProperty("regions")) {
 							var regions: Array<Object> = entry.regions;
 							for (region in regions)
-								this.meMap.modifyTile(xi, yi, Layer.REGION, RegionLibrary.idToType.get(region.id));
-						}
+								this.meMap.modifyTile(xi, yi, Layer.REGION, RegionLibrary.idToType.get(region.id) ?? 255);
+						} else
+							this.meMap.modifyTile(xi, yi, Layer.REGION, 255);
 					}
 				}
 		}
