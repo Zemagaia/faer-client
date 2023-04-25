@@ -193,6 +193,9 @@ class GameSprite extends Sprite {
 			stage.removeEventListener(Event.RESIZE, this.onResize);
 			// this.map.dispose();
 			// this.miniMap.dispose();
+			this.map.gameObjectsLen = 0;
+			this.map.playersLen = 0;
+			this.map.projectilesLen = 0;
 			Projectile.disposeBullId();
 		}
 	}
@@ -253,7 +256,7 @@ class GameSprite extends Sprite {
 						Discord.UpdatePresence(cpp.RawConstPointer.addressOf(discordPresence));
 					}
 					#end
-						
+
 					this.uiInited = true;
 				}
 
