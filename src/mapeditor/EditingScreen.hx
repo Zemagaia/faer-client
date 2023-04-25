@@ -1,5 +1,6 @@
 package mapeditor;
 
+import haxe.ds.Vector;
 import util.Utils.KeyCode;
 import openfl.events.KeyboardEvent;
 import ui.view.TitleView;
@@ -37,6 +38,19 @@ class FillData {
 	public var x2: Int;
 	public var y: Int;
 	public var dy: Int;
+}
+
+@:stackOnly
+class Tile {
+	public var tileType: UInt16;
+	public var objType: UInt16;
+	public var regionType: UInt8;
+
+	public inline function new(tileType: UInt16, objType: UInt16, regionType: UInt8) {
+		this.tileType = tileType;
+		this.objType = objType;
+		this.regionType = regionType;
+	}
 }
 
 class EditingScreen extends Sprite {
@@ -380,29 +394,67 @@ class EditingScreen extends Sprite {
 		this.meMap.draw();
 	}
 
+	private function tilesContains(arr: Array<Tile>, tile: Tile) {
+		for (t in arr)
+			if (t.objType == tile.objType && t.tileType == tile.tileType && t.regionType == tile.regionType)
+				return true;
+
+		return false;
+	}
+
+	private function tilesIndexOf(arr: Array<Tile>, tile: Tile): UInt16 {
+		for (i in 0...arr.length) {
+			var t = arr[i];
+			if (t.objType == tile.objType && t.tileType == tile.tileType && t.regionType == tile.regionType)
+				return i;
+		}
+			
+		// shouldn't ever happen
+		return 0;
+	}
+
 	private function createMap() {
 		var bounds: Rectangle = this.meMap.getTileBounds();
 		if (bounds == null)
 			return null;
 
 		var byteArray = new ByteArray();
-		byteArray.writeByte(1); // version
+		byteArray.writeByte(2); // version
 		byteArray.writeShort(Std.int(bounds.x));
 		byteArray.writeShort(Std.int(bounds.y));
 		byteArray.writeShort(Std.int(bounds.width));
 		byteArray.writeShort(Std.int(bounds.height));
+		var lenPos = byteArray.position;
+		byteArray.writeShort(0);
+		var tiles = new Array<Tile>();
 		for (yi in Std.int(bounds.y)...Std.int(bounds.bottom))
 			for (xi in Std.int(bounds.x)...Std.int(bounds.right)) {
-				var tile = this.meMap.getTile(xi, yi);
-				if (tile?.types == null) {
-					byteArray.writeShort(65535);
-					byteArray.writeShort(65535);
-					byteArray.writeByte(255);
-				} else {
-					byteArray.writeShort(tile.types[Layer.GROUND]);
-					byteArray.writeShort(tile.types[Layer.OBJECT]);
-					byteArray.writeByte(tile.types[Layer.REGION]);
+				var meTile = this.meMap.getTile(xi, yi);
+				var tile = meTile?.types == null ? new Tile(65535, 65535,
+					255) : new Tile(meTile.types[Layer.GROUND], meTile.types[Layer.OBJECT], meTile.types[Layer.REGION]);
+				if (!tilesContains(tiles, tile)) {
+					tiles.push(tile);
+					byteArray.writeShort(tile.tileType);
+					byteArray.writeShort(tile.objType);
+					byteArray.writeByte(tile.regionType);
 				}
+				
+			}
+		var prevPos = byteArray.position;
+		byteArray.position = lenPos;
+		byteArray.writeShort(tiles.length);
+		byteArray.position = prevPos;
+		var byteWrite = tiles.length <= 256;
+		for (yi in Std.int(bounds.y)...Std.int(bounds.bottom))
+			for (xi in Std.int(bounds.x)...Std.int(bounds.right)) {
+				var meTile = this.meMap.getTile(xi, yi);
+				var tile = meTile?.types == null ? new Tile(65535, 65535,
+					255) : new Tile(meTile.types[Layer.GROUND], meTile.types[Layer.OBJECT], meTile.types[Layer.REGION]);
+				var idx = tilesIndexOf(tiles, tile); 
+				if (byteWrite) 
+					byteArray.writeByte(idx);
+				else 
+					byteArray.writeShort(idx);
 			}
 		byteArray.compress();
 		return byteArray;
@@ -426,8 +478,9 @@ class EditingScreen extends Sprite {
 		var loadedFile = cast(event.target, FileReference);
 		loadedFile.addEventListener(Event.COMPLETE, this.onFileLoadComplete);
 		loadedFile.addEventListener(IOErrorEvent.IO_ERROR, this.onFileLoadIOError);
+		loadedFile.load();
 		try {
-			loadedFile.load();
+			//loadedFile.load();
 		} catch (e: Exception) {
 			var dialog = new Dialog('${e.details()}', 'File Load Error', "Close", null);
 			dialog.addEventListener(Dialog.BUTTON1_EVENT, (_: Event) -> {
@@ -453,20 +506,40 @@ class EditingScreen extends Sprite {
 		if (ext == "fm") {
 			data.uncompress();
 			var version: UInt8 = data.readUnsignedByte();
-			if (version != 1)
-				throw new ValueException("Version not supported");
+			switch (version) {
+				case 1:
+					var xStart: UInt16 = data.readUnsignedShort();
+					var yStart: UInt16 = data.readUnsignedShort();
+					var w: UInt16 = data.readUnsignedShort();
+					var h: UInt16 = data.readUnsignedShort();
 
-			var xStart: UInt16 = data.readUnsignedShort();
-			var yStart: UInt16 = data.readUnsignedShort();
-			var w: UInt16 = data.readUnsignedShort();
-			var h: UInt16 = data.readUnsignedShort();
+					for (y in yStart...yStart + h)
+						for (x in xStart...xStart + w) {
+							this.meMap.modifyTile(x, y, Layer.GROUND, data.readUnsignedShort());
+							this.meMap.modifyTile(x, y, Layer.OBJECT, data.readUnsignedShort());
+							this.meMap.modifyTile(x, y, Layer.REGION, data.readUnsignedByte());
+						}
+				case 2:
+					var xStart: UInt16 = data.readUnsignedShort();
+					var yStart: UInt16 = data.readUnsignedShort();
+					var w: UInt16 = data.readUnsignedShort();
+					var h: UInt16 = data.readUnsignedShort();
+					var tiles = new Vector<Tile>(data.readUnsignedShort());
+					for (i in 0...tiles.length)
+						tiles[i] = new Tile(data.readUnsignedShort(), data.readUnsignedShort(), data.readUnsignedByte());
 
-			for (y in yStart...yStart + h)
-				for (x in xStart...xStart + w) {
-					this.meMap.modifyTile(x, y, Layer.GROUND, data.readUnsignedShort());
-					this.meMap.modifyTile(x, y, Layer.OBJECT, data.readUnsignedShort());
-					this.meMap.modifyTile(x, y, Layer.REGION, data.readUnsignedByte());
-				}
+					var byteLength = tiles.length <= 256;
+					for (y in yStart...yStart + h)
+						for (x in xStart...xStart + w) {
+							var idx = byteLength ? data.readUnsignedByte() : data.readUnsignedShort();
+							var tile = tiles[idx];
+							this.meMap.modifyTile(x, y, Layer.GROUND, tile.tileType);
+							this.meMap.modifyTile(x, y, Layer.OBJECT, tile.objType);
+							this.meMap.modifyTile(x, y, Layer.REGION, tile.regionType);
+						}
+				default:
+					throw new ValueException("Version not supported");	
+			}
 		} else if (ext == "jm") {
 			var jm: Dynamic;
 			try {
