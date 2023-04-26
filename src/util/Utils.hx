@@ -152,6 +152,7 @@ class MathUtil {
 	public static inline var FLOAT_MAX: Float32 = 3.4028235E+38;
 	public static inline var FLOAT_MIN: Float32 = -3.4028235E+38;
 	public static inline var PI: Float32 = 3.141592653589793;
+	public static inline var PI_DIV_2: Float32 = PI / 2;
 	public static inline var TO_DEG: Float32 = 180 / PI;
 	public static inline var TO_RAD: Float32 = PI / 180;
 

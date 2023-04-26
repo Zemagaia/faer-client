@@ -369,7 +369,6 @@ class GameObject {
 	}
 
 	public function onGoto(x: Float32, y: Float32, time: Int32) {
-		trace('ongoto $x $y');
 		this.moveTo(x, y);
 		this.tickPosition.x = x;
 		this.tickPosition.y = y;

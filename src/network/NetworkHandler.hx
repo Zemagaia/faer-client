@@ -621,7 +621,6 @@ class NetworkHandler {
 						trace(Global.gameSprite.lastUpdate, "Goto: objId=" + objId + ", x=" + x + ", y=" + y);
 						#end
 
-						trace('goto $objId $x $y');
 						var player = Global.gameSprite.map.getPlayer(objId);
 						if (player == null)
 							return;
