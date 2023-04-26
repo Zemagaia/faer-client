@@ -321,40 +321,61 @@ class Map {
 
 	@:nonVirtual public function update(time: Int32, dt: Int16) {
 		var i = 0;
+		var goRemove = new Array<GameObject>();
 		while (i < this.gameObjectsLen) {
 			var go = this.gameObjects.unsafeGet(i);
-			if (!go.update(time, dt)) {
-				go.removeFromMap();
-				this.gameObjects.remove(go);
-				this.gameObjectsLen--;
-				return;
-			}
+			if (!go.update(time, dt))
+				goRemove.push(go);
 			i++;
 		}
 		
 		i = 0;
 
+		var playerRemove = new Array<Player>();
 		while (i < this.playersLen) {
 			var player = this.players.unsafeGet(i);
-			if (!player.update(time, dt)) {
-				player.removeFromMap();
-				this.players.remove(player);
-				this.playersLen--;
-				return;
-			}
+			if (!player.update(time, dt))
+				playerRemove.push(player);
 			i++;
 		}
 
 		i = 0;
 
+		var projRemove = new Array<Projectile>();
 		while (i < this.projectilesLen) {
 			var proj = this.projectiles.unsafeGet(i);
-			if (!proj.update(time, dt)) {
-				proj.removeFromMap();
-				this.projectiles.remove(proj);
-				this.projectilesLen--;
-				return;
-			}
+			if (!proj.update(time, dt))
+				projRemove.push(proj);
+			i++;
+		}
+
+		i = 0;
+
+		while (i < goRemove.length) {
+			var go = goRemove[i];
+			go.removeFromMap();
+			this.gameObjects.remove(go);
+			this.gameObjectsLen--;
+			i++;
+		}
+
+		i = 0;
+
+		while (i < playerRemove.length) {
+			var player = playerRemove[i];
+			player.removeFromMap();
+			this.players.remove(player);
+			this.playersLen--;
+			i++;
+		}
+
+		i = 0;
+
+		while (i < projRemove.length) {
+			var proj = projRemove[i];
+			proj.removeFromMap();
+			this.projectiles.remove(proj);
+			this.projectilesLen--;
 			i++;
 		}
 	}
