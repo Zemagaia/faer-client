@@ -5,6 +5,7 @@
 	<window background="#000000" hardware="true" allow-high-dpi="true" width="1280" height="720" resizable="true" fps="1000" vsync="false" fullscreen="false" antialiasing="0"/>
 	<!--<define name="telemetry" />-->
 	<!--<define name="log_packets" />-->
+	<define name="log_packets" />
 	<!--<define name="tracing" />-->
 	<!--<define name="print_atlas" />-->
 	<!--<define name="disable_rpc" />-->

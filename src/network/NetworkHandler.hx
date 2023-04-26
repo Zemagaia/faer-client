@@ -227,6 +227,9 @@ class NetworkHandler {
 	private static var player: Player;
 	private static var outgoingData: ByteArray;
 
+	private static var lastUnreadUpdateLen: UInt16 = 65535;
+	private static var lastUnreadNewTickLen: UInt16 = 65535;
+
 	public static function init() {
 		outgoingData = new ByteArray();
 
@@ -244,6 +247,8 @@ class NetworkHandler {
 		createCharacter = newCreateCharacter;
 		charId = newCharId;
 		fmMap = newFmMap;
+		lastUnreadUpdateLen = -1;
+		lastUnreadNewTickLen = -1;
 	}
 
 	public static function connect() {
@@ -265,6 +270,9 @@ class NetworkHandler {
 			return;
 
 		try {
+			#if log_packets
+			trace('Sending $packetId, size: ${outgoingData.length}');
+			#end
 			if (outgoingData == null || outgoingData.length <= 0) {
 				socket.writeByte(packetId);
 				socket.flush();
@@ -356,7 +364,10 @@ class NetworkHandler {
 				if (socket.bytesAvailable < 1)
 					break;
 
-				var packetId = socket.readUnsignedByte();
+				var packetId = (lastUnreadUpdateLen != 65535 ? 9 : (lastUnreadNewTickLen != 65535 ? 12 : socket.readUnsignedByte()));
+				#if log_packets
+				trace('Receiving $packetId, left to read: ${socket.bytesAvailable}');
+				#end
 				if (packetId == 0)
 					continue;
 
@@ -682,6 +693,10 @@ class NetworkHandler {
 							+ showDisplays);
 						#end
 					case PacketType.NewTick:
+						lastUnreadNewTickLen = (lastUnreadNewTickLen != 65535 ? 65535 : socket.readUnsignedShort());
+						if (lastUnreadNewTickLen != 65535 && lastUnreadNewTickLen > socket.bytesAvailable)
+							break;
+
 						if (Global.gameSprite == null)
 							return;
 
@@ -751,6 +766,8 @@ class NetworkHandler {
 							for (j in 0...socket.readShort())
 								parseStat(null, socket.readUnsignedByte());
 						}
+
+						lastUnreadNewTickLen = 65535;
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "NewTick");
@@ -1039,6 +1056,10 @@ class NetworkHandler {
 					// todo trade
 					// Global.gameSprite.hudView.startTrade(Global.gameSprite_, tradeStart);
 					case PacketType.Update:
+						lastUnreadUpdateLen = (lastUnreadUpdateLen != 65535 ? 65535 : socket.readUnsignedShort());
+						if (lastUnreadUpdateLen != 65535 && lastUnreadUpdateLen > socket.bytesAvailable)
+							break;
+						
 						for (i in 0...socket.readShort()) {
 							var x = socket.readShort();
 							var y = socket.readShort();
@@ -1052,7 +1073,7 @@ class NetworkHandler {
 							var objId = socket.readInt();
 							var x = socket.readFloat();
 							var y = socket.readFloat();
-
+							
 							var map = Global.gameSprite.map;
 							var go = ObjectLibrary.getObjectFromType(objType);
 							go?.setObjectId(objId);
@@ -1085,6 +1106,8 @@ class NetworkHandler {
 							Global.gameSprite.map.removeObj(socket.readInt());
 
 						updateAck();
+
+						lastUnreadUpdateLen = -1;
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "Update");
