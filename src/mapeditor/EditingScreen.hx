@@ -408,7 +408,7 @@ class EditingScreen extends Sprite {
 			if (t.objType == tile.objType && t.tileType == tile.tileType && t.regionType == tile.regionType)
 				return i;
 		}
-			
+
 		// shouldn't ever happen
 		return 0;
 	}
@@ -438,7 +438,6 @@ class EditingScreen extends Sprite {
 					byteArray.writeShort(tile.objType);
 					byteArray.writeByte(tile.regionType);
 				}
-				
 			}
 		var prevPos = byteArray.position;
 		byteArray.position = lenPos;
@@ -450,10 +449,10 @@ class EditingScreen extends Sprite {
 				var meTile = this.meMap.getTile(xi, yi);
 				var tile = meTile?.types == null ? new Tile(65535, 65535,
 					255) : new Tile(meTile.types[Layer.GROUND], meTile.types[Layer.OBJECT], meTile.types[Layer.REGION]);
-				var idx = tilesIndexOf(tiles, tile); 
-				if (byteWrite) 
+				var idx = tilesIndexOf(tiles, tile);
+				if (byteWrite)
 					byteArray.writeByte(idx);
-				else 
+				else
 					byteArray.writeShort(idx);
 			}
 		byteArray.compress();
@@ -478,9 +477,8 @@ class EditingScreen extends Sprite {
 		var loadedFile = cast(event.target, FileReference);
 		loadedFile.addEventListener(Event.COMPLETE, this.onFileLoadComplete);
 		loadedFile.addEventListener(IOErrorEvent.IO_ERROR, this.onFileLoadIOError);
-		loadedFile.load();
 		try {
-			//loadedFile.load();
+			loadedFile.load();
 		} catch (e: Exception) {
 			var dialog = new Dialog('${e.details()}', 'File Load Error', "Close", null);
 			dialog.addEventListener(Dialog.BUTTON1_EVENT, (_: Event) -> {
@@ -492,95 +490,99 @@ class EditingScreen extends Sprite {
 	}
 
 	private function onFileLoadComplete(event: Event) {
-		var fileRef: FileReference = cast event.target;
-		var data = fileRef.data;
+		try {
+			var fileRef: FileReference = cast event.target;
+			var data = fileRef.data;
 
-		var split = fileRef.name.split('.');
-		if (split.length < 2)
-			return;
-
-		this.meMap.clear();
-		this.commandQueue.clear();
-
-		var ext = split[1];
-		if (ext == "fm") {
-			data.uncompress();
-			var version: UInt8 = data.readUnsignedByte();
-			switch (version) {
-				case 1:
-					var xStart: UInt16 = data.readUnsignedShort();
-					var yStart: UInt16 = data.readUnsignedShort();
-					var w: UInt16 = data.readUnsignedShort();
-					var h: UInt16 = data.readUnsignedShort();
-
-					for (y in yStart...yStart + h)
-						for (x in xStart...xStart + w) {
-							this.meMap.modifyTile(x, y, Layer.GROUND, data.readUnsignedShort());
-							this.meMap.modifyTile(x, y, Layer.OBJECT, data.readUnsignedShort());
-							this.meMap.modifyTile(x, y, Layer.REGION, data.readUnsignedByte());
-						}
-				case 2:
-					var xStart: UInt16 = data.readUnsignedShort();
-					var yStart: UInt16 = data.readUnsignedShort();
-					var w: UInt16 = data.readUnsignedShort();
-					var h: UInt16 = data.readUnsignedShort();
-					var tiles = new Vector<Tile>(data.readUnsignedShort());
-					for (i in 0...tiles.length)
-						tiles[i] = new Tile(data.readUnsignedShort(), data.readUnsignedShort(), data.readUnsignedByte());
-
-					var byteLength = tiles.length <= 256;
-					for (y in yStart...yStart + h)
-						for (x in xStart...xStart + w) {
-							var idx = byteLength ? data.readUnsignedByte() : data.readUnsignedShort();
-							var tile = tiles[idx];
-							this.meMap.modifyTile(x, y, Layer.GROUND, tile.tileType);
-							this.meMap.modifyTile(x, y, Layer.OBJECT, tile.objType);
-							this.meMap.modifyTile(x, y, Layer.REGION, tile.regionType);
-						}
-				default:
-					throw new ValueException("Version not supported");	
-			}
-		} else if (ext == "jm") {
-			var jm: Dynamic;
-			try {
-				jm = JsonParser.parse(data.toString());
-			} catch (e: Exception) {
-				var dialog = new Dialog('${e.details()}', 'JM Load Error', "Close", null);
-				dialog.addEventListener(Dialog.BUTTON1_EVENT, (_: Event) -> {
-					Global.layers.dialogs.closeDialogs();
-				});
-				Global.layers.dialogs.openDialog(dialog);
-				trace('JM Load Error: ${e.details()} ${e.stack}');
+			var split = fileRef.name.split('.');
+			if (split.length < 2)
 				return;
-			}
 
-			var bytes: ByteArray = Base64.decode(jm.data);
-			bytes.uncompress();
-			for (yi in 0...jm.height)
-				for (xi in 0...jm.width) {
-					var bas = bytes.readShort();
-					var entry: Object = jm.dict[bas];
-					if (!(xi < 0 || xi >= 256 || yi < 0 || yi >= 256)) {
-						if (entry.hasOwnProperty("ground"))
-							this.meMap.modifyTile(xi, yi, Layer.GROUND, GroundLibrary.idToType.get(entry.ground) ?? 65535);
-						else
-							this.meMap.modifyTile(xi, yi, Layer.GROUND, 65535);
+			this.meMap.clear();
+			this.commandQueue.clear();
 
-						if (entry.hasOwnProperty("objs")) {
-							var objs: Array<Object> = entry.objs;
-							for (obj in objs)
-								this.meMap.modifyTile(xi, yi, Layer.OBJECT, ObjectLibrary.idToType.get(obj.id) ?? 65535);
-						} else
-							this.meMap.modifyTile(xi, yi, Layer.OBJECT, 65535);
+			var ext = split[1];
+			if (ext == "fm") {
+				data.uncompress();
+				var version: UInt8 = data.readUnsignedByte();
+				switch (version) {
+					case 1:
+						var xStart: UInt16 = data.readUnsignedShort();
+						var yStart: UInt16 = data.readUnsignedShort();
+						var w: UInt16 = data.readUnsignedShort();
+						var h: UInt16 = data.readUnsignedShort();
 
-						if (entry.hasOwnProperty("regions")) {
-							var regions: Array<Object> = entry.regions;
-							for (region in regions)
-								this.meMap.modifyTile(xi, yi, Layer.REGION, RegionLibrary.idToType.get(region.id) ?? 255);
-						} else
-							this.meMap.modifyTile(xi, yi, Layer.REGION, 255);
-					}
+						for (y in yStart...yStart + h)
+							for (x in xStart...xStart + w) {
+								this.meMap.modifyTile(x, y, Layer.GROUND, data.readUnsignedShort());
+								this.meMap.modifyTile(x, y, Layer.OBJECT, data.readUnsignedShort());
+								this.meMap.modifyTile(x, y, Layer.REGION, data.readUnsignedByte());
+							}
+					case 2:
+						var xStart: UInt16 = data.readUnsignedShort();
+						var yStart: UInt16 = data.readUnsignedShort();
+						var w: UInt16 = data.readUnsignedShort();
+						var h: UInt16 = data.readUnsignedShort();
+						var tiles = new Vector<Tile>(data.readUnsignedShort());
+						for (i in 0...tiles.length)
+							tiles[i] = new Tile(data.readUnsignedShort(), data.readUnsignedShort(), data.readUnsignedByte());
+
+						var byteLength = tiles.length <= 256;
+						for (y in yStart...yStart + h)
+							for (x in xStart...xStart + w) {
+								var idx = byteLength ? data.readUnsignedByte() : data.readUnsignedShort();
+								var tile = tiles[idx];
+								this.meMap.modifyTile(x, y, Layer.GROUND, tile.tileType);
+								this.meMap.modifyTile(x, y, Layer.OBJECT, tile.objType);
+								this.meMap.modifyTile(x, y, Layer.REGION, tile.regionType);
+							}
+					default:
+						throw new ValueException("Version not supported");
 				}
+			} else if (ext == "jm") {
+				var jm: Dynamic;
+				try {
+					jm = JsonParser.parse(data.toString());
+				} catch (e: Exception) {
+					var dialog = new Dialog('${e.details()}', 'JM Load Error', "Close", null);
+					dialog.addEventListener(Dialog.BUTTON1_EVENT, (_: Event) -> {
+						Global.layers.dialogs.closeDialogs();
+					});
+					Global.layers.dialogs.openDialog(dialog);
+					trace('JM Load Error: ${e.details()} ${e.stack}');
+					return;
+				}
+
+				var bytes: ByteArray = Base64.decode(jm.data);
+				bytes.uncompress();
+				for (yi in 0...jm.height)
+					for (xi in 0...jm.width) {
+						var bas = bytes.readShort();
+						var entry: Object = jm.dict[bas];
+						if (!(xi < 0 || xi >= 256 || yi < 0 || yi >= 256)) {
+							if (entry.hasOwnProperty("ground"))
+								this.meMap.modifyTile(xi, yi, Layer.GROUND, GroundLibrary.idToType.get(entry.ground) ?? 65535);
+							else
+								this.meMap.modifyTile(xi, yi, Layer.GROUND, 65535);
+
+							if (entry.hasOwnProperty("objs")) {
+								var objs: Array<Object> = entry.objs;
+								for (obj in objs)
+									this.meMap.modifyTile(xi, yi, Layer.OBJECT, ObjectLibrary.idToType.get(obj.id) ?? 65535);
+							} else
+								this.meMap.modifyTile(xi, yi, Layer.OBJECT, 65535);
+
+							if (entry.hasOwnProperty("regions")) {
+								var regions: Array<Object> = entry.regions;
+								for (region in regions)
+									this.meMap.modifyTile(xi, yi, Layer.REGION, RegionLibrary.idToType.get(region.id) ?? 255);
+							} else
+								this.meMap.modifyTile(xi, yi, Layer.REGION, 255);
+						}
+					}
+			}
+		} catch (e: Exception) {
+			trace('Error: $e, stack trace: ${e.stack}');
 		}
 
 		this.meMap.draw();
@@ -596,7 +598,7 @@ class EditingScreen extends Sprite {
 			return;
 
 		Global.layers.tooltips.hide();
-		
+
 		var data = new GameInitData();
 		data.charId = savedChars[0].charId();
 		data.fmMap = this.createMap();
