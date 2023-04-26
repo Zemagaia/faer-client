@@ -712,7 +712,7 @@ class NetworkHandler {
 							var cont = false;
 							var i = 0;
 							while (i < map.gameObjectsLen) {
-								var go = map.enemies.unsafeGet(i);
+								var go = map.gameObjects.unsafeGet(i);
 								if (go.objectId == objId) {
 									if (tickTime != 0)
 										go.onTickPos(x, y, tickTime, tickId);
@@ -730,7 +730,7 @@ class NetworkHandler {
 							i = 0;
 
 							while (i < map.playersLen) {
-								var player = map.playersArr.unsafeGet(i);
+								var player = map.players.unsafeGet(i);
 								if (player.objectId == objId) {
 									var self = objId == playerId;
 									if (tickTime != 0 && !self)
@@ -749,7 +749,7 @@ class NetworkHandler {
 							i = 0;
 
 							while (i < map.projectilesLen) {
-								var proj = map.projsArr.unsafeGet(i);
+								var proj = map.projectiles.unsafeGet(i);
 								if (proj.objectId == objId) {
 									for (j in 0...socket.readShort())
 										parseStat(null, socket.readUnsignedByte());

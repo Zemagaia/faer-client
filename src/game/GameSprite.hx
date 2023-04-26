@@ -125,15 +125,18 @@ class GameSprite extends Sprite {
 	public function initialize() {
 		if (this.inited) {
 			this.miniMap.update();
-			for (go in this.map.enemies)
+			for (go in this.map.gameObjects)
 				go.dispose();
-			this.map.enemies.resize(0);
+			this.map.gameObjects.resize(0);
+			this.map.gameObjectsLen = 0;
 
-			for (player in this.map.playersArr)
+			for (player in this.map.players)
 				player.dispose();
-			this.map.playersArr.resize(0);
+			this.map.players.resize(0);
+			this.map.playersLen = 0;
 
-			this.map.projsArr.resize(0);
+			this.map.projectiles.resize(0);
+			this.map.projectilesLen = 0;
 			this.connect();
 			return;
 		}
@@ -193,9 +196,6 @@ class GameSprite extends Sprite {
 			stage.removeEventListener(Event.RESIZE, this.onResize);
 			// this.map.dispose();
 			// this.miniMap.dispose();
-			this.map.gameObjectsLen = 0;
-			this.map.playersLen = 0;
-			this.map.projectilesLen = 0;
 			Projectile.disposeBullId();
 		}
 	}
@@ -226,7 +226,7 @@ class GameSprite extends Sprite {
 			var closestInteractive = -1;
 			var playerX = this.map.player.mapX;
 			var playerY = this.map.player.mapY;
-			for (go in this.map.enemies)
+			for (go in this.map.gameObjects)
 				if (go?.props != null && go.objClass == "Portal" && (Math.abs(playerX - go.mapX) < 1 || Math.abs(playerY - go.mapY) < 1)) {
 					var dist = PointUtil.distanceXY(go.mapX, go.mapY, playerX, playerY);
 					if (dist < minDist) {

@@ -86,9 +86,9 @@ class Map {
 	public var gameObjectsLen: Int32 = 0;
 	public var playersLen: Int32 = 0;
 	public var projectilesLen: Int32 = 0;
-	public var enemies: Array<GameObject>;
-	public var playersArr: Array<Player>;
-	public var projsArr: Array<Projectile>;
+	public var gameObjects: Array<GameObject>;
+	public var players: Array<Player>;
+	public var projectiles: Array<Projectile>;
 	public var player: Player = null;
 	public var quest: Quest = null;
 	public var lastWidth: Int16 = -1;
@@ -129,9 +129,9 @@ class Map {
 
 	public function new() {
 		this.mapOverlay = new MapOverlay();
-		this.enemies = [];
-		this.playersArr = [];
-		this.projsArr = [];
+		this.gameObjects = [];
+		this.players = [];
+		this.projectiles = [];
 		this.quest = new Quest(this);
 		this.visSquares = new Vector<Square>(MAX_VISIBLE_SQUARES);
 	}
@@ -254,17 +254,17 @@ class Map {
 		this.mapOverlay = null;
 		this.squares = null;
 
-		if (this.enemies != null)
-			for (obj in this.enemies)
+		if (this.gameObjects != null)
+			for (obj in this.gameObjects)
 				obj.dispose();
-		this.enemies = null;
+		this.gameObjects = null;
 
-		if (this.playersArr != null)
-			for (obj in this.playersArr)
+		if (this.players != null)
+			for (obj in this.players)
 				obj.dispose();
-		this.playersArr = null;
+		this.players = null;
 
-		this.projsArr = null;
+		this.projectiles = null;
 
 		this.player = null;
 		this.quest = null;
@@ -274,10 +274,10 @@ class Map {
 	@:nonVirtual public function update(time: Int32, dt: Int16) {
 		var i = 0;
 		while (i < this.gameObjectsLen) {
-			var go = this.enemies.unsafeGet(i);
+			var go = this.gameObjects.unsafeGet(i);
 			if (!go.update(time, dt)) {
 				go.removeFromMap();
-				this.enemies.remove(go);
+				this.gameObjects.remove(go);
 				this.gameObjectsLen--;
 				return;
 			}
@@ -287,10 +287,10 @@ class Map {
 		i = 0;
 
 		while (i < this.playersLen) {
-			var player = this.playersArr.unsafeGet(i);
+			var player = this.players.unsafeGet(i);
 			if (!player.update(time, dt)) {
 				player.removeFromMap();
-				this.playersArr.remove(player);
+				this.players.remove(player);
 				this.playersLen--;
 				return;
 			}
@@ -300,10 +300,10 @@ class Map {
 		i = 0;
 
 		while (i < this.projectilesLen) {
-			var proj = this.projsArr.unsafeGet(i);
+			var proj = this.projectiles.unsafeGet(i);
 			if (!proj.update(time, dt)) {
 				proj.removeFromMap();
-				this.projsArr.remove(proj);
+				this.projectiles.remove(proj);
 				this.projectilesLen--;
 				return;
 			}
@@ -405,7 +405,7 @@ class Map {
 		if (!go.addTo(this, go.mapX, go.mapY))
 			return;
 
-		this.enemies.push(go);
+		this.gameObjects.push(go);
 		this.gameObjectsLen++;
 	}
 
@@ -416,7 +416,7 @@ class Map {
 		if (!player.addTo(this, player.mapX, player.mapY))
 			return;
 
-		this.playersArr.push(player);
+		this.players.push(player);
 		this.playersLen++;
 	}
 
@@ -427,17 +427,17 @@ class Map {
 		if (!proj.addTo(this, proj.mapX, proj.mapY))
 			return;
 
-		this.projsArr.push(proj);
+		this.projectiles.push(proj);
 		this.projectilesLen++;
 	}
 
 	@:nonVirtual public function removeObj(objectId: Int32) {
 		var i = 0;
 		while (i < this.gameObjectsLen) {
-			var go = this.enemies.unsafeGet(i);
+			var go = this.gameObjects.unsafeGet(i);
 			if (go.objectId == objectId) {
 				go.removeFromMap();
-				this.enemies.remove(go);
+				this.gameObjects.remove(go);
 				this.gameObjectsLen--;
 				return;
 			}
@@ -447,10 +447,10 @@ class Map {
 		i = 0;
 
 		while (i < this.playersLen) {
-			var player = this.playersArr.unsafeGet(i);
+			var player = this.players.unsafeGet(i);
 			if (player.objectId == objectId) {
 				player.removeFromMap();
-				this.playersArr.remove(player);
+				this.players.remove(player);
 				this.playersLen--;
 				return;
 			}
@@ -460,10 +460,10 @@ class Map {
 		i = 0;
 
 		while (i < this.projectilesLen) {
-			var proj = this.projsArr.unsafeGet(i);
+			var proj = this.projectiles.unsafeGet(i);
 			if (proj.objectId == objectId) {
 				proj.removeFromMap();
-				this.projsArr.remove(proj);
+				this.projectiles.remove(proj);
 				this.projectilesLen--;
 				return;
 			}
@@ -474,7 +474,7 @@ class Map {
 	@:nonVirtual public function getGameObject(objectId: Int32) {
 		var i = 0;
 		while (i < this.gameObjectsLen) {
-			var go = this.enemies.unsafeGet(i);
+			var go = this.gameObjects.unsafeGet(i);
 			if (go.objectId == objectId)
 				return go;
 			i++;
@@ -486,7 +486,7 @@ class Map {
 	@:nonVirtual public function getPlayer(objectId: Int32) {
 		var i = 0;
 		while (i < this.playersLen) {
-			var player = this.playersArr.unsafeGet(i);
+			var player = this.players.unsafeGet(i);
 			if (player.objectId == objectId)
 				return player;
 			i++;
@@ -498,7 +498,7 @@ class Map {
 	@:nonVirtual public function getProjectile(objectId: Int32) {
 		var i = 0;
 		while (i < this.projectilesLen) {
-			var proj = this.projsArr.unsafeGet(i);
+			var proj = this.projectiles.unsafeGet(i);
 			if (proj.objectId == objectId)
 				return proj;
 			i++;
@@ -510,10 +510,10 @@ class Map {
 	@:nonVirtual public function removeGameObject(objectId: Int32) {
 		var i = 0;
 		while (i < this.gameObjectsLen) {
-			var go = this.enemies.unsafeGet(i);
+			var go = this.gameObjects.unsafeGet(i);
 			if (go.objectId == objectId) {
 				go.removeFromMap();
-				this.enemies.remove(go);
+				this.gameObjects.remove(go);
 				this.gameObjectsLen--;
 				return;
 			}
@@ -524,10 +524,10 @@ class Map {
 	@:nonVirtual public function removePlayer(objectId: Int32) {
 		var i = 0;
 		while (i < this.playersLen) {
-			var player = this.playersArr.unsafeGet(i);
+			var player = this.players.unsafeGet(i);
 			if (player.objectId == objectId) {
 				player.removeFromMap();
-				this.playersArr.remove(player);
+				this.players.remove(player);
 				this.playersLen--;
 				return;
 			}
@@ -538,10 +538,10 @@ class Map {
 	@:nonVirtual public function removeProjectile(objectId: Int32) {
 		var i = 0;
 		while (i < this.projectilesLen) {
-			var proj = this.projsArr.unsafeGet(i);
+			var proj = this.projectiles.unsafeGet(i);
 			if (proj.objectId == objectId) {
 				proj.removeFromMap();
-				this.projsArr.remove(proj);
+				this.projectiles.remove(proj);
 				this.projectilesLen--;
 				return;
 			}
@@ -1448,7 +1448,6 @@ class Map {
 		var xOffset: Float32 = 0.0;
 		if (action == AnimatedChar.ATTACK && p >= 0.5) {
 			var dir = player.animatedChar.facingToDir(player.facing);
-			trace(texW, size);
 			if (dir == AnimatedChar.LEFT)
 				xOffset = -(texW + size);
 			else
@@ -1982,7 +1981,7 @@ class Map {
 
 		var i = 0;
 		while (i < this.gameObjectsLen) {
-			var obj = this.enemies.unsafeGet(i);
+			var obj = this.gameObjects.unsafeGet(i);
 			if (obj.curSquare?.lastVisible >= time) {
 				if (obj.objClass == "Wall")
 					drawWall(time, obj);
@@ -1996,7 +1995,7 @@ class Map {
 		i = 0;
 
 		while (i < this.playersLen) {
-			var player = this.playersArr.unsafeGet(i);
+			var player = this.players.unsafeGet(i);
 			if (player.curSquare?.lastVisible >= time)
 				drawPlayer(time, player);
 			i++;
@@ -2005,7 +2004,7 @@ class Map {
 		i = 0;
 
 		while (i < this.projectilesLen) {
-			var proj = this.projsArr.unsafeGet(i);
+			var proj = this.projectiles.unsafeGet(i);
 			if (proj.curSquare?.lastVisible >= time)
 				drawProjectile(time, proj);
 			i++;

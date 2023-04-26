@@ -196,16 +196,16 @@ class MiniMap extends Sprite {
 		var mX = mouseX - (this.mapWidth >> 1);
 		var mY = mouseY - (this.mapHeight >> 1);
 		this.players.splice(this.players.length, 0);
-		for (go in this.map.enemies) {
+		for (go in this.map.gameObjects) {
 			if (!(go.props.noMiniMap || go == focus)) {
 				if (Std.isOfType(go, Player))
 					fillColor = cast(go, Player).isFellowGuild ? 65280 : 16776960;
 				else
 					fillColor = go.props.isEnemy ? 0xFF0000 : gameObjectToColor(go);
-				//else if (Std.isOfType(go, Portal) || Std.isOfType(go, GuildHallPortal))
-					//fillColor = 255;
-				//else
-					continue;
+				// else if (Std.isOfType(go, Portal) || Std.isOfType(go, GuildHallPortal))
+				// fillColor = 255;
+				// else
+				continue;
 
 				mmx = this.mapMatrix.a * go.mapX + this.mapMatrix.c * go.mapY + this.mapMatrix.tx;
 				mmy = this.mapMatrix.b * go.mapX + this.mapMatrix.d * go.mapY + this.mapMatrix.ty;

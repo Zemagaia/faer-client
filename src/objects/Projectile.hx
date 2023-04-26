@@ -59,6 +59,7 @@ class Projectile {
 	public var height: Float32 = 0.0;
 
 	private var staticPoint: Point;
+
 	public var size: Float32 = 1.0;
 
 	public static inline function findObjId(ownerId: Int32, bulletId: Int32) {
@@ -119,8 +120,8 @@ class Projectile {
 		if (!this.moveTo(p.x, p.y) || curSquare != null && curSquare.tileType == 255) {
 			if (this.damagesPlayers)
 				NetworkHandler.squareHit(time, this.bulletId, this.ownerId);
-			//else if (curSquare != null && curSquare.obj != null)
-				//map.addObj(new HitEffect(this.colors, 100, 3, this.angle, this.projProps.speed), p.x, p.y);
+			// else if (curSquare != null && curSquare.obj != null)
+			// map.addObj(new HitEffect(this.colors, 100, 3, this.angle, this.projProps.speed), p.x, p.y);
 
 			return false;
 		}
@@ -130,8 +131,8 @@ class Projectile {
 			&& (curSquare.obj.props.enemyOccupySquare || curSquare.obj.props.occupySquare)) {
 			if (this.damagesPlayers)
 				NetworkHandler.otherHit(time, this.bulletId, this.ownerId, curSquare.obj.objectId);
-			//else
-				//map.addObj(new HitEffect(this.colors, 100, 3, this.angle, this.projProps.speed), p.x, p.y);
+			// else
+			// map.addObj(new HitEffect(this.colors, 100, 3, this.angle, this.projProps.speed), p.x, p.y);
 
 			return false;
 		}
@@ -219,16 +220,16 @@ class Projectile {
 		var minDistSqr = MathUtil.FLOAT_MAX;
 		var target: GameObject = null;
 
-		var i = 0; 
+		var i = 0;
 		if (damagesEnemies) {
-			var enLen = map.enemies.length;
+			var enLen = map.gameObjects.length;
 			while (i < enLen) {
-				var go = map.enemies.unsafeGet(i);
+				var go = map.gameObjects.unsafeGet(i);
 				if (!go.props.isEnemy) {
 					i++;
 					continue;
 				}
-				
+
 				distSqr = PointUtil.distanceSquaredXY(go.mapX, go.mapY, pX, pY);
 				if (distSqr < 0.25 && distSqr < minDistSqr && (!this.projProps.multiHit || !(this.multiHitDict.exists(go.objectId)))) {
 					minDistSqr = distSqr;
@@ -236,12 +237,10 @@ class Projectile {
 				}
 				i++;
 			}
-		}
-			
-		else if (damagesPlayers) {
-			var playersLen = map.playersArr.length;
+		} else if (damagesPlayers) {
+			var playersLen = map.players.length;
 			while (i < playersLen) {
-				var player = map.playersArr.unsafeGet(i);
+				var player = map.players.unsafeGet(i);
 				distSqr = PointUtil.distanceSquaredXY(player.mapX, player.mapY, pX, pY);
 				if (distSqr < 0.25 && (!this.projProps.multiHit || !(this.multiHitDict.exists(player.objectId)))) {
 					if (player.objectId == map.player.objectId)
