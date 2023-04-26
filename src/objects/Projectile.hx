@@ -39,7 +39,9 @@ class Projectile {
 	public var bulletType = 0;
 	public var damagesEnemies = false;
 	public var damagesPlayers = false;
-	public var damage = 0;
+	public var physicalDamage = 0;
+	public var magicDamage = 0;
+	public var trueDamage = 0;
 	public var sound = "";
 	public var startX = 0.0;
 	public var startY = 0.0;
@@ -144,7 +146,7 @@ class Projectile {
 			isTargetAnEnemy = target.props.isEnemy;
 			sendMessage = isPlayer && (this.damagesPlayers || isTargetAnEnemy && this.ownerId == player.objectId);
 			if (sendMessage) {
-				d = GameObject.damageWithDefense(this.damage, target.defense, this.projProps.armorPiercing, target.condition);
+				d = GameObject.damageWithDefense(this.physicalDamage, target.defense, this.projProps.armorPiercing, target.condition);
 				if (target == player) {
 					d = Std.int(d * player.hitMult);
 					NetworkHandler.playerHit(this.bulletId, this.ownerId);
@@ -201,11 +203,13 @@ class Projectile {
 			this.size = this.projProps.size / 100;
 		else
 			this.size = ObjectLibrary.getSizeFromType(this.containerType) / 100;
-		this.damage = 0;
+		this.physicalDamage = this.magicDamage = this.trueDamage = 0;
 	}
 
-	public function setDamage(damage: Int32) {
-		this.damage = damage;
+	public function setDamages(physicalDmg: Int32, magicDmg: Int32, trueDmg: Int32) {
+		this.physicalDamage = physicalDmg;
+		this.magicDamage = magicDmg;
+		this.trueDamage = trueDmg;
 	}
 
 	public function moveTo(x: Float32, y: Float32) {

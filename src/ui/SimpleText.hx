@@ -82,6 +82,13 @@ class SimpleText extends TextField {
 		return this;
 	}
 
+	public function setItalic(italic: Bool) {
+		var format = defaultTextFormat;
+		format.italic = italic;
+		this.applyFormat(format);
+		return this;
+	}
+
 	public function setAlignment(alignment: TextFormatAlign) {
 		var format = defaultTextFormat;
 		format.align = alignment;

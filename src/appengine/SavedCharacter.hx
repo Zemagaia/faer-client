@@ -63,8 +63,4 @@ class SavedCharacter {
 	public function displayId() {
 		return ObjectLibrary.typeToDisplayId.get(this.objectType());
 	}
-
-	public function toString() {
-		return "SavedCharacter: {" + this.charXML + "}";
-	}
 }

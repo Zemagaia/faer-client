@@ -137,6 +137,9 @@ class GameSprite extends Sprite {
 
 			this.map.projectiles.resize(0);
 			this.map.projectilesLen = 0;
+
+			this.map.speechBalloons.clear();
+			this.map.statusTexts.resize(0);
 			this.connect();
 			return;
 		}

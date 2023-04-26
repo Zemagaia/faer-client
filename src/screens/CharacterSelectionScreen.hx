@@ -1,5 +1,8 @@
 package screens;
 
+import appengine.RequestHandler;
+import appengine.RequestHandler.CompletionData;
+import lib.tasks.Task.TaskData;
 #if !disable_rpc
 import hxdiscord_rpc.Types;
 import hxdiscord_rpc.Discord;
@@ -43,7 +46,10 @@ class CharacterSelectionScreen extends Sprite {
 		this.backButton.addEventListener(MouseEvent.CLICK, onClose);
 		this.classesButton.addEventListener(MouseEvent.CLICK, onNewCharacter);
 
-		addEventListener(Event.ADDED_TO_STAGE, onAdded);
+		Global.charListTask.finished.once(function(td: TaskData) {
+			addEventListener(Event.ADDED_TO_STAGE, onAdded);
+		});
+		Global.charListTask.start();
 	}
 
 	private function onAdded(_: Event) {
