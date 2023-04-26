@@ -38,6 +38,10 @@ class MenuOption extends Sprite {
 		this.text.x = 20;
 		this.text.y = -6;
 		addChild(this.text);
+		// needed for mouse events to register...
+		graphics.clear();
+		graphics.beginFill(0xFFFFFF, 0);
+		graphics.drawRect(this.text.x - 4, this.text.y - 4, this.text.width + 8, this.text.height + 8);
 		addEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
 		addEventListener(MouseEvent.MOUSE_OUT, this.onMouseOut);
 	}

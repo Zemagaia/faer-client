@@ -621,11 +621,12 @@ class NetworkHandler {
 						trace(Global.gameSprite.lastUpdate, "Goto: objId=" + objId + ", x=" + x + ", y=" + y);
 						#end
 
-						var go = Global.gameSprite.map.getGameObject(objId);
-						if (go == null)
+						trace('goto $objId $x $y');
+						var player = Global.gameSprite.map.getPlayer(objId);
+						if (player == null)
 							return;
 
-						go.onGoto(x, y, Global.gameSprite.lastFixedUpdate);
+						player.onGoto(x, y, Global.gameSprite.lastFixedUpdate);
 
 						gotoAck(Global.gameSprite.lastFixedUpdate);
 					case PacketType.GuildResult:
@@ -1107,7 +1108,7 @@ class NetworkHandler {
 
 						updateAck();
 
-						lastUnreadUpdateLen = -1;
+						lastUnreadUpdateLen = 65535;
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "Update");
@@ -1138,10 +1139,10 @@ class NetworkHandler {
 	}
 
 	private static function gotoAck(time: Int) {
-		// outgoingData.writeInt(time);
+		outgoingData.writeInt(time);
 		sendPacket(PacketType.GotoAck);
 		#if log_packets
-		trace(Global.gameSprite.lastUpdate, "GotoAck");
+		trace(Global.gameSprite.lastUpdate, "GotoAck: time=" + time);
 		#end
 	}
 

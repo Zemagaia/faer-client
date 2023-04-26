@@ -157,7 +157,6 @@ class MiniMap extends Sprite {
 	public inline function draw() {
 		var g: Graphics = null;
 		var fillColor = 0;
-		var player: Player = null;
 		var mmx = 0.0;
 		var mmy = 0.0;
 		var dx = 0.0;
@@ -165,6 +164,7 @@ class MiniMap extends Sprite {
 		var distSq = 0.0;
 		this.groundLayer.graphics.clear();
 		this.characterLayer.graphics.clear();
+		this.players.resize(0);
 		var focus = Global.gameSprite.map.player;
 		if (focus == null)
 			return;
@@ -193,22 +193,36 @@ class MiniMap extends Sprite {
 		g.drawCircle(0, 0, 75);
 		g.endFill();
 		g = this.characterLayer.graphics;
-		var mX = mouseX - (this.mapWidth >> 1);
-		var mY = mouseY - (this.mapHeight >> 1);
+		var mX = mouseX;
+		var mY = mouseY;
 		this.players.splice(this.players.length, 0);
 		for (go in this.map.gameObjects) {
-			if (!(go.props.noMiniMap || go == focus)) {
-				if (Std.isOfType(go, Player))
-					fillColor = cast(go, Player).isFellowGuild ? 65280 : 16776960;
+			if (!go.props.noMiniMap) {
+				if (go.objClass == "Portal")
+					fillColor = 0x0000FF;
 				else
 					fillColor = go.props.isEnemy ? 0xFF0000 : gameObjectToColor(go);
-				// else if (Std.isOfType(go, Portal) || Std.isOfType(go, GuildHallPortal))
-				// fillColor = 255;
-				// else
-				continue;
+
+				if (fillColor == 0)
+					continue;
 
 				mmx = this.mapMatrix.a * go.mapX + this.mapMatrix.c * go.mapY + this.mapMatrix.tx;
 				mmy = this.mapMatrix.b * go.mapX + this.mapMatrix.d * go.mapY + this.mapMatrix.ty;
+				if (PointUtil.distanceSquaredXY(mmx, mmy, 0, 0) > 75 * 75)
+					continue;
+
+				g.beginFill(fillColor);
+				g.drawRect(mmx - 2, mmy - 2, 4, 4);
+				g.endFill();
+			}
+		}
+
+		for (player in this.map.players) {
+			if (player != focus) {
+				fillColor = player.isFellowGuild ? 0x00FF00 : 0xFFFF00;
+
+				mmx = this.mapMatrix.a * player.mapX + this.mapMatrix.c * player.mapY + this.mapMatrix.tx;
+				mmy = this.mapMatrix.b * player.mapX + this.mapMatrix.d * player.mapY + this.mapMatrix.ty;
 				if (PointUtil.distanceSquaredXY(mmx, mmy, 0, 0) > 75 * 75) {
 					var angle: Float = Math.atan2(mmy, mmx);
 					var cosAngle: Float = MathUtil.cos(angle),
@@ -219,12 +233,15 @@ class MiniMap extends Sprite {
 					mmy = sinAngle * scaledWh + cosAngle * scaledWh;
 				}
 
-				if (player != null && this.isMouseOver && (this.menu == null || this.menu.parent == null)) {
+				if (this.isMouseOver && (this.menu == null || this.menu.parent == null)) {
 					dx = mX - mmx;
 					dy = mY - mmy;
 					distSq = dx * dx + dy * dy;
-					if (distSq < MOUSE_DIST_SQ)
+					trace(dx, dy, distSq, mX, mY, mmx, mmy);
+					if (distSq < MOUSE_DIST_SQ) {
 						this.players.push(player);
+						trace("pushing", player.name);
+					}
 				}
 
 				g.beginFill(fillColor);

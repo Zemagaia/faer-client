@@ -50,7 +50,7 @@ class GameObjectListItem extends Sprite {
 		if (!visible)
 			return;
 
-		// this.portrait.bitmapData = this.go.getPortrait();
+		this.portrait.bitmapData = cast(this.go, Player).getPortrait();
 		var drawColor = this.color;
 		var drawText = "";
 		var isHtml = false;
