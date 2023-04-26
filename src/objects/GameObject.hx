@@ -85,7 +85,8 @@ class GameObject {
 	public var glowColor: Float32 = 0.0;
 	public var nameText: SimpleText = null;
 	public var nameTex: BitmapData = null;
-	public var nameBitmap: Bitmap = null;
+	public var enterTex: BitmapData = null;
+	public var enterKeyTex: BitmapData = null;
 	public var isLoot = false;
 	public var ownerId = -1;
 	public var hpBar: Bitmap;
@@ -173,7 +174,7 @@ class GameObject {
 		for (i in 0...20)
 			this.equipment.push(-1);
 
-		if (this.props.showName)
+		if (this.props.showName || objClass == "Portal")
 			this.name = this.props.displayId;
 	}
 

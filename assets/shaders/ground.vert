@@ -1,5 +1,7 @@
 #version 460
 
+precision lowp float;
+
 layout (location = 0) in vec4 vertUV;
 layout (location = 1) in vec2 lbUV;
 layout (location = 2) in vec2 tbUV;

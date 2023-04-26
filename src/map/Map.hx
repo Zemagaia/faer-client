@@ -1,5 +1,7 @@
 package map;
 
+import util.Utils.KeyCodeUtil;
+import util.Settings;
 import openfl.filters.GlowFilter;
 import openfl.geom.Point;
 import openfl.geom.Matrix;
@@ -41,6 +43,19 @@ import util.MacroUtil;
 import util.AssetLibrary;
 
 using util.Utils.ArrayUtils;
+
+@:structInit
+class RenderDataSingle {
+	public var texture: GLTexture;
+	public var cosX: Float32;
+	public var sinX: Float32;
+	public var sinY: Float32;
+	public var cosY: Float32;
+	public var x: Float32;
+	public var y: Float32;
+	public var texelW: Float32;
+	public var texelH: Float32;
+}
 
 @:unreflective
 class Map {
@@ -89,6 +104,7 @@ class Map {
 	public var gameObjects: Array<GameObject>;
 	public var players: Array<Player>;
 	public var projectiles: Array<Projectile>;
+	public var rdSingle: Array<RenderDataSingle>;
 	public var player: Player = null;
 	public var quest: Quest = null;
 	public var lastWidth: Int16 = -1;
@@ -101,8 +117,11 @@ class Map {
 	private var visSquareLen: UInt16 = 0;
 
 	public var defaultProgram: GLProgram;
+	public var singleProgram: GLProgram;
 	public var groundProgram: GLProgram;
 
+	public var singleVBO: GLBuffer;
+	public var singleIBO: GLBuffer;
 	public var groundVAO: GLVertexArrayObject;
 	public var groundVBO: GLBuffer;
 	public var groundVBOLen: Int32 = 0;
@@ -132,6 +151,7 @@ class Map {
 		this.gameObjects = [];
 		this.players = [];
 		this.projectiles = [];
+		this.rdSingle = [];
 		this.quest = new Quest(this);
 		this.visSquares = new Vector<Square>(MAX_VISIBLE_SQUARES);
 	}
@@ -195,7 +215,16 @@ class Map {
 		shieldBarH = hpBarRect.height;
 
 		this.defaultProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/base.vert"), Assets.getText("assets/shaders/base.frag"));
+		this.singleProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/baseSingle.vert"), Assets.getText("assets/shaders/baseSingle.frag"));
 		this.groundProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/ground.vert"), Assets.getText("assets/shaders/ground.frag"));
+
+		this.singleVBO = RenderUtils.createVertexBuffer(new Float32Array([
+			 0.5, -0.5, 0, 0,
+			-0.5, -0.5, 1, 0,
+			 0.5,  0.5, 0, 1,
+			-0.5,  0.5, 1, 1
+		]));
+		this.singleIBO = RenderUtils.createIndexBuffer(new Int16Array([0, 1, 2, 2, 1, 3]));
 
 		this.groundVAO = GL.createVertexArray();
 		this.groundIBO = GL.createBuffer();
@@ -708,8 +737,8 @@ class Map {
 				this.vertexData[this.vIdx + 4] = 0;
 				this.vertexData[this.vIdx + 5] = 0;
 				this.vertexData[this.vIdx + 6] = 0;
-				this.vertexData[this.vIdx + 7] = 0;
-				this.vertexData[this.vIdx + 8] = 0;
+				this.vertexData[this.vIdx + 7] = 1.0;
+				this.vertexData[this.vIdx + 8] = 0.25;
 				this.vertexData[this.vIdx + 9] = -1;
 
 				this.vertexData[this.vIdx + 10] = xScaledCos + xScaledSin + xBaseTop - xScaledSin * 2;
@@ -720,8 +749,8 @@ class Map {
 				this.vertexData[this.vIdx + 14] = 0;
 				this.vertexData[this.vIdx + 15] = 0;
 				this.vertexData[this.vIdx + 16] = 0;
-				this.vertexData[this.vIdx + 17] = 0;
-				this.vertexData[this.vIdx + 18] = 0;
+				this.vertexData[this.vIdx + 17] = 1.0;
+				this.vertexData[this.vIdx + 18] = 0.25;
 				this.vertexData[this.vIdx + 19] = -1;
 
 				this.vertexData[this.vIdx + 20] = -xScaledCos + xScaledSin + xBase - xScaledSin * 2;
@@ -732,8 +761,8 @@ class Map {
 				this.vertexData[this.vIdx + 24] = 0;
 				this.vertexData[this.vIdx + 25] = 0;
 				this.vertexData[this.vIdx + 26] = 0;
-				this.vertexData[this.vIdx + 27] = 0;
-				this.vertexData[this.vIdx + 28] = 0;
+				this.vertexData[this.vIdx + 27] = 1.0;
+				this.vertexData[this.vIdx + 28] = 0.25;
 				this.vertexData[this.vIdx + 29] = -1;
 
 				this.vertexData[this.vIdx + 30] = xScaledCos + xScaledSin + xBase - xScaledSin * 2;
@@ -744,8 +773,8 @@ class Map {
 				this.vertexData[this.vIdx + 34] = 0;
 				this.vertexData[this.vIdx + 35] = 0;
 				this.vertexData[this.vIdx + 36] = 0;
-				this.vertexData[this.vIdx + 37] = 0;
-				this.vertexData[this.vIdx + 38] = 0;
+				this.vertexData[this.vIdx + 37] = 1.0;
+				this.vertexData[this.vIdx + 38] = 0.25;
 				this.vertexData[this.vIdx + 39] = -1;
 				this.vIdx += 40;
 
@@ -772,8 +801,8 @@ class Map {
 				this.vertexData[this.vIdx + 4] = 0;
 				this.vertexData[this.vIdx + 5] = 0;
 				this.vertexData[this.vIdx + 6] = 0;
-				this.vertexData[this.vIdx + 7] = 0;
-				this.vertexData[this.vIdx + 8] = 0;
+				this.vertexData[this.vIdx + 7] = 1.0;
+				this.vertexData[this.vIdx + 8] = 0.25;
 				this.vertexData[this.vIdx + 9] = -1;
 
 				this.vertexData[this.vIdx + 10] = xScaledCos + xScaledSin + xBaseTop;
@@ -784,8 +813,8 @@ class Map {
 				this.vertexData[this.vIdx + 14] = 0;
 				this.vertexData[this.vIdx + 15] = 0;
 				this.vertexData[this.vIdx + 16] = 0;
-				this.vertexData[this.vIdx + 17] = 0;
-				this.vertexData[this.vIdx + 18] = 0;
+				this.vertexData[this.vIdx + 17] = 1.0;
+				this.vertexData[this.vIdx + 18] = 0.25;
 				this.vertexData[this.vIdx + 19] = -1;
 
 				this.vertexData[this.vIdx + 20] = -xScaledCos + xScaledSin + xBase;
@@ -796,8 +825,8 @@ class Map {
 				this.vertexData[this.vIdx + 24] = 0;
 				this.vertexData[this.vIdx + 25] = 0;
 				this.vertexData[this.vIdx + 26] = 0;
-				this.vertexData[this.vIdx + 27] = 0;
-				this.vertexData[this.vIdx + 28] = 0;
+				this.vertexData[this.vIdx + 27] = 1.0;
+				this.vertexData[this.vIdx + 28] = 0.25;
 				this.vertexData[this.vIdx + 29] = -1;
 
 				this.vertexData[this.vIdx + 30] = xScaledCos + xScaledSin + xBase;
@@ -808,8 +837,8 @@ class Map {
 				this.vertexData[this.vIdx + 34] = 0;
 				this.vertexData[this.vIdx + 35] = 0;
 				this.vertexData[this.vIdx + 36] = 0;
-				this.vertexData[this.vIdx + 37] = 0;
-				this.vertexData[this.vIdx + 38] = 0;
+				this.vertexData[this.vIdx + 37] = 1.0;
+				this.vertexData[this.vIdx + 38] = 0.25;
 				this.vertexData[this.vIdx + 39] = -1;
 				this.vIdx += 40;
 
@@ -837,8 +866,8 @@ class Map {
 				this.vertexData[this.vIdx + 4] = 0;
 				this.vertexData[this.vIdx + 5] = 0;
 				this.vertexData[this.vIdx + 6] = 0;
-				this.vertexData[this.vIdx + 7] = 0;
-				this.vertexData[this.vIdx + 8] = 0;
+				this.vertexData[this.vIdx + 7] = 1.0;
+				this.vertexData[this.vIdx + 8] = 0.25;
 				this.vertexData[this.vIdx + 9] = -1;
 
 				this.vertexData[this.vIdx + 10] = -xScaledCos + xScaledSin + xBaseTop;
@@ -849,8 +878,8 @@ class Map {
 				this.vertexData[this.vIdx + 14] = 0;
 				this.vertexData[this.vIdx + 15] = 0;
 				this.vertexData[this.vIdx + 16] = 0;
-				this.vertexData[this.vIdx + 17] = 0;
-				this.vertexData[this.vIdx + 18] = 0;
+				this.vertexData[this.vIdx + 17] = 1.0;
+				this.vertexData[this.vIdx + 18] = 0.25;
 				this.vertexData[this.vIdx + 19] = -1;
 
 				this.vertexData[this.vIdx + 20] = -xScaledCos + xScaledSin + xBase - xScaledSin * 2;
@@ -861,8 +890,8 @@ class Map {
 				this.vertexData[this.vIdx + 24] = 0;
 				this.vertexData[this.vIdx + 25] = 0;
 				this.vertexData[this.vIdx + 26] = 0;
-				this.vertexData[this.vIdx + 27] = 0;
-				this.vertexData[this.vIdx + 28] = 0;
+				this.vertexData[this.vIdx + 27] = 1.0;
+				this.vertexData[this.vIdx + 28] = 0.25;
 				this.vertexData[this.vIdx + 29] = -1;
 
 				this.vertexData[this.vIdx + 30] = -xScaledCos + xScaledSin + xBase;
@@ -873,8 +902,8 @@ class Map {
 				this.vertexData[this.vIdx + 34] = 0;
 				this.vertexData[this.vIdx + 35] = 0;
 				this.vertexData[this.vIdx + 36] = 0;
-				this.vertexData[this.vIdx + 37] = 0;
-				this.vertexData[this.vIdx + 38] = 0;
+				this.vertexData[this.vIdx + 37] = 1.0;
+				this.vertexData[this.vIdx + 38] = 0.25;
 				this.vertexData[this.vIdx + 39] = -1;
 				this.vIdx += 40;
 
@@ -901,8 +930,8 @@ class Map {
 				this.vertexData[this.vIdx + 4] = 0;
 				this.vertexData[this.vIdx + 5] = 0;
 				this.vertexData[this.vIdx + 6] = 0;
-				this.vertexData[this.vIdx + 7] = 0;
-				this.vertexData[this.vIdx + 8] = 0;
+				this.vertexData[this.vIdx + 7] = 1.0;
+				this.vertexData[this.vIdx + 8] = 0.25;
 				this.vertexData[this.vIdx + 9] = -1;
 
 				this.vertexData[this.vIdx + 10] = xScaledCos + xScaledSin + xBaseTop;
@@ -913,8 +942,8 @@ class Map {
 				this.vertexData[this.vIdx + 14] = 0;
 				this.vertexData[this.vIdx + 15] = 0;
 				this.vertexData[this.vIdx + 16] = 0;
-				this.vertexData[this.vIdx + 17] = 0;
-				this.vertexData[this.vIdx + 18] = 0;
+				this.vertexData[this.vIdx + 17] = 1.0;
+				this.vertexData[this.vIdx + 18] = 0.25;
 				this.vertexData[this.vIdx + 19] = -1;
 
 				this.vertexData[this.vIdx + 20] = xScaledCos + xScaledSin + xBase - xScaledSin * 2;
@@ -925,8 +954,8 @@ class Map {
 				this.vertexData[this.vIdx + 24] = 0;
 				this.vertexData[this.vIdx + 25] = 0;
 				this.vertexData[this.vIdx + 26] = 0;
-				this.vertexData[this.vIdx + 27] = 0;
-				this.vertexData[this.vIdx + 28] = 0;
+				this.vertexData[this.vIdx + 27] = 1.0;
+				this.vertexData[this.vIdx + 28] = 0.25;
 				this.vertexData[this.vIdx + 29] = -1;
 
 				this.vertexData[this.vIdx + 30] = xScaledCos + xScaledSin + xBase;
@@ -937,8 +966,8 @@ class Map {
 				this.vertexData[this.vIdx + 34] = 0;
 				this.vertexData[this.vIdx + 35] = 0;
 				this.vertexData[this.vIdx + 36] = 0;
-				this.vertexData[this.vIdx + 37] = 0;
-				this.vertexData[this.vIdx + 38] = 0;
+				this.vertexData[this.vIdx + 37] = 1.0;
+				this.vertexData[this.vIdx + 38] = 0.25;
 				this.vertexData[this.vIdx + 39] = -1;
 				this.vIdx += 40;
 
@@ -1383,25 +1412,59 @@ class Map {
 				}
 		}
 
-		/*if (obj.props.showName) {
-			if (obj.name != null && obj.name != "" && obj.nameBitmap == null) {
-				var nameText = new SimpleText(16, 0xFFFFFF);
-				nameText.setBold(true);
-				nameText.text = obj.name;
-				nameText.updateMetrics();
+		var isPortal = obj.objClass == "Portal";
+		if ((obj.props.showName || isPortal) && obj.name != null && obj.name != "") {
+			if (obj.nameTex == null) {
+				obj.nameText = new SimpleText(16, 0xFFFFFF);
+				obj.nameText.setBold(true);
+				obj.nameText.text = obj.name;
+				obj.nameText.updateMetrics();
 
-				var nameTex = new BitmapData(Std.int(nameText.width + 20), 64, true, 0);
-				nameTex.draw(nameText, new Matrix(1, 0, 0, 1, 12, 0));
-				nameTex.applyFilter(nameTex, nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
-
-				obj.nameBitmap = new Bitmap(nameTex);
-				obj.nameBitmap.cacheAsBitmap = true;
-				addChild(obj.nameBitmap);
+				obj.nameTex = new BitmapData(Std.int(obj.nameText.width + 20), 64, true, 0);
+				obj.nameTex.draw(obj.nameText, new Matrix(1, 0, 0, 1, 12, 0));
+				obj.nameTex.applyFilter(obj.nameTex, obj.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
 			}
+			
+			var textureData = TextureFactory.make(obj.nameTex);
+			this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
+				sinX: 0, sinY: 0,
+				cosY: textureData.height * RenderUtils.clipSpaceScaleY,
+				x: screenX * RenderUtils.clipSpaceScaleX, y: (screenY - hBase + 30) * RenderUtils.clipSpaceScaleY,
+				texelW: 0, texelH: 0,
+				texture: textureData.texture});
 
-			obj.nameBitmap.x = obj.screenX - obj.nameBitmap.width * 2;
-			obj.nameBitmap.y = obj.yBaseNoZ - obj.nameBitmap.height;
-		}*/
+			if (isPortal && Global.currentInteractiveTarget == obj.objectId) {
+				if (obj.enterTex == null) {
+					var enterText = new SimpleText(16, 0xFFFFFF);
+					enterText.setBold(true);
+					enterText.text = "Enter";
+					enterText.updateMetrics();
+
+					obj.enterTex = new BitmapData(Std.int(enterText.width + 20), 64, true, 0);
+					obj.enterTex.draw(enterText, new Matrix(1, 0, 0, 1, 12, 0));
+					obj.enterTex.applyFilter(obj.enterTex, obj.enterTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
+				}
+				
+				var textureData = TextureFactory.make(obj.enterTex);
+				this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
+					sinX: 0, sinY: 0,
+					cosY: textureData.height * RenderUtils.clipSpaceScaleY,
+					x: (screenX + 8) * RenderUtils.clipSpaceScaleX, y: (screenY + 40) * RenderUtils.clipSpaceScaleY,
+					texelW: 0, texelH: 0,
+					texture: textureData.texture});
+
+				if (obj.enterKeyTex == null)
+					obj.enterKeyTex = AssetLibrary.getImageFromSet("keyIndicators", KeyCodeUtil.charCodeIconIndices[Settings.interact]);
+
+				var textureData = TextureFactory.make(obj.enterKeyTex);
+				this.rdSingle.push({cosX: (textureData.width >> 2) * RenderUtils.clipSpaceScaleX, 
+					sinX: 0, sinY: 0,
+					cosY: (textureData.height >> 2) * RenderUtils.clipSpaceScaleY,
+					x: (screenX - 22) * RenderUtils.clipSpaceScaleX, y: (screenY + 19) * RenderUtils.clipSpaceScaleY,
+					texelW: 0, texelH: 0,
+					texture: textureData.texture});	
+			}
+		}
 	}
 
 	@:nonVirtual private final #if !tracing inline #end function drawPlayer(time: Int32, player: Player) {
@@ -1781,24 +1844,26 @@ class Map {
 				}
 		}
 
-		/*if (player.name != null && player.name != "" && player.nameTex == null) {
-					player.nameText = new SimpleText(16, player.isFellowGuild ? Settings.FELLOW_GUILD_COLOR : Settings.DEFAULT_COLOR);
-					player.nameText.setBold(true);
-					player.nameText.text = player.name;
-					player.nameText.updateMetrics();
+		if (player.name != null && player.name != "") {
+			if (player.nameTex == null) {
+				player.nameText = new SimpleText(16, player.isFellowGuild ? Settings.FELLOW_GUILD_COLOR : Settings.DEFAULT_COLOR);
+				player.nameText.setBold(true);
+				player.nameText.text = player.name;
+				player.nameText.updateMetrics();
 
-					player.nameTex = new BitmapData(Std.int(player.nameText.width + 20), 64, true, 0);
-					player.nameTex.draw(player.nameText, new Matrix(1, 0, 0, 1, 12, 0));
-					player.nameTex.applyFilter(player.nameTex, player.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
-
-					player.nameBitmap = new Bitmap(player.nameTex);
-					player.nameBitmap.cacheAsBitmap = true;
-					addChild(player.nameBitmap);
-				}
-
-				player.nameBitmap.x = player.screenX - texW * 2;
-				player.nameBitmap.y = player.yBaseNoZ - texH;
-		}*/
+				player.nameTex = new BitmapData(Std.int(player.nameText.width + 20), 64, true, 0);
+				player.nameTex.draw(player.nameText, new Matrix(1, 0, 0, 1, 12, 0));
+				player.nameTex.applyFilter(player.nameTex, player.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
+			}
+			
+			var textureData = TextureFactory.make(player.nameTex);
+			this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
+				sinX: 0, sinY: 0,
+				cosY: textureData.height * RenderUtils.clipSpaceScaleY,
+				x: screenX * RenderUtils.clipSpaceScaleX, y: (screenY - hBase + 30) * RenderUtils.clipSpaceScaleY,
+				texelW: 0, texelH: 0,
+				texture: textureData.texture});
+		}
 	}
 
 	@:nonVirtual private final #if !tracing inline #end function drawProjectile(time: Int32, proj: Projectile) {
@@ -1930,6 +1995,7 @@ class Map {
 		}
 
 		this.c3d.clear();
+		this.rdSingle.resize(0);
 
 		GL.activeTexture(GL.TEXTURE0);
 		GL.bindTexture(GL.TEXTURE_2D, Main.atlas.texture);
@@ -2066,9 +2132,27 @@ class Map {
 
 		GL.drawElements(GL.TRIANGLES, iIdx, GL.UNSIGNED_INT, 0);
 
+		i = 0;
+		var rdsLen = this.rdSingle.length;
+		if (rdsLen > 0) {
+			RenderUtils.bindVertexBuffer(0, this.singleVBO);
+			GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.singleIBO);
+			GL.useProgram(this.singleProgram);
+		}
+
+		while (i < rdsLen) {
+			var rd = this.rdSingle[i];
+			GL.uniform4f(cast 0, rd.cosX, rd.sinX, rd.sinY, rd.cosY);
+			GL.uniform2f(cast 1, rd.x, rd.y);
+			GL.uniform2f(cast 2, rd.texelW, rd.texelH);
+			GL.bindTexture(GL.TEXTURE_2D, rd.texture);
+			GL.drawElements(GL.TRIANGLES, 6, GL.UNSIGNED_SHORT, 0);
+			i++;
+		}
+
 		// GL.bindFramebuffer(GL.FRAMEBUFFER, this.frontBuffer);
 		this.c3d.present();
 
-		this.mapOverlay.draw(time);
+		//this.mapOverlay.draw(time);
 	}
 }

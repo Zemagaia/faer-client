@@ -600,7 +600,7 @@ class NetworkHandler {
 							case InvalidTeleportTarget:
 								Global.gameSprite.textBox.addText(errorDescription, 0xFF0000);
 								player.nextTeleportAt = 0;
-							case MessageDisconnect:
+							case MessageNoDisconnect:
 								Global.gameSprite.textBox.addText(errorDescription, 0xFF0000);
 							default:
 								disconnect();
@@ -1813,7 +1813,13 @@ class NetworkHandler {
 				go.equipment[statType - StatType.Inv0] = itemType;
 			case Name:
 				var newName = socket.readUTF();
-				if (go?.name != newName) {
+				if (go == null)
+					return;
+
+				if (newName == "" && go.objClass == "Portal")
+					return;
+
+				if (go.name != newName) {
 					go.name = newName;
 					go.nameTex = null;
 				}

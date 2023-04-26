@@ -1,5 +1,7 @@
 #version 460
 
+precision lowp float;
+
 in BatchData {
     vec2 uv;
     vec2 texelSize;

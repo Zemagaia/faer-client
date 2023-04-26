@@ -266,8 +266,8 @@ class ColorUtils {
 }
 
 class RenderUtils {
-	public static var clipSpaceScaleX: Float32 = 2 / 1024;
-	public static var clipSpaceScaleY: Float32 = 2 / 768;
+	public static var clipSpaceScaleX: Float32 = 2 / 1280;
+	public static var clipSpaceScaleY: Float32 = 2 / 720;
 
 	public static #if !tracing inline #end function compileShaders(vertSrc: String, fragSrc: String) {
 		var vert = GL.createShader(GL.VERTEX_SHADER);
