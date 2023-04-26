@@ -55,7 +55,6 @@ class Player extends GameObject {
 	public var maxMPMax = 0;
 	public var defenseBoost = 0;
 	public var defenseMax = 0;
-	public var resistance = 0;
 	public var resistanceBoost = 0;
 	public var resistanceMax = 0;
 	public var strength = 0;
@@ -112,6 +111,9 @@ class Player extends GameObject {
 		var player = new Player(ObjectLibrary.xmlLibrary.get(playerXML.intElement("ObjectType")));
 		player.name = name;
 		player.equipment = playerXML.intListElement("Equipment");
+		for (i in 0...player.equipment.length)
+			if (player.equipment[i] == 65535)
+				player.equipment[i] = -1;
 		player.maxHP = player.hp = playerXML.intElement("Health");
 		player.maxMP = player.mp = playerXML.intElement("Mana");
 		player.strength = playerXML.intElement("Strength");
@@ -624,11 +626,11 @@ class Player extends GameObject {
 			proj = Global.projPool.get();
 			proj.reset(weaponType, 0, objectId, bulletId, angle, time);
 			attMult = useMult ? this.attackMultiplier() : 1;
-			damage = Std.int(proj.projProps.damage * attMult);
+			damage = Std.int(proj.projProps.physicalDamage * attMult);
 			if (time > Global.gameSprite.moveRecords.lastClearTime + 600)
 				damage = 0;
 
-			proj.setDamage(damage);
+			proj.setDamages(damage, 0, 0);
 			if (i == 0 && proj.sound != null)
 				SoundEffectLibrary.play(proj.sound, 0.75, false);
 

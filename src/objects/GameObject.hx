@@ -45,6 +45,7 @@ class GameObject {
 	public var screenX: Float32 = 0.0;
 	public var screenY: Float32 = 0.0;
 	public var screenYNoZ: Float32 = 0.0;
+	public var hBase: Float32 = 0.0;
 	public var sortVal: Int16 = 0;
 	public var props: ObjectProperties;
 	public var name = "";
@@ -72,6 +73,7 @@ class GameObject {
 	public var hp = 200;
 	public var size: Float32 = 1;
 	public var defense = 0;
+	public var resistance = 0;
 	public var slotTypes: Array<Int32> = null;
 	public var equipment: Array<Int32> = null;
 	public var condition = 0;
@@ -169,6 +171,7 @@ class GameObject {
 		this.flying = this.props.flying;
 		this.hp = this.maxHP = objectXML.intElement("Health");
 		this.defense = objectXML.intElement("Defense");
+		this.resistance = objectXML.intElement("Resistance");
 		this.slotTypes = objectXML.intListElement("SlotTypes");
 		this.equipment = new Array<Int32>();
 		for (i in 0...20)
@@ -411,7 +414,7 @@ class GameObject {
 
 				if (ce != null && (this.condition | ce.bit) != this.condition) {
 					this.condition |= ce.bit;
-					map.mapOverlay.addStatusText(new CharacterStatusText(this, ce.name, 0xD40000, 750));
+					map.addStatusText(new CharacterStatusText(this, ce.name, 0xD40000, 750));
 				}
 			}
 		}
@@ -424,22 +427,10 @@ class GameObject {
 				map.addObj(new ExplosionEffect(this.bloodColors,, this.size, 10), mapX, mapY); */
 
 		if (damageAmount > 0)
-			map.mapOverlay.addStatusText(new CharacterStatusText(this, "-" + damageAmount,
+			map.addStatusText(new CharacterStatusText(this, "-" + damageAmount,
 				(this.isArmorBroken() || proj != null && proj.projProps.armorPiercing ? 0x8E59B6 : 0xD40000), 750));
 	}
 
-	public function drawName() {
-		if (this.name == null || this.name == "")
-			return;
-
-		if (this.nameTex == null) {
-			this.nameText = this.generateNameText(this.name);
-			this.nameTex = this.generateNameBitmapData(this.nameText);
-		}
-
-		/*var textureData = TextureFactory.make(this.nameTex);
-			RenderUtils.baseRender(textureData.width, textureData.height, this.screenX, this.yBaseNoZ - this.dh + 5, this.width, this.height, this.uValue, this.vValue, 0); */
-	}
 
 	public function setAttack(containerType: Int32, attackAngle: Float32) {
 		this.attackAngle = attackAngle;

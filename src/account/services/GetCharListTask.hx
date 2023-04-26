@@ -32,8 +32,10 @@ class GetCharListTask extends Task {
 		if (data != "EOF" && data.indexOf("Error") == -1) {
 			Global.parseCharList(Xml.parse(data).firstElement());
 			completeTask(true);
-		} else
+		} else {
+			trace('Char list error: $data');
 			completeTask(false);
+		}
 
 		if (this.retryTimer != null)
 			this.stopRetryTimer();

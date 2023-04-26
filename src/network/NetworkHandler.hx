@@ -247,8 +247,8 @@ class NetworkHandler {
 		createCharacter = newCreateCharacter;
 		charId = newCharId;
 		fmMap = newFmMap;
-		lastUnreadUpdateLen = -1;
-		lastUnreadNewTickLen = -1;
+		lastUnreadUpdateLen = 65535;
+		lastUnreadNewTickLen = 65535;
 	}
 
 	public static function connect() {
@@ -563,7 +563,7 @@ class NetworkHandler {
 							var proj = Global.projPool.get();
 							angle += angleInc * i;
 							proj.reset(owner.objectType, bulletType, ownerId, (bulletId + i) % 256, angle, Global.gameSprite.lastFixedUpdate);
-							proj.setDamage(damage);
+							proj.setDamages(damage, 0, 0);
 							Global.gameSprite.map.addProjectile(proj, startX, startY);
 						}
 
@@ -787,7 +787,7 @@ class NetworkHandler {
 						var go = Global.gameSprite.map.getGameObject(objectId);
 
 						if (go != null) {
-							Global.gameSprite.map.mapOverlay.addStatusText(new CharacterStatusText(go, text, color, 2000));
+							Global.gameSprite.map.addStatusText(new CharacterStatusText(go, text, color, 2000));
 							if (go == player && text == "Quest Complete!")
 								Global.gameSprite.map.quest.completed();
 						}
@@ -854,7 +854,7 @@ class NetworkHandler {
 
 						var proj: Projectile = Global.projPool.get();
 						proj.reset(containerType, 0, ownerId, bulletId, angle, Global.gameSprite.lastFixedUpdate);
-						proj.setDamage(damage);
+						proj.setDamages(damage, 0, 0);
 						Global.gameSprite.map.addProjectile(proj, startX, startY);
 						if (needsAck)
 							shootAck(Global.gameSprite.lastFixedUpdate);
@@ -971,11 +971,17 @@ class NetworkHandler {
 
 						if (objectId != -1) {
 							var go = Global.gameSprite.map.getGameObject(objectId);
-							if (go != null) {
-								var colors = [0xE1DFDC, 0xFFFFFF, 0x545454];
-
-								Global.gameSprite.map.mapOverlay.addSpeechBalloon(new SpeechBalloon(go, text, colors[0], 1, colors[1], 1, colors[2],
-									bubbleTime, false, true));
+							if (go != null)
+								Global.gameSprite.map.addSpeechBalloon(new SpeechBalloon(go, text, SpeechBalloon.ENEMY_BUBBLE, bubbleTime));
+							else {
+								var player = Global.gameSprite.map.getPlayer(objectId);
+								if (player != null) {
+									var sbType = SpeechBalloon.DEFAULT_BUBBLE;
+									if (recipient != "")
+										sbType = SpeechBalloon.MESSAGE_BUBBLE;
+									
+									Global.gameSprite.map.addSpeechBalloon(new SpeechBalloon(player, text, sbType, bubbleTime));
+								}
 							}
 						}
 

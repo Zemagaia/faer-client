@@ -1,5 +1,6 @@
 package account.view;
 
+import lib.tasks.Task.TaskData;
 import cpp.Stdlib;
 import cpp.Pointer;
 import appengine.RequestHandler;
@@ -88,17 +89,17 @@ class LoginDialog extends Frame {
 
 			this.disable();
 
-			RequestHandler.complete.once(this.loginComplete);
+			Global.loginTask.finished.once(this.loginComplete);
 			Global.loginTask.start();
 		}
 	}
 
-	private function loginComplete(_: CompletionData) {
-		RequestHandler.complete.once(this.charListComplete);
+	private function loginComplete(_: TaskData) {
+		Global.charListTask.finished.once(this.charListComplete);
 		Global.charListTask.start();
 	}
 
-	private function charListComplete(_: CompletionData) {
+	private function charListComplete(_: TaskData) {
 		Global.layers.dialogs.closeDialogs();
 		Global.invalidate();
 		Global.setScreenValid(new CharacterSelectionScreen());

@@ -1,5 +1,6 @@
 package classes.view;
 
+import appengine.SavedCharacter;
 import util.Settings;
 import game.model.GameInitData;
 import game.view.CurrencyDisplay;
@@ -15,9 +16,12 @@ import ui.view.ScreenBase;
 class CharSkinView extends Sprite {
 	private var playBtn: TitleMenuOption;
 	private var backBtn: TitleMenuOption;
+	private static var playerXML: Xml;
 
-	public function new() {
+	public function new(_playerXML: Xml) {
 		super();
+		
+		playerXML = _playerXML;
 
 		addChild(new ScreenBase());
 		addChild(new AccountScreen());
@@ -85,6 +89,7 @@ class CharSkinView extends Sprite {
 		game.createCharacter = true;
 		game.charId = Global.playerModel.getNextCharId();
 		game.gameId = Settings.HUB_GAMEID;
+		//Global.playerModel.addCharacter(new SavedCharacter(playerXML, Global.playerModel.getName()));
 		Global.playGame(game);
 	}
 

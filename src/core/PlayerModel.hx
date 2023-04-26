@@ -106,6 +106,17 @@ class PlayerModel {
 		}
 	}
 
+	public function addCharacter(savedChar: SavedCharacter) {
+		if (this.charList == null)
+			return;
+
+		var idx = this.charList.savedChars.indexOf(savedChar);
+		if (idx == -1) {
+			this.charList.savedChars.push(savedChar);
+			this.charList.numChars++;
+		}
+	}
+
 	public function getGuildName() {
 		return this.charList?.guildName ?? "";
 	}

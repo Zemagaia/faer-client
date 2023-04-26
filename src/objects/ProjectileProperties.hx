@@ -10,7 +10,9 @@ class ProjectileProperties {
 	public var speed = 0.0;
 	public var realSpeed = 0;
 	public var size = 0;
-	public var damage = 0;
+	public var physicalDamage = 0;
+	public var magicDamage = 0;
+	public var trueDamage = 0;
 	public var effects: Array<Int32> = null;
 	public var multiHit = false;
 	public var armorPiercing = false;
@@ -34,7 +36,13 @@ class ProjectileProperties {
 		this.size = projectileXML.elementsNamed("Size").hasNext() ? Std.parseInt(projectileXML.elementsNamed("Size").next().firstChild().nodeValue) : -1;
 
 		if (projectileXML.elementsNamed("Damage").hasNext())
-			this.damage = Std.parseInt(projectileXML.elementsNamed("Damage").next().firstChild().nodeValue);
+			this.physicalDamage = Std.parseInt(projectileXML.elementsNamed("Damage").next().firstChild().nodeValue);
+
+		if (projectileXML.elementsNamed("MagicDamage").hasNext())
+			this.magicDamage = Std.parseInt(projectileXML.elementsNamed("MagicDamage").next().firstChild().nodeValue);
+
+		if (projectileXML.elementsNamed("TrueDamage").hasNext())
+			this.trueDamage = Std.parseInt(projectileXML.elementsNamed("TrueDamage").next().firstChild().nodeValue);
 
 		for (condEffectXML in projectileXML.elementsNamed("ConditionEffect")) {
 			if (this.effects == null)

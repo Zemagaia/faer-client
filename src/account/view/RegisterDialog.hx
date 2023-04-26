@@ -1,5 +1,6 @@
 package account.view;
 
+import appengine.RequestHandler;
 import account.AccountData;
 import account.services.RegisterAccountTask;
 import lib.tasks.Task;
@@ -158,7 +159,15 @@ class RegisterDialog extends Frame {
 		Global.registerAccountTask.finished.once(function(taskData: TaskData) {
 			if (taskData.success) {
 				Global.updateAccount.emit();
-				Global.layers.dialogs.openDialog(new AccountDetailDialog());
+				Global.charListTask.finished.once(function(taskData: TaskData) {
+					if (taskData.success)
+						Global.layers.dialogs.openDialog(new AccountDetailDialog());
+					else {
+						this.displayErrorText(taskData.error);
+						this.enable();
+					}
+				});
+				Global.charListTask.start();
 			} else {
 				this.displayErrorText(taskData.error);
 				this.enable();

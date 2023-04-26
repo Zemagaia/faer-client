@@ -33,7 +33,7 @@ class CharacterBox extends Sprite {
 			return;
 
 		Global.classModel.getCharacterClass(this.objectType()).setIsSelected(true);
-		Global.layers.screens.setScreen(new CharSkinView());
+		Global.layers.screens.setScreen(new CharSkinView(this.playerXML));
 	}
 
 	public function new(playerXML: Xml) {

@@ -12,12 +12,13 @@ in BatchData {
 
 layout (location = 0) out vec4 resultColor;
 
-layout (location = 0) uniform vec2 emptyBar;
-layout (location = 1) uniform sampler2D sampler;
+layout (location = 0) uniform sampler2D sampler;
 
 void main() {
-    // Wackart
-    vec4 pixel = data.barThresh != -1 && data.barThresh < data.uv.x ? texture(sampler, emptyBar) : texture(sampler, data.uv);
+    if (data.barThresh != -1 && data.barThresh < data.uv.x)
+        discard;
+        
+    vec4 pixel = texture(sampler, data.uv);
 
     if (pixel.a < 1.0) {
         if (data.texelSize.x != 0) {

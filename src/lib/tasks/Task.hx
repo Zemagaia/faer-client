@@ -33,7 +33,7 @@ class Task {
 	public final function start() {
 		if (!this.isStarted) {
 			this.isStarted = true;
-			this.started?.emit(this);
+			this.started.emit(this);
 			this.startTask();
 		}
 	}
@@ -45,9 +45,9 @@ class Task {
 				throw new Exception("Unable to Task.reset() when a task is ongoing");
 		}
 
-		this.started?.off();
-		this.finished?.off();
-		this.lastly?.off();
+		this.started.off();
+		this.finished.off();
+		this.lastly.off();
 		this.onReset();
 	}
 
@@ -60,7 +60,9 @@ class Task {
 		this.error = error;
 		this.isFinished = true;
 
-		this.finished?.emit(new TaskData(this, isOK, error));
-		this.lastly?.emit(new TaskData(this, isOK, error));
+		this.finished.emit(new TaskData(this, isOK, error));
+		this.lastly.emit(new TaskData(this, isOK, error));
+
+		this.reset();
 	}
 }
