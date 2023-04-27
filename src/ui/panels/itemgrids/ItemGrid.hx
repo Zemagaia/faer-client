@@ -167,9 +167,7 @@ class ItemGrid extends Panel {
 			targetTile = cast(target, InteractiveItemTile);
 			if (sourceTile.canHoldItem(targetTile.getItemId()) && targetTile.canHoldItem(sourceTile.getItemId()))
 				this.swapItemTiles(sourceTile, targetTile);
-		} else if (Std.isOfType(target, Map) || target == null)
-			this.dropItem(sourceTile);
-		else if (Std.isOfType(target, Inventory)) {
+		} else if (Std.isOfType(target, Inventory)) {
 			slot = sourceTile.ownerGrid.curPlayer.nextAvailableInventorySlot();
 			if (slot != -1) {
 				NetworkHandler.invSwap(this.curPlayer, sourceTile.ownerGrid.owner, sourceTile.tileId, sourceTile.itemSprite.itemId, this.curPlayer, slot,
@@ -177,7 +175,9 @@ class ItemGrid extends Panel {
 				sourceTile.setItem(ItemConstants.NO_ITEM);
 				sourceTile.updateUseability(this.curPlayer);
 			}
-		}
+		} else if (target == null)
+			this.dropItem(sourceTile);
+
 		sourceTile.resetItemPosition();
 	}
 

@@ -1,5 +1,6 @@
 package map;
 
+import engine.GLTextureData;
 import util.Utils.KeyCodeUtil;
 import util.Settings;
 import openfl.filters.GlowFilter;
@@ -148,6 +149,7 @@ class Map {
 	private var guildBalloonTex: BitmapData;
 	private var enemyBalloonTex: BitmapData;
 	private var partyBalloonTex: BitmapData;
+	private var adminBalloonTex: BitmapData;
 
 	public function new() {
 		this.gameObjects = [];
@@ -184,6 +186,7 @@ class Map {
 		this.guildBalloonTex = AssetLibrary.getImageFromSet("speechBalloons", 0x2);
 		this.enemyBalloonTex = AssetLibrary.getImageFromSet("speechBalloons", 0x3);
 		this.partyBalloonTex = AssetLibrary.getImageFromSet("speechBalloons", 0x4);
+		this.adminBalloonTex = AssetLibrary.getImageFromSet("speechBalloons", 0x5);
 
 		this.vertexData = cast Stdlib.nativeMalloc(this.vertexLen * 4);
 		this.indexData = cast Stdlib.nativeMalloc(this.indexLen * 4);
@@ -2361,7 +2364,21 @@ class Map {
 				continue;
 			}
 
-			var textureData = TextureFactory.make(normalBalloonTex);
+			var textureData: GLTextureData;
+			switch (sb.sbType) {
+				case SpeechBalloon.MESSAGE_BUBBLE:
+					textureData = TextureFactory.make(tellBalloonTex);
+				case SpeechBalloon.GUILD_BUBBLE:
+					textureData = TextureFactory.make(guildBalloonTex);
+				case SpeechBalloon.ENEMY_BUBBLE:
+					textureData = TextureFactory.make(enemyBalloonTex);
+				case SpeechBalloon.PARTY_BUBBLE:
+					textureData = TextureFactory.make(partyBalloonTex);
+				case SpeechBalloon.ADMIN_BUBBLE:
+					textureData = TextureFactory.make(adminBalloonTex);
+				default:
+					textureData = TextureFactory.make(normalBalloonTex);
+			}
 			this.rdSingle.push({cosX: (textureData.width << 2) * RenderUtils.clipSpaceScaleX, 
 				sinX: 0, sinY: 0,
 				cosY: (textureData.height << 2) * RenderUtils.clipSpaceScaleY,

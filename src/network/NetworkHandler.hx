@@ -979,6 +979,16 @@ class NetworkHandler {
 									var sbType = SpeechBalloon.DEFAULT_BUBBLE;
 									if (recipient != "")
 										sbType = SpeechBalloon.MESSAGE_BUBBLE;
+
+									switch (nameColor) {
+										case 0xF2CA46:
+											sbType = SpeechBalloon.ADMIN_BUBBLE;
+											// todo
+										case 0x000000:
+											sbType = SpeechBalloon.GUILD_BUBBLE;
+										case 0x000001:
+											sbType = SpeechBalloon.PARTY_BUBBLE;	
+									}
 									
 									Global.gameSprite.map.addSpeechBalloon(new SpeechBalloon(player, text, sbType, bubbleTime));
 								}

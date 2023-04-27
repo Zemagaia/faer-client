@@ -15,6 +15,7 @@ class SpeechBalloon {
 	public static inline var GUILD_BUBBLE = 2;
 	public static inline var ENEMY_BUBBLE = 3;
 	public static inline var PARTY_BUBBLE = 4;
+	public static inline var ADMIN_BUBBLE = 5;
 
 	public var go: GameObject;
 	public var lifetime = 0;
@@ -42,6 +43,8 @@ class SpeechBalloon {
 				color = 0x661100;
 			case PARTY_BUBBLE:
 				color = 0x1B0066;
+			case ADMIN_BUBBLE:
+				color = 0x66350A;
 		}
 		var sText = new SimpleText(12, color, false, 120, 50);
 		sText.setBold(true);
