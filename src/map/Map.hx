@@ -517,7 +517,7 @@ class Map {
 
 		while (i < this.playersLen) {
 			var player = this.players.unsafeGet(i);
-			if (player.objectId + 1 == objectId) {
+			if (player.objectId == objectId) {
 				player.removeFromMap();
 				this.players.splice(i, 1);
 				this.playersLen--;
