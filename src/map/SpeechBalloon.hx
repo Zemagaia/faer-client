@@ -21,6 +21,7 @@ class SpeechBalloon {
 	public var lifetime = 0;
 	public var hideable = false;
 	public var textTex: BitmapData;
+	public var numLines = 0;
 	public var disposed = false;
 	public var startTime = 0;
 	public var sbType: Int;
@@ -46,7 +47,7 @@ class SpeechBalloon {
 			case ADMIN_BUBBLE:
 				color = 0x66350A;
 		}
-		var sText = new SimpleText(12, color, false, 120, 50);
+		var sText = new SimpleText(12, color, false, 110, 50);
 		sText.setBold(true);
 		sText.setItalic(true);
 		sText.text = text;
@@ -54,6 +55,7 @@ class SpeechBalloon {
 		sText.setAlignment(TextFormatAlign.CENTER);
 		sText.updateMetrics();
 
+		this.numLines = Std.int(Math.min(sText.numLines, 3));
 		this.textTex = new BitmapData(Std.int(sText.width + 20), 64, true, 0);
 		this.textTex.draw(sText, new Matrix(1, 0, 0, 1, 12, 0));
 

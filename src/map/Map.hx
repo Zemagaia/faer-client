@@ -2445,7 +2445,7 @@ class Map {
 			this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
 				sinX: 0, sinY: 0,
 				cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-				x: (sb.go.screenX + 45) * RenderUtils.clipSpaceScaleX, y:  (sb.go.screenYNoZ - sb.go.hBase - 40) * RenderUtils.clipSpaceScaleY,
+				x: (sb.go.screenX + 42) * RenderUtils.clipSpaceScaleX, y:  (sb.go.screenYNoZ - sb.go.hBase - 33 - (sb.numLines * 6)) * RenderUtils.clipSpaceScaleY,
 				texelW: 0, texelH: 0,
 				texture: textureData.texture});	
 		}
