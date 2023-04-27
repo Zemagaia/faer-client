@@ -1094,6 +1094,9 @@ class Map {
 		var texW = obj.width * Main.ATLAS_WIDTH,
 			texH = obj.height * Main.ATLAS_HEIGHT;
 
+		var size = Camera.SIZE_MULT * obj.size;
+		var hBase = obj.hBase = size * texH;
+
 		if (obj.props.drawOnGround && obj.curSquare != null) {
 			final xScaledCos = Camera.xScaledCos;
 			final yScaledCos = Camera.yScaledCos;
@@ -1161,6 +1164,60 @@ class Map {
 			this.iIdx += 6;
 			this.i++;
 
+			var isPortal = obj.objClass == "Portal";
+			if ((obj.props.showName || isPortal) && obj.name != null && obj.name != "") {
+				if (obj.nameTex == null) {
+					obj.nameText = new SimpleText(16, 0xFFFFFF);
+					obj.nameText.setBold(true);
+					obj.nameText.text = obj.name;
+					obj.nameText.updateMetrics();
+
+					obj.nameTex = new BitmapData(Std.int(obj.nameText.width + 20), 64, true, 0);
+					obj.nameTex.draw(obj.nameText, new Matrix(1, 0, 0, 1, 12, 0));
+					obj.nameTex.applyFilter(obj.nameTex, obj.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
+				}
+				
+				var textureData = TextureFactory.make(obj.nameTex);
+				this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
+					sinX: 0, sinY: 0,
+					cosY: textureData.height * RenderUtils.clipSpaceScaleY,
+					x: (screenX - 3) * RenderUtils.clipSpaceScaleX, y: (screenY - hBase + 50) * RenderUtils.clipSpaceScaleY,
+					texelW: 0, texelH: 0,
+					texture: textureData.texture});
+
+				if (isPortal && Global.currentInteractiveTarget == obj.objectId) {
+					if (obj.enterTex == null) {
+						var enterText = new SimpleText(16, 0xFFFFFF);
+						enterText.setBold(true);
+						enterText.text = "Enter";
+						enterText.updateMetrics();
+
+						obj.enterTex = new BitmapData(Std.int(enterText.width + 20), 64, true, 0);
+						obj.enterTex.draw(enterText, new Matrix(1, 0, 0, 1, 12, 0));
+						obj.enterTex.applyFilter(obj.enterTex, obj.enterTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
+					}
+					
+					var textureData = TextureFactory.make(obj.enterTex);
+					this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
+						sinX: 0, sinY: 0,
+						cosY: textureData.height * RenderUtils.clipSpaceScaleY,
+						x: (screenX + 8) * RenderUtils.clipSpaceScaleX, y: (screenY + 60) * RenderUtils.clipSpaceScaleY,
+						texelW: 0, texelH: 0,
+						texture: textureData.texture});
+
+					if (obj.enterKeyTex == null)
+						obj.enterKeyTex = AssetLibrary.getImageFromSet("keyIndicators", KeyCodeUtil.charCodeIconIndices[Settings.interact]);
+
+					var textureData = TextureFactory.make(obj.enterKeyTex);
+					this.rdSingle.push({cosX: (textureData.width >> 2) * RenderUtils.clipSpaceScaleX, 
+						sinX: 0, sinY: 0,
+						cosY: (textureData.height >> 2) * RenderUtils.clipSpaceScaleY,
+						x: (screenX - 22) * RenderUtils.clipSpaceScaleX, y: (screenY + 39) * RenderUtils.clipSpaceScaleY,
+						texelW: 0, texelH: 0,
+						texture: textureData.texture});	
+				}
+			}
+
 			return;
 		}
 
@@ -1214,8 +1271,6 @@ class Map {
 				flashStrength = MathUtil.sin((time - obj.flashStartTime) % obj.flashPeriodMs / obj.flashPeriodMs * MathUtil.PI) * 0.5;
 		}
 
-		var size = Camera.SIZE_MULT * obj.size;
-		var hBase = obj.hBase = size * texH;
 		var w = size * texW * RenderUtils.clipSpaceScaleX * 0.5;
 		var h = hBase * RenderUtils.clipSpaceScaleY * 0.5 / sink;
 		var yBase = (screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
