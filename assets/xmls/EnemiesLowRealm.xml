@@ -638,4 +638,108 @@
         <PermaMiniMap/>
         <Enemy/>
     </Object>
+    <Object type="0x0735" id="Goblin Mage">
+        <Class>Character</Class>
+        <AnimatedTexture>
+            <Sheet>lowrealm</Sheet>
+            <Index>12</Index>
+        </AnimatedTexture>
+        <Health>6000</Health>
+        <Defense>10</Defense>
+        <Resistance>25</Resistance>
+        <Projectile id="0">
+            <ObjectId>Goblin Green Bolt</ObjectId>
+            <MagicDamage>65</MagicDamage>
+            <Speed>75</Speed>
+            <Size>125</Size>
+            <LifetimeMS>1200</LifetimeMS>
+        </Projectile>
+        <Projectile id="1">
+            <ObjectId>Goblin Red  Blast</ObjectId>
+            <Damage>50</Damage>
+            <Speed>75</Speed>
+            <Size>125</Size>
+            <LifetimeMS>1000</LifetimeMS>
+        </Projectile>
+        <Size>90</Size>
+        <Enemy/>
+    </Object>
+    <Object type="0x0736" id="Goblin Brawler">
+        <Class>Character</Class>
+        <AnimatedTexture>
+            <Sheet>lowrealm</Sheet>
+            <Index>12</Index>
+        </AnimatedTexture>
+        <Health>7000</Health>
+        <Defense>15</Defense>
+        <Resistance>25</Resistance>
+        <Projectile id="0">
+            <ObjectId>Goblin Green Blast</ObjectId>
+            <MagicDamage>65</MagicDamage>
+            <Speed>75</Speed>
+            <Size>125</Size>
+            <LifetimeMS>1200</LifetimeMS>
+        </Projectile>
+        <Projectile id="1">
+            <ObjectId>Goblin Green Bolt</ObjectId>
+            <MagicDamage>80</MagicDamage>
+            <Speed>75</Speed>
+            <Size>125</Size>
+            <LifetimeMS>1000</LifetimeMS>
+        </Projectile>
+        <Size>90</Size>
+        <Enemy/>
+    </Object>
+    <Object type="0x0737" id="Goblin Brawler">
+        <Class>Character</Class>
+        <AnimatedTexture>
+            <Sheet>lowrealm</Sheet>
+            <Index>13</Index>
+        </AnimatedTexture>
+        <Health>7000</Health>
+        <Defense>15</Defense>
+        <Resistance>25</Resistance>
+        <Projectile id="0">
+            <ObjectId>Goblin Green Blast</ObjectId>
+            <MagicDamage>65</MagicDamage>
+            <Speed>75</Speed>
+            <Size>125</Size>
+            <LifetimeMS>1200</LifetimeMS>
+        </Projectile>
+        <Projectile id="1">
+            <ObjectId>Goblin Green Bolt</ObjectId>
+            <MagicDamage>80</MagicDamage>
+            <Speed>75</Speed>
+            <Size>125</Size>
+            <LifetimeMS>1000</LifetimeMS>
+        </Projectile>
+        <Size>90</Size>
+        <Enemy/>
+    </Object>
+    <Object type="0x0737" id="Goblin Thief">
+        <Class>Character</Class>
+        <AnimatedTexture>
+            <Sheet>lowrealm</Sheet>
+            <Index>13</Index>
+        </AnimatedTexture>
+        <Health>7000</Health>
+        <Defense>20</Defense>
+        <Resistance>15</Resistance>
+        <Projectile id="0">
+            <ObjectId>Dagger Shot</ObjectId>
+            <Damage>70</Damage>
+            <Speed>75</Speed>
+            <Size>125</Size>
+            <LifetimeMS>900</LifetimeMS>
+        </Projectile>
+        <Projectile id="1">
+            <ObjectId>Goblin Green Bolt</ObjectId>
+            <MagicDamage>80</MagicDamage>
+            <Speed>75</Speed>
+            <Size>125</Size>
+            <LifetimeMS>1000</LifetimeMS>
+        </Projectile>
+        <Size>90</Size>
+        <Enemy/>
+    </Object>
 </Objects>
