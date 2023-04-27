@@ -1,5 +1,6 @@
 package;
 
+import account.Account;
 import account.services.UploadXmlTask;
 import account.services.UploadBehaviorTask;
 import mapeditor.MapEditor;
@@ -189,6 +190,8 @@ final class Global {
 			if (skin != null)
 				skin.cost = iterXML.intValue();
 		}
+
+		Account.updateUser(xml.elementsNamed("Account").next().element("Name"), Account.email, Account.password);
 
 		for (owned in xml.intListElement("OwnedSkins"))
 			classModel.getCharacterSkin(owned) ?.setState(CharacterSkinState.OWNED);
