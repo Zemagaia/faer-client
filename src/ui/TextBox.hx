@@ -121,12 +121,13 @@ class TextBox extends Sprite {
 	}
 
 	private function addTextBlock(text: String) {
-		var textSpr = new SimpleText(18);
+		var textSpr = new SimpleText(18, 0xFFFFFF, false, 600);
+		textSpr.wordWrap = true;
 		textSpr.setHtmlText(text);
 		textSpr.updateMetrics();
 		textSpr.y = this.textSpriteYPos;
 		this.textSprite.addChild(textSpr);
-		this.textSpriteYPos += BLOCK_SPACING;
+		this.textSpriteYPos += BLOCK_SPACING * textSpr.numLines;
 	}
 
 	private function refreshStatusBox() {
