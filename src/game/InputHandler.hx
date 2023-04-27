@@ -208,12 +208,6 @@ class InputHandler {
 			Global.layers.overlay.addChild(options);
 		} else if (keyCode == Settings.toggleCentering) {
 			Settings.centerCamera = !Settings.centerCamera;
-
-			if (Settings.centerCamera == true)
-				Main.primaryStage3D.y = 0;
-			else
-				Main.primaryStage3D.y = -Main.stageHeight / 4;
-
 			Settings.save();
 		} else if (keyCode == Settings.switchTabs)
 			Global.gameSprite.inventory.setSelectedTab(Global.gameSprite.inventory.currentTabIndex++ % Global.gameSprite.inventory.tabs.length);

@@ -144,7 +144,7 @@ class TextBox extends Sprite {
 				}
 				
 				this.addTextBlock('<b><font color=\"#${line.nameColor.hex(6)}\">[' + line.name 
-					+ ']</b>:</font> <i><font color=\"#${line.textColor.hex(6)}\">' + line.text + '</font></i>');
+					+ ']:</b></font> <i><font color=\"#${line.textColor.hex(6)}\">' + line.text + '</font></i>');
 			}
 		}
 

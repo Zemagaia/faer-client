@@ -73,7 +73,7 @@ class Camera {
 		viewMatrix[7] = csY;
 
 		clipRect.x = -Main.stageWidth * 0.5;
-		clipRect.y = -Main.stageHeight * (0.5 + (Settings.centerCamera ? 0 : 0.25));
+		clipRect.y = -Main.stageHeight * 0.5;
 		clipRect.width = Main.stageWidth;
 		clipRect.height = Main.stageHeight;
 
