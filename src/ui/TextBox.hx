@@ -113,10 +113,8 @@ class TextBox extends Sprite {
 	}
 
 	private function clearTextSprite() {
-		while (this.textSprite.numChildren > 0)
-			this.textSprite.removeChildAt(0);
-
-		this.textSprite.graphics.clear();
+		this.textSprite.removeChildren();
+		this.textSprite.visible = false;
 		this.textSpriteYPos = 0;
 	}
 
@@ -127,6 +125,7 @@ class TextBox extends Sprite {
 		textSpr.updateMetrics();
 		textSpr.y = this.textSpriteYPos;
 		this.textSprite.addChild(textSpr);
+		this.textSprite.visible = true;
 		this.textSpriteYPos += BLOCK_SPACING * textSpr.numLines;
 	}
 
