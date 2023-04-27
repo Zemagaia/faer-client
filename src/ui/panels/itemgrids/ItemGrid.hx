@@ -1,5 +1,6 @@
 package ui.panels.itemgrids;
 
+import openfl.display.Stage;
 import network.NetworkHandler;
 import constants.InventoryOwnerTypes;
 import constants.ItemConstants;
@@ -91,19 +92,20 @@ class ItemGrid extends Panel {
 		var equipment: Array<Int32> = null;
 		var equipCount = 0;
 		var openIndex = 0;
-		var isUntradable: Bool = ObjectLibrary.isUntradable(itemTile.itemSprite.itemId);
-		var container = cast(this.owner, GameObject);
-		if (this.owner == this.curPlayer || container != null && container.ownerId == this.curPlayer.accountId && !isUntradable) {
-			if (Std.isOfType(Global.currentInteractiveTarget, GameObject)) {
-				var groundContainer = cast(Global.currentInteractiveTarget, GameObject);
-				equipment = groundContainer.equipment;
+		var isUntradable = ObjectLibrary.isUntradable(itemTile.itemSprite.itemId);
+		trace(this.owner.objectId, this.owner.ownerId, this.curPlayer.objectId, this.curPlayer.accountId);
+		if (this.owner.objectId == this.curPlayer.objectId
+			|| this.owner.ownerId == this.curPlayer.accountId && !isUntradable) {
+			var go = this.owner.map.getGameObject(Global.currentInteractiveTarget);
+			if (go?.objClass == "Container") {
+				equipment = go.equipment;
 				equipCount = equipment.length;
 				for (openIndex in 0...equipCount)
 					if (equipment[openIndex] < 0)
 						break;
 
 				if (openIndex < equipCount)
-					this.dropWithoutDestTile(itemTile, groundContainer, openIndex);
+					this.dropWithoutDestTile(itemTile, go, openIndex);
 				else
 					NetworkHandler.invDrop(this.owner, itemTile.tileId, itemTile.getItemId());
 			} else
@@ -175,7 +177,7 @@ class ItemGrid extends Panel {
 				sourceTile.setItem(ItemConstants.NO_ITEM);
 				sourceTile.updateUseability(this.curPlayer);
 			}
-		} else if (target == null)
+		} else if (Std.isOfType(target, Stage))
 			this.dropItem(sourceTile);
 
 		sourceTile.resetItemPosition();
@@ -184,7 +186,7 @@ class ItemGrid extends Panel {
 	private function onVialMove(e: ItemTileEvent) {
 		var sourceTile: InteractiveItemTile = e.tile;
 		var target = sourceTile.getDropTarget();
-		if (Std.isOfType(target, Map) || target == null)
+		if (Std.isOfType(target, Stage))
 			this.dropItem(sourceTile);
 		else if (Std.isOfType(target, Inventory))
 			this.addToVialStack(sourceTile);
