@@ -319,7 +319,7 @@
             <ObjectId>Small Sapphire Bolt</ObjectId>
             <Speed>150</Speed>
             <LifetimeMS>700</LifetimeMS>
-            <Damage>70</Damage>
+            <MagicDamage>70</MagicDamage>
             <Amplitude>0.33</Amplitude>
             <Frequency>4</Frequency>
             <Acceleration>-90</Acceleration>

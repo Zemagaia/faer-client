@@ -152,7 +152,12 @@ class EquipmentToolTip extends ToolTip {
 		if (this.objectXML.elementExists("Projectile")) {
 			var projXML = this.objectXML.elementsNamed("Projectile").next();
 			var range = projXML.intElement("Speed") * projXML.intElement("LifetimeMS") / 10000;
-			this.effects.push(new Effect("Damage", projXML.element("Damage")));
+			if (projXML.elementExists("Damage"))
+				this.effects.push(new Effect("Physical Damage", projXML.element("Damage")));
+			if (projXML.elementExists("MagicDamage"))
+				this.effects.push(new Effect("Magic Damage", projXML.element("MagicDamage")));
+			if (projXML.elementExists("TrueDamage"))
+				this.effects.push(new Effect("True Damage", projXML.element("TrueDamage")));
 			this.effects.push(new Effect("Range", TooltipHelper.getFormattedString(range)));
 			if (this.objectXML.elementExists("MultiHit"))
 				this.effects.push(new Effect("", "Piercing"));
