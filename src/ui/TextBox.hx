@@ -100,9 +100,9 @@ class TextBox extends Sprite {
 	}
 
 	public function addTextFull(name: String, recipient: String, text: String, nameColor: UInt32, textColor: UInt32) {
-		var fromMe: Bool = recipient != "" && name == Global.playerModel.getName();
-		var toMe: Bool = recipient == Global.playerModel.getName();
-		var textBoxLine: TextBoxLine = new TextBoxLine(System.getTimer(), name, text, recipient, toMe);
+		var fromMe = recipient != "" && name == Global.playerModel.getName();
+		var toMe = recipient == Global.playerModel.getName();
+		var textBoxLine = new TextBoxLine(System.getTimer(), name, text, recipient, toMe, nameColor, textColor);
 		lines.push(textBoxLine);
 		this.refreshStatusBox();
 		if (toMe) {
@@ -144,7 +144,7 @@ class TextBox extends Sprite {
 				}
 				
 				this.addTextBlock('<b><font color=\"#${line.nameColor.hex(6)}\">[' + line.name 
-					+ ']</b>:</font> <font color=\"#${line.textColor.hex(6)}\">' + line.text + '</font>');
+					+ ']</b>:</font> <i><font color=\"#${line.textColor.hex(6)}\">' + line.text + '</font></i>');
 			}
 		}
 

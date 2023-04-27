@@ -9,7 +9,6 @@ class BuyCharacterSlotTask extends Task {
 	override public function startTask() {
 		RequestHandler.setParameter("email", Account.email);
 		RequestHandler.setParameter("password", Account.password);
-		RequestHandler.maxRetries = 2;
 		RequestHandler.complete.once(this.onComplete);
 		RequestHandler.sendRequest("/account/purchaseCharSlot");
 	}
@@ -21,7 +20,7 @@ class BuyCharacterSlotTask extends Task {
 	}
 
 	private static function updatePlayerData() {
-		Global.playerModel.setMaxCharacters(Global.playerModel.getMaxCharacters() + 1);
-		Global.playerModel.addGems(-Global.playerModel.getNextCharSlotPrice());
+		//Global.playerModel.setMaxCharacters(Global.playerModel.getMaxCharacters() + 1);
+		//Global.playerModel.addGems(-Global.playerModel.getNextCharSlotPrice());
 	}
 }

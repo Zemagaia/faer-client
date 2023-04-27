@@ -234,6 +234,7 @@ final class Global {
 				layers.screens.setScreen(new CharacterSelectionScreen());
 			else
 				layers.dialogs.openDialog(new ErrorDialog("Unable to complete character slot purchase"));
+			layers.dialogs.closeDialogs();
 		});
 		buyCharacterSlotTask.start();
 	}
