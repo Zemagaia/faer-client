@@ -28,16 +28,22 @@ class AssetLibrary {
 	public static function getImageFromSet(name: String, id: Int) {
 		if (id < 0 || !imageSets.exists(name) || id >= imageSets.get(name).images.length) {
 			trace('Could not parse image: $name (id: $id, exists: ${imageSets.exists(name)}, imagesLen: ${imageSets.get(name)?.images.length})');
-			return new BitmapData(8, 8, false, 0);
+			return getImageFromSet("errorTexture", 0);
 		}
 
-		return imageSets.get(name).images[id];
+		var tex = imageSets.get(name).images[id];
+		if (name != "invisible" && BitmapUtil.amountTransparent(tex) >= 1) {
+			trace('Image: $name was completely empty (id: $id, exists: ${imageSets.exists(name)}, imagesLen: ${imageSets.get(name) ?.images.length})');
+			return getImageFromSet("errorTexture", 0);
+		}
+
+		return tex;
 	}
 
 	public static function getRectFromSet(name: String, id: Int) {
 		if (id < 0 || !imageSets.exists(name) || id >= imageSets.get(name).rects.length) {
 			trace('Could not parse rect: $name (id: $id, exists: ${imageSets.exists(name)}, rectsLen: ${imageSets.get(name)?.rects.length})');
-			return new Rect(4096, 4096, 8, 8);
+			return getRectFromSet("errorTexture", 0);
 		}
 
 		return imageSets.get(name).rects[id];
