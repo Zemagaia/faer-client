@@ -484,10 +484,7 @@ class Map {
 	@:nonVirtual public function addPlayer(player: Player, posX: Float32, posY: Float32) {
 		player.mapX = posX;
 		player.mapY = posY;
-
-		if (!player.addTo(this, player.mapX, player.mapY))
-			return;
-
+		player.addTo(this, player.mapX, player.mapY);
 		this.players.push(player);
 		this.playersLen++;
 	}
@@ -509,7 +506,7 @@ class Map {
 			var go = this.gameObjects.unsafeGet(i);
 			if (go.objectId == objectId) {
 				go.removeFromMap();
-				this.gameObjects.remove(go);
+				this.gameObjects.splice(i, 1);
 				this.gameObjectsLen--;
 				return;
 			}
@@ -520,9 +517,9 @@ class Map {
 
 		while (i < this.playersLen) {
 			var player = this.players.unsafeGet(i);
-			if (player.objectId == objectId) {
+			if (player.objectId + 1 == objectId) {
 				player.removeFromMap();
-				this.players.remove(player);
+				this.players.splice(i, 1);
 				this.playersLen--;
 				return;
 			}
@@ -535,7 +532,7 @@ class Map {
 			var proj = this.projectiles.unsafeGet(i);
 			if (proj.objectId == objectId) {
 				proj.removeFromMap();
-				this.projectiles.remove(proj);
+				this.projectiles.splice(i, 1);
 				this.projectilesLen--;
 				return;
 			}
@@ -585,7 +582,7 @@ class Map {
 			var go = this.gameObjects.unsafeGet(i);
 			if (go.objectId == objectId) {
 				go.removeFromMap();
-				this.gameObjects.remove(go);
+				this.gameObjects.splice(i, 1);
 				this.gameObjectsLen--;
 				return;
 			}
@@ -599,7 +596,7 @@ class Map {
 			var player = this.players.unsafeGet(i);
 			if (player.objectId == objectId) {
 				player.removeFromMap();
-				this.players.remove(player);
+				this.players.splice(i, 1);
 				this.playersLen--;
 				return;
 			}
@@ -613,7 +610,7 @@ class Map {
 			var proj = this.projectiles.unsafeGet(i);
 			if (proj.objectId == objectId) {
 				proj.removeFromMap();
-				this.projectiles.remove(proj);
+				this.projectiles.splice(i, 1);
 				this.projectilesLen--;
 				return;
 			}

@@ -199,10 +199,7 @@ class GameObject {
 		this.map = map;
 		this.posAtTick.x = this.tickPosition.x = x;
 		this.posAtTick.y = this.tickPosition.y = y;
-		if (!this.moveTo(x, y)) {
-			map = null;
-			return false;
-		}
+		this.moveTo(x, y);
 
 		/*var effLen = this.props != null && this.props.showEffects != null ? this.props.showEffects.length : 0;
 			for (i in 0...effLen) {
