@@ -139,12 +139,13 @@ class TextBox extends Sprite {
 			var line = lines[l];
 			if (this.showMax || now <= line.time + 20000) {
 				if (line.name == "" || line.name == null) {
-					this.addTextBlock('<i><b><font color=\"#${line.textColor.hex(6)}\">' + line.text + '</b></i></font>');
+					this.addTextBlock('<i><b><font color=\"#${line.textColor.hex(6)}\">' + line.text.replace("<", "&lt;") + '</b></i></font>');
 					continue;
 				}
 				
 				this.addTextBlock('<b><font color=\"#${line.nameColor.hex(6)}\">[' + line.name 
-					+ ']:</b></font> <i><font color=\"#${line.textColor.hex(6)}\">' + line.text + '</font></i>');
+					+ ']:</b></font> <i><font color=\"#${line.textColor.hex(6)}\">'
+					+ line.text.replace("<", "&lt;") + '</font></i>');
 			}
 		}
 
