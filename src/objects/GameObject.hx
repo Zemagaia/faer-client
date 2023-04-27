@@ -436,19 +436,4 @@ class GameObject {
 		this.attackAngle = attackAngle;
 		this.attackStart = System.getTimer();
 	}
-
-	private function generateNameText(name: String, textSize: Int32 = 16, color: UInt32 = 0xFFFFFF) {
-		var nameText = new SimpleText(textSize, color);
-		nameText.setBold(true);
-		nameText.text = name;
-		nameText.updateMetrics();
-		return nameText;
-	}
-
-	private function generateNameBitmapData(nameText: SimpleText) {
-		var nameBitmapData = new BitmapData(Std.int(nameText.width), 64, true, 0);
-		nameBitmapData.draw(nameText, null);
-		nameBitmapData.applyFilter(nameBitmapData, nameBitmapData.rect, new Point(0, 0), new GlowFilter(0, 1, 8, 8, 8, 2));
-		return nameBitmapData;
-	}
 }

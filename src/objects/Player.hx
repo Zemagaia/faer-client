@@ -507,15 +507,6 @@ class Player extends GameObject {
 		this.shoot(Camera.angleRad + angle);
 	}
 
-	public function isInventoryFull() {
-		var len = equipment.length;
-		for (i in 4...len)
-			if (equipment[i] <= 0)
-				return false;
-
-		return true;
-	}
-
 	public function nextAvailableInventorySlot() {
 		var len = this.hasBackpack ? equipment.length : equipment.length - GeneralConstants.NUM_INVENTORY_SLOTS;
 		for (i in 4...len)

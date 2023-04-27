@@ -790,11 +790,15 @@ class NetworkHandler {
 						#end
 
 						var go = Global.gameSprite.map.getGameObject(objectId);
-
-						if (go != null) {
+						if (go != null)
 							Global.gameSprite.map.addStatusText(new CharacterStatusText(go, text, color, 2000));
-							if (go == player && text == "Quest Complete!")
-								Global.gameSprite.map.quest.completed();
+						else {
+							var p = Global.gameSprite.map.getPlayer(objectId);
+							if (p != null) {
+								Global.gameSprite.map.addStatusText(new CharacterStatusText(p, text, color, 2000));
+								if (p == player && text == "Quest Complete!")
+									Global.gameSprite.map.quest.completed();
+							}
 						}
 					case PacketType.Ping:
 						var serial = socket.readInt();
