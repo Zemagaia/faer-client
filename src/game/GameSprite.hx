@@ -111,7 +111,7 @@ class GameSprite extends Sprite {
 		addChild(this.statsView);
 	}
 
-	public inline function updateStats(time: Int32) {
+	public function updateStats(time: Int32) {
 		this.frames++;
 		var dt = time - this.lastFrameUpdate;
 		if (dt >= 1000) {

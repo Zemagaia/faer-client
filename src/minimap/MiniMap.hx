@@ -90,8 +90,9 @@ class MiniMap extends Sprite {
 
 	public function update() {
 		this.map = Global.gameSprite.map;
+		this.zoomLevels.resize(0);
 		this.makeViewModel();
-		this.createButton(NetworkHandler.gameId == Settings.HUB_GAMEID ? "OPTIONS_BUTTON" : "HUB_BUTTON");
+		this.createButton(this.map.mapName == "Hub" ? "OPTIONS_BUTTON" : "HUB_BUTTON");
 	}
 
 	private static function onGotoHub() {
@@ -151,7 +152,8 @@ class MiniMap extends Sprite {
 
 	public function setGameObjectTile(x: Int, y: Int, go: GameObject) {
 		var color = gameObjectToColor(go);
-		this.miniMapData.setPixel(x, y, color);
+		if (color != 0)
+			this.miniMapData.setPixel(x, y, color);
 	}
 
 	public inline function draw() {
@@ -200,10 +202,9 @@ class MiniMap extends Sprite {
 			if (!go.props.noMiniMap) {
 				if (go.objClass == "Portal")
 					fillColor = 0x0000FF;
+				else if (go.props.isEnemy)
+					fillColor = 0xFF0000;
 				else
-					fillColor = go.props.isEnemy ? 0xFF0000 : gameObjectToColor(go);
-
-				if (fillColor == 0)
 					continue;
 
 				mmx = this.mapMatrix.a * go.mapX + this.mapMatrix.c * go.mapY + this.mapMatrix.tx;
@@ -237,11 +238,8 @@ class MiniMap extends Sprite {
 					dx = mX - mmx;
 					dy = mY - mmy;
 					distSq = dx * dx + dy * dy;
-					trace(dx, dy, distSq, mX, mY, mmx, mmy);
-					if (distSq < MOUSE_DIST_SQ) {
+					if (distSq < MOUSE_DIST_SQ)
 						this.players.push(player);
-						trace("pushing", player.name);
-					}
 				}
 
 				g.beginFill(fillColor);
@@ -295,8 +293,8 @@ class MiniMap extends Sprite {
 			this.button.addEventListener(MouseEvent.CLICK, this.onOptionsClick);
 		}
 
-		this.button.x = 67;
-		this.button.y = 57;
+		this.button.x = 66;
+		this.button.y = 53;
 		addChild(this.button);
 	}
 
@@ -314,6 +312,7 @@ class MiniMap extends Sprite {
 		this.zoomLevels.push(minZoom);
 		if (this.zoomButtons != null)
 			this.zoomButtons.setZoomLevels(this.zoomLevels.length);
+		this.zoomIndex = this.zoomButtons.setZoomLevel(Std.int(Math.min(this.zoomLevels.length, this.zoomIndex)));
 	}
 
 	private function makeVisualLayers() {
