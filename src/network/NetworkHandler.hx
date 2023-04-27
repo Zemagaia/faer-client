@@ -693,9 +693,14 @@ class NetworkHandler {
 							+ showDisplays);
 						#end
 					case PacketType.NewTick:
-						lastUnreadNewTickLen = (lastUnreadNewTickLen != 65535 ? 65535 : socket.readUnsignedShort());
-						if (lastUnreadNewTickLen != 65535 && lastUnreadNewTickLen > socket.bytesAvailable)
-							break;
+						if (lastUnreadNewTickLen != 65535) {
+							if (lastUnreadNewTickLen > socket.bytesAvailable)
+								break;
+						} else {
+							lastUnreadNewTickLen = socket.readUnsignedShort();
+							if (lastUnreadNewTickLen > socket.bytesAvailable)
+								break;
+						}
 
 						if (Global.gameSprite == null)
 							return;
@@ -983,13 +988,13 @@ class NetworkHandler {
 									switch (nameColor) {
 										case 0xF2CA46:
 											sbType = SpeechBalloon.ADMIN_BUBBLE;
-											// todo
+										// todo
 										case 0x000000:
 											sbType = SpeechBalloon.GUILD_BUBBLE;
 										case 0x000001:
-											sbType = SpeechBalloon.PARTY_BUBBLE;	
+											sbType = SpeechBalloon.PARTY_BUBBLE;
 									}
-									
+
 									Global.gameSprite.map.addSpeechBalloon(new SpeechBalloon(player, text, sbType, bubbleTime));
 								}
 							}
@@ -1072,10 +1077,15 @@ class NetworkHandler {
 					// todo trade
 					// Global.gameSprite.hudView.startTrade(Global.gameSprite_, tradeStart);
 					case PacketType.Update:
-						lastUnreadUpdateLen = (lastUnreadUpdateLen != 65535 ? 65535 : socket.readUnsignedShort());
-						if (lastUnreadUpdateLen != 65535 && lastUnreadUpdateLen > socket.bytesAvailable)
-							break;
-						
+						if (lastUnreadUpdateLen != 65535) {
+							if (lastUnreadUpdateLen > socket.bytesAvailable)
+								break;
+						} else {
+							lastUnreadUpdateLen = socket.readUnsignedShort();
+							if (lastUnreadUpdateLen > socket.bytesAvailable)
+								break;
+						}			
+
 						for (i in 0...socket.readShort()) {
 							var x = socket.readShort();
 							var y = socket.readShort();
@@ -1089,7 +1099,7 @@ class NetworkHandler {
 							var objId = socket.readInt();
 							var x = socket.readFloat();
 							var y = socket.readFloat();
-							
+
 							var map = Global.gameSprite.map;
 							var go = ObjectLibrary.getObjectFromType(objType);
 							go?.setObjectId(objId);
