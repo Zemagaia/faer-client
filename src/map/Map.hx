@@ -769,6 +769,12 @@ class Map {
 		var xBase = (objX * Camera.cos + objY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
 		var yBase = (objX * -Camera.sin + objY * Camera.cos + Camera.csY) * RenderUtils.clipSpaceScaleY;
 
+		if (obj.props.isEnemy) {
+			obj.hBase = size * Camera.SIZE_MULT;
+			obj.screenX = xBaseTop;
+			obj.screenYNoZ = yBaseTop;
+		}
+		
 		var xScaledCos = Camera.xScaledCos;
 		var yScaledCos = Camera.yScaledCos;
 		var xScaledSin = Camera.xScaledSin;
@@ -2339,17 +2345,18 @@ class Map {
 			GL.bufferSubData(GL.ELEMENT_ARRAY_BUFFER, 0, this.iIdx * 4, untyped __cpp__('(uintptr_t){0}', this.indexData));
 		GL.drawElements(GL.TRIANGLES, this.iIdx, GL.UNSIGNED_INT, 0);
 
-		if (this.gameObjectsLen == 0) {
+		var totalLen = this.gameObjectsLen + this.playersLen + this.projectilesLen;
+		if (totalLen == 0) {
 			this.c3d.present();
 			return;
 		}
 
-		while (this.vertexLen < (this.gameObjectsLen + this.playersLen + this.projectilesLen) * 36) {
+		while (this.vertexLen < totalLen * 40) {
 			this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
 			this.vertexLen *= 2;
 		}
 
-		while (this.indexLen < (this.gameObjectsLen + this.playersLen + this.projectilesLen) * 6) {
+		while (this.indexLen < totalLen * 6) {
 			this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
 			this.indexLen *= 2;
 		}
@@ -2390,7 +2397,6 @@ class Map {
 		GL.blendEquation(GL.FUNC_ADD);
 		GL.enable(GL.BLEND);
 		GL.blendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA);
-		trace(Settings.glowType, "glowtype");
 		switch (Settings.glowType) {
 			case GlowType.None:
 				GL.useProgram(this.defaultProgram);
