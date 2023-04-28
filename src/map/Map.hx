@@ -114,6 +114,10 @@ class Map {
 	private var visSquareLen: UInt16 = 0;
 
 	public var defaultProgram: GLProgram;
+	public var lowGlowProgram: GLProgram;
+	public var medGlowProgram: GLProgram;
+	public var highGlowProgram: GLProgram;
+	public var veryHighGlowProgram: GLProgram;
 	public var singleProgram: GLProgram;
 	public var groundProgram: GLProgram;
 
@@ -240,6 +244,10 @@ class Map {
 		emptyBarH = hpBarRect.height;
 
 		this.defaultProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/base.vert"), Assets.getText("assets/shaders/base.frag"));
+		this.lowGlowProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/base.vert"), Assets.getText("assets/shaders/baseLowGlow.frag"));
+		this.medGlowProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/base.vert"), Assets.getText("assets/shaders/baseMedGlow.frag"));
+		this.highGlowProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/base.vert"), Assets.getText("assets/shaders/baseHighGlow.frag"));
+		this.veryHighGlowProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/base.vert"), Assets.getText("assets/shaders/baseVHighGlow.frag"));
 		this.singleProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/baseSingle.vert"), Assets.getText("assets/shaders/baseSingle.frag"));
 		this.groundProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/ground.vert"), Assets.getText("assets/shaders/ground.frag"));
 
@@ -290,7 +298,6 @@ class Map {
 		GL.vertexAttribPointer(4, 1, GL.FLOAT, false, 40, 36);
 		GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.objIBO);
 		GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, 0, new Int32Array([]), GL.DYNAMIC_DRAW);
-		GL.useProgram(this.defaultProgram);
 
 		this.c3d = Main.primaryStage3D.context3D;
 		this.c3d.configureBackBuffer(Main.stageWidth, Main.stageHeight, 0, true);
@@ -2383,7 +2390,20 @@ class Map {
 		GL.blendEquation(GL.FUNC_ADD);
 		GL.enable(GL.BLEND);
 		GL.blendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA);
-		GL.useProgram(this.defaultProgram);
+		trace(Settings.glowType, "glowtype");
+		switch (Settings.glowType) {
+			case GlowType.None:
+				GL.useProgram(this.defaultProgram);
+			case GlowType.Low:
+				GL.useProgram(this.lowGlowProgram);
+			case GlowType.Medium:
+				GL.useProgram(this.medGlowProgram);
+			case GlowType.High:
+				GL.useProgram(this.highGlowProgram);
+			case GlowType.VeryHigh:
+				GL.useProgram(this.veryHighGlowProgram);
+		}
+		
 		GL.bindVertexArray(this.objVAO);
 
 		GL.bindBuffer(GL.ARRAY_BUFFER, this.objVBO);

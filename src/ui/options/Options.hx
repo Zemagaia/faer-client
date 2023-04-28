@@ -177,6 +177,8 @@ class Options extends Sprite {
 	private function addGraphicsOptions() {
 		this.addOption(new ChoiceOption("selectedCursor", ["Faer", "Royal", "Ranger", "Aztec", "Fiery"], ["0", "1", "2", "3", "4"], "Cursor Type",
 			"This toggles between various cursor types", Main.refreshCursor));
+		this.addOption(new ChoiceOption("glowType", ["Off", "Low", "Medium", "High", "Very High"], [GlowType.None, GlowType.Low, GlowType.Medium, GlowType.High, GlowType.VeryHigh], "Object Glow",
+			"This toggles between object glows of various quality", Main.refreshCursor));
 	}
 
 	private function addSoundOptions() {

@@ -5,6 +5,14 @@ import util.NativeTypes;
 import sys.FileSystem;
 import sys.io.File;
 
+enum abstract GlowType(UInt8) from UInt8 to UInt8 {
+	final None = 0;
+	final Low = 1;
+	final Medium = 2;
+	final High = 3;
+	final VeryHigh = 4;
+}
+
 class Settings {
 	public static inline var BUILD_VERSION = "0.5";
 	public static inline var BUILD_LABEL = "Faer v" + BUILD_VERSION;
@@ -60,6 +68,7 @@ class Settings {
 	public static var selectedServer = "";
 	public static var cameraAngle: Float32 = 0.0;
 	public static var selectedCursor: Int8 = 3;
+	public static var glowType: GlowType = GlowType.None;
 
 	public static var messagesSent = new Array<String>();
 
@@ -107,6 +116,7 @@ class Settings {
 				selectedServer = o.readString(o.readByte());
 				cameraAngle = o.readFloat();
 				selectedCursor = o.readByte();
+				glowType = o.readByte();
 				o.close();
 			}
 		} catch (e) {
@@ -158,6 +168,7 @@ class Settings {
 			w.writeString(selectedServer);
 			w.writeFloat(cameraAngle);
 			w.writeByte(selectedCursor);
+			w.writeByte(glowType);
 			w.close();
 		} catch (e) {
 			trace('Settings save failed: $e');
@@ -205,5 +216,6 @@ class Settings {
 		cameraAngle = 0;
 		textBubbles = true;
 		selectedCursor = 3;
+		glowType = GlowType.None;
 	}
 }
