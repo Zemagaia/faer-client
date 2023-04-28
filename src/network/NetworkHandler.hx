@@ -539,6 +539,8 @@ class NetworkHandler {
 						var startY = socket.readFloat();
 						var angle = socket.readFloat();
 						var damage = socket.readShort();
+						var magicDamage = socket.readShort();
+						var trueDamage = socket.readShort();
 						var numShots = 1;
 						var angleInc = 0.0;
 						if (socket.bytesAvailable > 0) {
@@ -578,7 +580,7 @@ class NetworkHandler {
 							var proj = Global.projPool.get();
 							angle += angleInc * i;
 							proj.reset(owner.objectType, bulletType, ownerId, (bulletId + i) % 256, angle, Global.gameSprite.lastFixedUpdate);
-							proj.setDamages(damage, 0, 0);
+							proj.setDamages(damage, magicDamage, trueDamage);
 							Global.gameSprite.map.addProjectile(proj, startX, startY);
 						}
 
