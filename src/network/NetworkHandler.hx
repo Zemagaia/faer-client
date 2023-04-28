@@ -1088,7 +1088,7 @@ class NetworkHandler {
 							lastUnreadUpdateLen = socket.readUnsignedShort();
 							if (lastUnreadUpdateLen > socket.bytesAvailable)
 								break;
-						}			
+						}
 
 						for (i in 0...socket.readShort()) {
 							var x = socket.readShort();
@@ -1598,6 +1598,13 @@ class NetworkHandler {
 	public static function escape() {
 		if (playerId == -1)
 			return;
+
+		if (Global.gameSprite.map.mapName == "Hub") {
+			#if log_packets
+			trace(Global.gameSprite.lastUpdate, "Escape -> Already in Hub");
+			#end
+			return;
+		}
 
 		if (Global.gameSprite != null) {
 			Camera.mapX = Global.gameSprite.map.player.mapX = -1;
