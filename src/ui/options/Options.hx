@@ -142,51 +142,49 @@ class Options extends Sprite {
 		this.addOption(new KeyMapper("moveRight", "Move Right", "This key will move character to the right"));
 		this.addOption(new KeyMapper("rotateLeft", "Rotate Left", "This key will rotate the camera to the left"));
 		this.addOption(new KeyMapper("rotateRight", "Rotate Right", "This key will rotate the camera to the right"));
-		this.addOption(new KeyMapper("useSpecial", "Use Ability", "This key will activate your ability"));
-		this.addOption(new KeyMapper("resetToDefaultCameraAngle", "Reset Camera Angle", "This key will reset the camera angle to the default position"));
-		this.addOption(new KeyMapper("togglePerformanceStats", "Toggle Performance Stats", "This key will toggle a display of fps and memory usage"));
+		this.addOption(new KeyMapper("useAbility", "Use Ability", "This key will activate your ability"));
+		this.addOption(new KeyMapper("resetCamera", "Reset Camera Angle", "This key will reset the camera angle to the default position"));
+		this.addOption(new KeyMapper("perfStats", "Toggle Performance Stats", "This key will toggle a display of fps and memory usage"));
 		this.addOption(new KeyMapper("toggleCentering", "Toggle Centering", "This key will toggle the position between centered and offset"));
 		this.addOption(new KeyMapper("interact", "Interact", "This key will allow you to interact with world objects"));
 	}
 
 	private function addHotKeysOptions() {
-		this.addOption(new KeyMapper("useHealthVial", "Use Health Vial", "This key will use health vials if available"));
-		this.addOption(new KeyMapper("useMagicVial", "Use Magic Vial", "This key will use magic vials if available"));
-		this.addOption(new KeyMapper("useInvSlot1", "Use Inventory Slot 1", "Use item in inventory slot 1"));
-		this.addOption(new KeyMapper("useInvSlot2", "Use Inventory Slot 2", "Use item in inventory slot 2"));
-		this.addOption(new KeyMapper("useInvSlot3", "Use Inventory Slot 3", "Use item in inventory slot 3"));
-		this.addOption(new KeyMapper("useInvSlot4", "Use Inventory Slot 4", "Use item in inventory slot 4"));
-		this.addOption(new KeyMapper("useInvSlot5", "Use Inventory Slot 5", "Use item in inventory slot 5"));
-		this.addOption(new KeyMapper("useInvSlot6", "Use Inventory Slot 6", "Use item in inventory slot 6"));
-		this.addOption(new KeyMapper("useInvSlot7", "Use Inventory Slot 7", "Use item in inventory slot 7"));
-		this.addOption(new KeyMapper("useInvSlot8", "Use Inventory Slot 8", "Use item in inventory slot 8"));
-		this.addOption(new KeyMapper("escapeToHub", "Escape To Hub", "This key will instantly escape you to the Hub"));
+		this.addOption(new KeyMapper("healthVial", "Use Health Vial", "This key will use health vials if available"));
+		this.addOption(new KeyMapper("magicVial", "Use Magic Vial", "This key will use magic vials if available"));
+		this.addOption(new KeyMapper("inv1", "Use Inventory Slot 1", "Use item in inventory slot 1"));
+		this.addOption(new KeyMapper("inv2", "Use Inventory Slot 2", "Use item in inventory slot 2"));
+		this.addOption(new KeyMapper("inv3", "Use Inventory Slot 3", "Use item in inventory slot 3"));
+		this.addOption(new KeyMapper("inv4", "Use Inventory Slot 4", "Use item in inventory slot 4"));
+		this.addOption(new KeyMapper("inv5", "Use Inventory Slot 5", "Use item in inventory slot 5"));
+		this.addOption(new KeyMapper("inv6", "Use Inventory Slot 6", "Use item in inventory slot 6"));
+		this.addOption(new KeyMapper("inv7", "Use Inventory Slot 7", "Use item in inventory slot 7"));
+		this.addOption(new KeyMapper("inv8", "Use Inventory Slot 8", "Use item in inventory slot 8"));
+		this.addOption(new KeyMapper("goToHub", "Escape To Hub", "This key will instantly escape you to the Hub"));
 		this.addOption(new KeyMapper("options", "Show Options", "This key will bring up the options screen"));
 		this.addOption(new KeyMapper("switchTabs", "Switch Tabs", "This key will switch from available tabs"));
 	}
 
 	private function addChatOptions() {
 		this.addOption(new KeyMapper("chat", "Activate Chat", "This key will bring up the chat input box"));
-		this.addOption(new KeyMapper("chatCommand", "Start Chat Command", "This key will bring up the chat with a \'/\' prepended to allow for commands"));
-		this.addOption(new KeyMapper("tell", "Begin Tell", "This key will bring up a tell (private message) in the chat input box"));
+		this.addOption(new KeyMapper("chatCmd", "Start Chat Command", "This key will bring up the chat with a \'/\' prepended to allow for commands"));
+		this.addOption(new KeyMapper("respond", "Begin Tell", "This key will bring up a tell (private message) in the chat input box"));
 		this.addOption(new KeyMapper("guildChat", "Begin Guild Chat", "This key will bring up a guild chat in the chat input box"));
-		this.addOption(new KeyMapper("scrollChatUp", "Scroll Chat Up", "This key will scroll up to older messages in the chat buffer"));
-		this.addOption(new KeyMapper("scrollChatDown", "Scroll Chat Down", "This key will scroll down to newer messages in the chat buffer"));
+		this.addOption(new KeyMapper("chatUp", "Scroll Chat Up", "This key will scroll up to older messages in the chat buffer"));
+		this.addOption(new KeyMapper("chatDown", "Scroll Chat Down", "This key will scroll down to newer messages in the chat buffer"));
 	}
 
 	private function addGraphicsOptions() {
-		this.addOption(new ChoiceOption("textBubbles", ["On", "Off"], ["true", "false"], "Draw Text Bubbles", "This toggles whether to draw text bubbles",
-			null));
 		this.addOption(new ChoiceOption("selectedCursor", ["Faer", "Royal", "Ranger", "Aztec", "Fiery"], ["0", "1", "2", "3", "4"], "Cursor Type",
 			"This toggles between various cursor types", Main.refreshCursor));
 	}
 
 	private function addSoundOptions() {
-		this.addOption(new ChoiceOption("playMusic", ["On", "Off"], ["true", "false"], "Play Music", "This toggles whether music is played",
+		this.addOption(new ChoiceOption("playMusic", ["On", "Off"], [true, false], "Play Music", "This toggles whether music is played",
 			onPlayMusicChange));
-		this.addOption(new ChoiceOption("playSFX", ["On", "Off"], ["true", "false"], "Play Sound Effects", "This toggles whether sound effects are played",
+		this.addOption(new ChoiceOption("playSfx", ["On", "Off"], [true, false], "Play Sound Effects", "This toggles whether sound effects are played",
 			onPlaySoundEffectsChange));
-		this.addOption(new ChoiceOption("playPewPew", ["On", "Off"], ["true", "false"], "Play Weapon Sounds", "This toggles whether weapon sounds are played",
+		this.addOption(new ChoiceOption("playWepSfx", ["On", "Off"], [true, false], "Play Weapon Sounds", "This toggles whether weapon sounds are played",
 			null));
 	}
 

@@ -10,14 +10,14 @@ class KeyMapper extends Option {
 
 	public function new(paramName: String, desc: String, tooltipText: String, disabled: Bool = false) {
 		super(paramName, desc, tooltipText);
-		// this.keyCodeBox = new KeyCodeBox(Std.parseInt(Settings.values.get(paramName)));
-		// this.keyCodeBox.addEventListener(Event.CHANGE, this.onChange);
-		// addChild(this.keyCodeBox);
+		this.keyCodeBox = new KeyCodeBox(Reflect.getProperty(Settings, paramName));
+		this.keyCodeBox.addEventListener(Event.CHANGE, this.onChange);
+		addChild(this.keyCodeBox);
 		this.setDisabled(disabled);
 	}
 
 	override public function refresh() {
-		// this.keyCodeBox.setKeyCode(Std.parseInt(Settings.values.get(paramName)));
+		this.keyCodeBox.setKeyCode(Reflect.getProperty(Settings, paramName));
 	}
 
 	public function setDisabled(disabled: Bool) {
@@ -28,7 +28,7 @@ class KeyMapper extends Option {
 	}
 
 	private function onChange(event: Event) {
-		// Settings.values.set(paramName, Std.string(this.keyCodeBox.value()));
+		Reflect.setProperty(Settings, paramName, this.keyCodeBox.value());
 		Settings.save();
 	}
 }

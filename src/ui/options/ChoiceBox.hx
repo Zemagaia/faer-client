@@ -20,7 +20,7 @@ class ChoiceBox extends Sprite {
 	public static inline var HEIGHT: Int = 32;
 
 	public var labels: Array<String>;
-	public var values: Array<String>;
+	public var values: Array<Dynamic>;
 	public var selectedIndex: Int = -1;
 
 	private var labelText: SimpleText = null;
@@ -38,7 +38,7 @@ class ChoiceBox extends Sprite {
 		GraphicsUtil.END_FILL
 	]);
 
-	public function new(labels: Array<String>, values: Array<String>, value: String) {
+	public function new(labels: Array<String>, values: Array<Dynamic>, value: String) {
 		super();
 
 		this.labels = labels;
