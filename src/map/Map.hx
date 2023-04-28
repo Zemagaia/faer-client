@@ -35,6 +35,7 @@ import lime.utils.Int16Array;
 import objects.Projectile;
 import openfl.display3D.Context3D;
 import util.AssetLibrary;
+import util.Utils.MathUtil;
 
 using util.Utils.ArrayUtils;
 
@@ -2437,12 +2438,19 @@ class Map {
 				default:
 					textureData = TextureFactory.make(normalBalloonTex);
 			}
+
+			var alpha = 1.0;
+			if (dt < 333)
+				alpha = -(MathUtil.cos(dt / 333 * MathUtil.PI) - 1) / 2;
+			else if (dt > sb.lifetime - 333)
+				alpha = -(MathUtil.cos((1 - (dt - sb.lifetime + 333) / 333) * MathUtil.PI) - 1) / 2;
+
 			this.rdSingle.push({cosX: (textureData.width << 2) * RenderUtils.clipSpaceScaleX, 
 				sinX: 0, sinY: 0,
 				cosY: (textureData.height << 2) * RenderUtils.clipSpaceScaleY,
 				x: (sb.go.screenX + 45) * RenderUtils.clipSpaceScaleX, y: (sb.go.screenYNoZ - sb.go.hBase - 40) * RenderUtils.clipSpaceScaleY,
 				texelW: 0, texelH: 0,
-				texture: textureData.texture});
+				texture: textureData.texture, alpha: alpha});
 
 			var textureData = TextureFactory.make(sb.textTex);
 			this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
@@ -2450,7 +2458,7 @@ class Map {
 				cosY: textureData.height * RenderUtils.clipSpaceScaleY,
 				x: (sb.go.screenX + 42) * RenderUtils.clipSpaceScaleX, y:  (sb.go.screenYNoZ - sb.go.hBase - 33 - (sb.numLines * 6)) * RenderUtils.clipSpaceScaleY,
 				texelW: 0, texelH: 0,
-				texture: textureData.texture});	
+				texture: textureData.texture, alpha: alpha});	
 		}
 
 		for (st in this.statusTexts) {
