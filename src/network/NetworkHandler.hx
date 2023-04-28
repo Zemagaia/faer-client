@@ -287,7 +287,7 @@ class NetworkHandler {
 			outgoingData.clear();
 		} catch (e: Exception) {
 			Global.gameSprite?.textBox.addText('Socket Write Error: $e', 0xFF0000);
-			trace('Socket Write Error: $e');
+			trace('Socket Write Error: $e, stack trace: ${e.stack}');
 		}
 	}
 
@@ -1165,7 +1165,7 @@ class NetworkHandler {
 		}
 		catch (e: Exception) {
 			Global.gameSprite?.textBox.addText('Socket Read Error: $e', 0xFF0000);
-			trace('Socket Read Error: $e');
+			trace('Socket Read Error: $e, stack trace: ${e.stack}');
 			disconnect();
 		}
 	}
