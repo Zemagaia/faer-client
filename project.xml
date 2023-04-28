@@ -3,11 +3,11 @@
 	<meta title="Faer" package="" version="1.0.0" company="Faer" />
 	<app main="Main" path="export" file="Client" />
 	<window background="#000000" hardware="true" allow-high-dpi="true" width="1280" height="720" resizable="true" fps="1000" vsync="false" fullscreen="false" antialiasing="0"/>
-	<!--<define name="telemetry" />-->
+	<!--<define name="telemetry" />-->s
 	<!--<define name="log_packets" />-->
 	<!--<define name="tracing" />-->
 	<!--<define name="print_atlas" />-->
-	<!--<define name="disable_rpc" />-->
+	<!-- <define name="disable_rpc" /> -->
 	<source path="src" />
 	<haxelib name="openfl" />
 	<!-- haxelib git hxdiscord_rpc https://github.com/MAJigsaw77/hxdiscord_rpc.git -->
@@ -22,3 +22,4 @@
 	<haxeflag name="-dce" value="full" />
 	<assets path="assets" />
 </project>
+ 
