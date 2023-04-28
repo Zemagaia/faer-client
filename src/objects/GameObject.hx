@@ -117,17 +117,34 @@ class GameObject {
 	private var mapColor: UInt32 = 0;
 	private var bloodColors: Array<UInt32> = null;
 
-	public static function damageWithDefense(origDamage: Int, targetDefense: Int, armorPiercing: Bool, targetCondition: Int) {
-		if ((targetCondition & ConditionEffect.INVULNERABLE_BIT) != 0)
+	public static function physicalDamage(dmg: Int, def: Int, cond: Int) {
+		if ((cond & ConditionEffect.INVULNERABLE_BIT) != 0)
 			return 0;
 
-		if (armorPiercing || (targetCondition & ConditionEffect.ARMOR_BROKEN_BIT) != 0)
-			return origDamage;
+		if ((cond & ConditionEffect.ARMOR_BROKEN_BIT) != 0)
+			return dmg;
 
-		if ((targetCondition & ConditionEffect.ARMORED_BIT) != 0)
-			return origDamage - targetDefense * 2;
+		if ((cond & ConditionEffect.ARMORED_BIT) != 0)
+			return Std.int(dmg - def * 1.25);
 
-		return origDamage - targetDefense;
+		return dmg - def;
+	}
+
+	public static function magicDamage(dmg: Int, res: Int, cond: Int) {
+		if ((cond & ConditionEffect.INVULNERABLE_BIT) != 0)
+			return 0;
+
+		if ((cond & ConditionEffect.ARMOR_BROKEN_BIT) != 0)
+			return dmg;
+
+		return dmg - res;
+	}
+
+	public static function trueDamage(dmg: Int, cond: Int) {
+		if ((cond & ConditionEffect.INVULNERABLE_BIT) != 0)
+			return 0;
+
+		return dmg;
 	}
 
 	public function new(objectXML: Xml, objClass: String) {
@@ -392,7 +409,7 @@ class GameObject {
 		this.myLastTickId = tickId;
 	}
 
-	public function damage(origType: Int32, damageAmount: Int32, effects: Array<Int32>, kill: Bool, proj: Projectile) {
+	public function damage(origType: Int32, damageAmount: Int32, effects: Array<Int32>, kill: Bool, proj: Projectile, textColor: UInt32 = 0xB02020) {
 		if (kill)
 			this.dead = true;
 		else if (effects != null) {
@@ -411,7 +428,7 @@ class GameObject {
 
 				if (ce != null && (this.condition | ce.bit) != this.condition) {
 					this.condition |= ce.bit;
-					map.addStatusText(new CharacterStatusText(this, ce.name, 0xD40000, 750));
+					map.addStatusText(new CharacterStatusText(this, ce.name, textColor, 750));
 				}
 			}
 		}
@@ -424,10 +441,8 @@ class GameObject {
 				map.addObj(new ExplosionEffect(this.bloodColors,, this.size, 10), mapX, mapY); */
 
 		if (damageAmount > 0)
-			map.addStatusText(new CharacterStatusText(this, "-" + damageAmount,
-				(this.isArmorBroken() || proj != null && proj.projProps.armorPiercing ? 0x8E59B6 : 0xD40000), 750));
+			map.addStatusText(new CharacterStatusText(this, "-" + damageAmount, textColor, 750));
 	}
-
 
 	public function setAttack(containerType: Int32, attackAngle: Float32) {
 		this.attackAngle = attackAngle;

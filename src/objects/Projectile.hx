@@ -112,7 +112,6 @@ class Projectile {
 		var isPlayer = false;
 		var isTargetAnEnemy = false;
 		var sendMessage = false;
-		var d = 0;
 		var dead = false;
 		var elapsed = time - this.startTime;
 		if (elapsed > this.projProps.lifetime)
@@ -146,15 +145,27 @@ class Projectile {
 			isTargetAnEnemy = target.props.isEnemy;
 			sendMessage = isPlayer && (this.damagesPlayers || isTargetAnEnemy && this.ownerId == player.objectId);
 			if (sendMessage) {
-				d = GameObject.damageWithDefense(this.physicalDamage, target.defense, this.projProps.armorPiercing, target.condition);
+				var physDmg = GameObject.physicalDamage(this.physicalDamage, target.defense, target.condition);
+				var magicDmg = GameObject.magicDamage(this.magicDamage, target.resistance, target.condition);
+				var trueDmg = GameObject.trueDamage(this.trueDamage, target.condition);
+
 				if (target == player) {
-					d = Std.int(d * player.hitMult);
 					NetworkHandler.playerHit(this.bulletId, this.ownerId);
-					target.damage(this.containerType, d, this.projProps.effects, false, this);
+					if (physDmg > 0)
+						target.damage(this.containerType, Std.int(physDmg * player.hitMult), this.projProps.effects, false, this, 0xB02020);
+					if (magicDmg > 0)
+						target.damage(this.containerType, Std.int(magicDmg * player.hitMult), this.projProps.effects, false, this, 0x6E15AD);
+					if (trueDmg > 0)
+						target.damage(this.containerType, Std.int(trueDmg * player.hitMult), this.projProps.effects, false, this, 0xC2C2C2);
 				} else if (target.props.isEnemy) {
-					dead = target.hp <= d;
+					dead = target.hp <= (physDmg + magicDmg + trueDmg);
 					NetworkHandler.enemyHit(time, this.bulletId, target.objectId, dead);
-					target.damage(this.containerType, d, this.projProps.effects, dead, this);
+					if (physDmg > 0)
+						target.damage(this.containerType, physDmg, this.projProps.effects, dead, this, 0xB02020);
+					if (magicDmg > 0)
+						target.damage(this.containerType, magicDmg, this.projProps.effects, dead, this, 0x6E15AD);
+					if (trueDmg > 0)
+						target.damage(this.containerType, trueDmg, this.projProps.effects, dead, this, 0xC2C2C2);
 				} else if (!this.projProps.multiHit)
 					NetworkHandler.otherHit(time, this.bulletId, this.ownerId, target.objectId);
 			}

@@ -33,7 +33,8 @@ void main() {
                                 ((glowColor >> 8) & 0xFF) / 255.0, 
                                 (glowColor & 0xFF) / 255.0, 1.0);
             }
-        } else discard;
+        } else
+             discard;
     } else {
         if (data.colors.y >= 0) {
             int flashColor = int(data.colors.y);

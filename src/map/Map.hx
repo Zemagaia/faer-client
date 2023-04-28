@@ -49,6 +49,7 @@ class RenderDataSingle {
 	public var y: Float32;
 	public var texelW: Float32;
 	public var texelH: Float32;
+	public var alpha: Float32 = 1.0;
 }
 
 @:unreflective
@@ -2273,6 +2274,11 @@ class Map {
 		this.c3d.clear();
 		this.rdSingle.resize(0);
 
+		GL.disable(GL.BLEND);
+		GL.disable(GL.DEPTH_TEST);
+		GL.disable(GL.SCISSOR_TEST);
+		GL.disable(GL.STENCIL_TEST);
+
 		GL.activeTexture(GL.TEXTURE0);
 		GL.bindTexture(GL.TEXTURE_2D, Main.atlas.texture);
 
@@ -2373,8 +2379,8 @@ class Map {
 			i++;
 		}
 
-		GL.blendEquation(GL.FUNC_ADD);
 		GL.enable(GL.BLEND);
+		GL.blendEquation(GL.FUNC_ADD);
 		GL.blendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA);
 		GL.useProgram(this.defaultProgram);
 		GL.bindVertexArray(this.objVAO);
@@ -2458,15 +2464,14 @@ class Map {
 			}
 
 			var frac = dt / st.lifetime;
-			// alpha = 1 - frac + 0.33;
-			// scaleX = scaleY = Math.min(1, Math.max(0.7, 1 - frac * 0.3 + 0.075));
+			var scale = Math.min(1, Math.max(0.7, 1 - frac * 0.3 + 0.075));
 			var textureData = TextureFactory.make(st.textTex);
-			this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
+			this.rdSingle.push({cosX: textureData.width * scale * RenderUtils.clipSpaceScaleX, 
 				sinX: 0, sinY: 0,
-				cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-				x: (st.go.screenX) * RenderUtils.clipSpaceScaleX, y:  (st.go.screenYNoZ - st.go.hBase - frac * CharacterStatusText.MAX_DRIFT) * RenderUtils.clipSpaceScaleY,
+				cosY: textureData.height * scale * RenderUtils.clipSpaceScaleY,
+				x: (st.go.screenX + st.xOffset) * RenderUtils.clipSpaceScaleX, y:  (st.go.screenYNoZ + st.yOffset - st.go.hBase - frac * CharacterStatusText.MAX_DRIFT) * RenderUtils.clipSpaceScaleY,
 				texelW: 0, texelH: 0,
-				texture: textureData.texture});
+				texture: textureData.texture, alpha: 1 - frac + 0.33});
 		}
 
 		i = 0;
@@ -2482,6 +2487,7 @@ class Map {
 			GL.uniform4f(cast 0, rd.cosX, rd.sinX, rd.sinY, rd.cosY);
 			GL.uniform2f(cast 1, rd.x, rd.y);
 			GL.uniform2f(cast 2, rd.texelW, rd.texelH);
+			GL.uniform1f(cast 3, rd.alpha);
 			GL.bindTexture(GL.TEXTURE_2D, rd.texture);
 			GL.drawElements(GL.TRIANGLES, 6, GL.UNSIGNED_SHORT, 0);
 			i++;

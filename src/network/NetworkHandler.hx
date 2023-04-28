@@ -428,7 +428,7 @@ class NetworkHandler {
 							Global.gameSprite.map.addObj(e, x, y); */
 						var hit: Bool = Global.gameSprite.map.player.distTo(x, y) <= radius;
 						if (hit) {
-							d = Std.int(GameObject.damageWithDefense(damage, Global.gameSprite.map.player.defense, false,
+							d = Std.int(GameObject.physicalDamage(damage, Global.gameSprite.map.player.defense,
 								Global.gameSprite.map.player.condition) * Global.gameSprite.map.player.hitMult);
 							effects = null;
 							if (effect != 0) {

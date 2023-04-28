@@ -1,5 +1,7 @@
 package map;
 
+import util.NativeTypes.Float32;
+import util.Utils.MathUtil;
 import openfl.geom.Matrix;
 import openfl.display.BitmapData;
 import lime.system.System;
@@ -18,6 +20,8 @@ class CharacterStatusText {
 	public var disposed = false;
 	public var startTime = 0;
 	public var textTex: BitmapData;
+	public var xOffset: Float32;
+	public var yOffset: Float32;
 
 	public function new(go: GameObject, text: String, color: Int, lifetime: Int) {
 		this.go = go;
@@ -25,13 +29,13 @@ class CharacterStatusText {
 		this.lifetime = lifetime;
 		this.startTime = System.getTimer();
 		this.disposed = false;
-		var t = new SimpleText(22, color, false, 0, 0);
+		var t = new SimpleText(22, color);
 		t.setBold(true);
 		t.text = text;
 		t.updateMetrics();
 		t.filters = [new GlowFilter(0, 1, 8, 8, 2, 1)];
-		t.x = -t.width / 2;
-		t.y = -t.height / 2;
+		this.xOffset = MathUtil.plusMinus(5);
+		this.yOffset = Math.random() * 5;
 		this.textTex = new BitmapData(Std.int(t.width + 20), 64, true, 0);
 		this.textTex.draw(t, new Matrix(1, 0, 0, 1, 12, 0));
 	}

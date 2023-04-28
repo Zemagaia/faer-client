@@ -32,8 +32,10 @@ class Player extends GameObject {
 	private static inline var MOVE_THRESHOLD: Float32 = 0.4;
 	private static inline var MIN_MOVE_SPEED: Float32 = 0.004;
 	private static inline var MAX_MOVE_SPEED: Float32 = 0.0096;
-	private static inline var MIN_ATTACK_MULT: Float32 = 0.5;
-	private static inline var MAX_ATTACK_MULT: Float32 = 2.0;
+	private static inline var MIN_STRENGTH_MULT: Float32 = 0.5;
+	private static inline var MAX_STRENGTH_MULT: Float32 = 2.0;
+	private static inline var MIN_WIT_MULT: Float32 = 0.5;
+	private static inline var MAX_WIT_MULT: Float32 = 2.0;
 	private static inline var ATTACK_FREQUENCY: Float32 = 0.005;
 	private static var newP = new Point();
 	private static var nameOffsetMatrix = new Matrix(1, 0, 0, 1, 12, 0);
@@ -201,8 +203,8 @@ class Player extends GameObject {
 		return true;
 	}
 
-	override public function damage(origType: Int32, damageAmount: Int32, effects: Array<Int32>, kill: Bool, proj: Projectile) {
-		super.damage(origType, damageAmount, effects, kill, proj);
+	override public function damage(origType: Int32, damageAmount: Int32, effects: Array<Int32>, kill: Bool, proj: Projectile, textColor: UInt32 = 0xB02020) {
+		super.damage(origType, damageAmount, effects, kill, proj, textColor);
 		if (dead)
 			SoundEffectLibrary.play(this.deathSound);
 		else
@@ -559,15 +561,20 @@ class Player extends GameObject {
 		return moveSpeed * this.moveMultiplier * (Global.gameSprite.inputHandler.isWalking ? 0.5 : 1);
 	}
 
-	private function attackMultiplier() {
+	private function strMult() {
 		if (isWeak())
-			return MIN_ATTACK_MULT;
+			return MIN_STRENGTH_MULT;
 
-		var attMult = MIN_ATTACK_MULT + this.strength / 75 * (MAX_ATTACK_MULT - MIN_ATTACK_MULT);
+		var strMult = MIN_STRENGTH_MULT + this.strength / 75 * (MAX_STRENGTH_MULT - MIN_STRENGTH_MULT);
 		if (isDamaging())
-			attMult *= 1.5;
+			strMult *= 1.5;
 
-		return attMult * this.damageMult;
+		return strMult * this.damageMult;
+	}
+
+	private function witMult() {
+		var witMult = MIN_WIT_MULT + this.wit / 75 * (MAX_WIT_MULT - MIN_WIT_MULT);
+		return witMult * this.damageMult;
 	}
 
 	/*private function makeSkinTexture() {
@@ -607,7 +614,6 @@ class Player extends GameObject {
 		var bulletId = 0;
 		var proj: Projectile = null;
 		var attMult: Float32 = 0.0;
-		var damage = 0;
 		var numProjs = weaponXML.intElement("NumProjectiles", 1);
 		var arcGap = weaponXML.floatElement("ArcGap", 11.25) * MathUtil.TO_RAD;
 		var totalArc = arcGap * (numProjs - 1);
@@ -616,12 +622,15 @@ class Player extends GameObject {
 			bulletId = getBulletId();
 			proj = Global.projPool.get();
 			proj.reset(weaponType, 0, objectId, bulletId, angle, time);
-			attMult = useMult ? this.attackMultiplier() : 1;
-			damage = Std.int(proj.projProps.physicalDamage * attMult);
-			if (time > Global.gameSprite.moveRecords.lastClearTime + 600)
-				damage = 0;
-
-			proj.setDamages(damage, 0, 0);
+			var physDmg = proj.projProps.physicalDamage;
+			var magicDmg = proj.projProps.magicDamage;
+			var trueDmg = proj.projProps.trueDamage;
+			if (useMult) {
+				physDmg = Std.int(physDmg * this.strMult());
+				magicDmg = Std.int(magicDmg * this.witMult());
+				trueDmg = Std.int(trueDmg * this.damageMult);
+			}
+			proj.setDamages(physDmg, magicDmg, trueDmg);
 			if (i == 0 && proj.sound != null)
 				SoundEffectLibrary.play(proj.sound, 0.75, false);
 
