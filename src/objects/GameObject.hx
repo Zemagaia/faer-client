@@ -248,7 +248,7 @@ class GameObject {
 
 	public function update(time: Int32, dt: Int16) {
 		if (this.objectId != this.map.player.objectId) {
-			var scaleDt: Float32 = dt * 0.005;
+			var scaleDt: Float32 = dt * 0.01;
 			this.moveTo(scaleDt * this.tickPosition.x + (1 - scaleDt) * this.mapX, scaleDt * this.tickPosition.y + (1 - scaleDt) * this.mapY);
 		}
 
