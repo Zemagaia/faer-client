@@ -111,7 +111,7 @@ class AnimatedChar {
 		return texVec[i];
 	}
 
-	public function imageFromFacing(facing: Float, action: Int, p: Float) {
+	public function imageFromFacing(facing: Float32, action: Int, p: Float32) {
 		var ca = MathUtil.halfBound(facing - Camera.angleRad);
 		var sec = Std.int(Math.abs(Std.int(ca / PI_DIV_4 + 4) % 8));
 		var dirs = SEC_TO_DIRS[sec];
@@ -138,7 +138,7 @@ class AnimatedChar {
 		} else return dirs[0];
 	}
 
-	public function rectFromFacing(facing: Float, action: Int, p: Float) {
+	public function rectFromFacing(facing: Float32, action: Int, p: Float32) {
 		var ca = MathUtil.halfBound(facing - Camera.angleRad);
 		var sec = Std.int(Math.abs(Std.int(ca / PI_DIV_4 + 4) % 8));
 		var dirs = SEC_TO_DIRS[sec];

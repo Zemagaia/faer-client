@@ -2275,7 +2275,7 @@ class Map {
 		this.c3d.clear();
 		this.rdSingle.resize(0);
 
-		GL.disable(GL.BLEND);
+		//GL.disable(GL.BLEND);
 		GL.disable(GL.DEPTH_TEST);
 		GL.disable(GL.SCISSOR_TEST);
 		GL.disable(GL.STENCIL_TEST);
@@ -2380,8 +2380,8 @@ class Map {
 			i++;
 		}
 
-		GL.enable(GL.BLEND);
 		GL.blendEquation(GL.FUNC_ADD);
+		GL.enable(GL.BLEND);
 		GL.blendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA);
 		GL.useProgram(this.defaultProgram);
 		GL.bindVertexArray(this.objVAO);

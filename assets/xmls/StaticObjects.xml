@@ -933,6 +933,9 @@
                 <Index>0x0f</Index>
             </Texture>
         </RandomTexture>
+        <FullOccupy/>
+        <OccupySquare/>
+        <Static/>
      </Object>
     <Object type="0x152" id="Crown Cove Small Barrel">
         <Class>GameObject</Class>

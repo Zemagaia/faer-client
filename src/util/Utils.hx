@@ -191,9 +191,9 @@ class MathUtil {
 
 	public static function halfBound(x: Float32) {
 		if (x < -PI)
-			return x + (Std.int(x / -PI) + 1) * PI;
+			return x + (Math.floor(x / -PI) + 1) * PI;
 		else if (x > PI)
-			return x - (Std.int(x / PI) + 1) * PI;
+			return x - (Math.floor(x / PI) + 1) * PI;
 		else
 			return x;
 	}

@@ -290,6 +290,9 @@ class GameObject {
 	}
 
 	public function setAltTexture(altTextureId: Int32) {
+		if (this.randomTextureData != null)
+			return;
+
 		var altTextureData: TextureData;
 		var textureData = ObjectLibrary.typeToTextureData.get(this.objectType);
 		if (altTextureId == 0)

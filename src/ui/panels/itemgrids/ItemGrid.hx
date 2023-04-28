@@ -93,7 +93,6 @@ class ItemGrid extends Panel {
 		var equipCount = 0;
 		var openIndex = 0;
 		var isUntradable = ObjectLibrary.isUntradable(itemTile.itemSprite.itemId);
-		trace(this.owner.objectId, this.owner.ownerId, this.curPlayer.objectId, this.curPlayer.accountId);
 		if (this.owner.objectId == this.curPlayer.objectId
 			|| this.owner.ownerId == this.curPlayer.accountId && !isUntradable) {
 			var go = this.owner.map.getGameObject(Global.currentInteractiveTarget);
