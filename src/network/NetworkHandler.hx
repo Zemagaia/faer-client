@@ -285,8 +285,9 @@ class NetworkHandler {
 			socket.writeBytes(outgoingData);
 			socket.flush();
 			outgoingData.clear();
-		} catch (e) {
-			trace("Error, packet sending failed: " + e.toString());
+		} catch (e: Exception) {
+			Global.gameSprite?.textBox.addText('Socket Write Error: $e', 0xFF0000);
+			trace('Socket Write Error: $e');
 		}
 	}
 
@@ -1162,11 +1163,11 @@ class NetworkHandler {
 				}
 			}
 		}
-		/*catch (e: Exception) {
+		catch (e: Exception) {
 			Global.gameSprite?.textBox.addText('Socket Read Error: $e', 0xFF0000);
-			trace('Socket Read Error: $e, stack trace: ${e.stack}');
+			trace('Socket Read Error: $e');
 			disconnect();
-		}*/
+		}
 	}
 
 	private static function updateAck() {
