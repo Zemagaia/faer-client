@@ -82,6 +82,7 @@ enum abstract PacketType(Int8) from Int8 to Int8 {
 	final GuildResult = 47;
 	final GuildRemove = 48;
 	final GuildInvite = 49;
+	final AllyShoot = 50;
 	final EnemyShoot = 51;
 	final RequestTrade = 52;
 	final TradeRequested = 53;
@@ -372,6 +373,20 @@ class NetworkHandler {
 					continue;
 
 				switch (packetId) {
+					case PacketType.AllyShoot:
+						var bulletId = socket.readByte();
+						var ownerId = socket.readInt();
+						var containerType = socket.readUnsignedShort();
+						var angle = socket.readFloat();
+
+						var owner = Global.gameSprite.map.getPlayer(ownerId);
+						if (owner == null || owner.dead)
+							return;
+
+						var proj = Global.projPool.get();
+						proj.reset(containerType, 0, ownerId, bulletId, angle, Global.gameSprite.lastFixedUpdate);
+						Global.gameSprite.map.addProjectile(proj, owner.mapX, owner.mapY);
+						owner.setAttack(containerType, angle);
 					case PacketType.AccountList:
 						var listId = socket.readInt();
 						var ids = new Array<Int>();
