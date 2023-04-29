@@ -1,5 +1,6 @@
 package map;
 
+import objects.animation.Animations;
 import util.NativeTypes;
 import objects.GameObject;
 
@@ -7,6 +8,7 @@ class Square {
 	public var tileType: Int = 0xFF;
 	public var obj: GameObject = null;
 	public var props: GroundProperties = GroundLibrary.defaultProps;
+	public var animations: Animations;
 	public var baseU: Float32 = 1;
 	public var baseV: Float32 = 1;
 	public var sink: Float32 = 0.0;
@@ -26,8 +28,12 @@ class Square {
 
 	public var middleX: Float32 = 0.0;
 	public var middleY: Float32 = 0.0;
+	public var x: UInt16 = 0;
+	public var y: UInt16 = 0;
 
 	public function new (x: Float32, y: Float32) {
+		this.x = Std.int(x);
+		this.y = Std.int(y);
 		this.middleX = x;
 		this.middleY = y;
 	};

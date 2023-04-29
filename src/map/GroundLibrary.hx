@@ -1,5 +1,6 @@
 package map;
 
+import objects.animation.AnimationsData;
 import util.NativeTypes.UInt16;
 import haxe.ds.IntMap;
 import haxe.ds.StringMap;
@@ -12,6 +13,7 @@ class GroundLibrary {
 	public static var propsLibrary = new IntMap<GroundProperties>();
 	public static var xmlLibrary = new IntMap<Xml>();
 	public static var typeToTextureData = new IntMap<TextureData>();
+	public static var typeToAnimationsData = new IntMap<AnimationsData>();
 	public static var idToType = new StringMap<Int>();
 	public static var defaultProps: GroundProperties;
 	private static var tileTypeColor = new IntMap<Int>();
@@ -23,6 +25,9 @@ class GroundLibrary {
 			xmlLibrary.set(groundType, groundXML);
 			typeToTextureData.set(groundType, new TextureData(groundXML));
 			idToType.set(groundXML.attribute("id"), groundType);
+
+			if (groundXML.elementsNamed("Animation").hasNext())
+				typeToAnimationsData.set(groundType, new AnimationsData(groundXML));
 		}
 
 		defaultProps = propsLibrary.get(idToType.get("Grass"));

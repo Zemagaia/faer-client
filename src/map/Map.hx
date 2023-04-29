@@ -1,5 +1,6 @@
 package map;
 
+import objects.animation.Animations;
 import engine.GLTextureData;
 import util.Utils.KeyCodeUtil;
 import util.Settings;
@@ -396,24 +397,7 @@ class Map {
 		return !(x < 0 || x >= this.mapWidth || y < 0 || y >= this.mapHeight);
 	}
 
-	@:nonVirtual public function setGroundTile(x: UInt16, y: UInt16, tileType: UInt16) {
-		if (!validPos(x, y))
-			return;
-
-		var idx: Int32 = x + y * this.mapWidth;
-		var square = this.squares[idx];
-		if (square == null) {
-			square = new Square(x + 0.5, y + 0.5);
-			this.squares[idx] = square;
-		}
-
-		square.tileType = tileType;
-		square.props = GroundLibrary.propsLibrary.get(square.tileType);
-		var texData = GroundLibrary.typeToTextureData.get(square.tileType).getTextureData();
-		square.baseU = texData.uValue;
-		square.baseV = texData.vValue;
-		square.sink = square.props != null && square.props.sink ? 0.6 : 0;
-
+	@:nonVirtual private inline function updateBlends(x: UInt16, y: UInt16, square: Square) {
 		if (validPos(x - 1, y)) {
 			var leftSq = this.squares[x - 1 + y * this.mapWidth];
 			if (leftSq != null) {
@@ -475,8 +459,32 @@ class Map {
 					square.bottomBlendU = square.bottomBlendV = -1.0;
 					bottomSq.topBlendU = bottomSq.topBlendV = -1.0;
 				}
-			};
+			}
 		}
+	}
+
+	@:nonVirtual public function setGroundTile(x: UInt16, y: UInt16, tileType: UInt16) {
+		if (!validPos(x, y))
+			return;
+
+		var idx: Int32 = x + y * this.mapWidth;
+		var square = this.squares[idx];
+		if (square == null) {
+			square = new Square(x + 0.5, y + 0.5);
+			this.squares[idx] = square;
+		}
+
+		square.tileType = tileType;
+		square.props = GroundLibrary.propsLibrary.get(tileType);
+		var texData = GroundLibrary.typeToTextureData.get(tileType).getTextureData();
+		square.baseU = texData.uValue;
+		square.baseV = texData.vValue;
+		var animationsData = GroundLibrary.typeToAnimationsData.get(tileType);
+		if (animationsData != null)
+			square.animations = new Animations(animationsData);
+		square.sink = square.props != null && square.props.sink ? 0.6 : 0;
+
+		updateBlends(x, y, square);
 	}
 
 	@:nonVirtual public function addGameObject(go: GameObject, posX: Float32, posY: Float32) {
@@ -650,7 +658,7 @@ class Map {
 		return square;
 	}
 
-	@:nonVirtual private final #if !tracing inline #end function drawSquares() {
+	@:nonVirtual private final #if !tracing inline #end function drawSquares(time: Int32) {
 		final xScaledCos = Camera.xScaledCos;
 		final yScaledCos = Camera.yScaledCos;
 		final xScaledSin = Camera.xScaledSin;
@@ -658,6 +666,16 @@ class Map {
 
 		while (this.i < this.visSquareLen) {
 			final square = this.visSquares[this.i];
+
+			if (square.animations != null) {
+				var rect = square.animations.getTexture(time);
+				if (rect != null) {
+					square.baseU = (rect.x + 2) / Main.ATLAS_WIDTH;
+					square.baseV = (rect.y + 2) / Main.ATLAS_WIDTH;
+					updateBlends(square.x, square.y, square);
+				}			
+			}
+
 			square.clipX = (square.middleX * Camera.cos + square.middleY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
 			square.clipY = (square.middleX * -Camera.sin + square.middleY * Camera.cos + Camera.csY) * RenderUtils.clipSpaceScaleY;
 
@@ -2308,7 +2326,7 @@ class Map {
 		}
 
 		this.i = this.vIdx = this.iIdx = 0;
-		drawSquares();
+		drawSquares(time);
 
 		GL.useProgram(this.groundProgram);
 		GL.uniform2f(cast 0, leftMaskU, leftMaskV);
