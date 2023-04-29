@@ -1,5 +1,7 @@
 package network;
 
+import util.Lz4;
+import haxe.io.Bytes;
 import haxe.Exception;
 import haxe.ValueException;
 import map.Camera;
@@ -228,8 +230,7 @@ class NetworkHandler {
 	private static var player: Player;
 	private static var outgoingData: ByteArray;
 
-	private static var lastUnreadUpdateLen: UInt16 = 65535;
-	private static var lastUnreadNewTickLen: UInt16 = 65535;
+	private static var readLen = 65535;
 
 	public static function init() {
 		outgoingData = new ByteArray();
@@ -248,8 +249,7 @@ class NetworkHandler {
 		createCharacter = newCreateCharacter;
 		charId = newCharId;
 		fmMap = newFmMap;
-		lastUnreadUpdateLen = 65535;
-		lastUnreadNewTickLen = 65535;
+		readLen = 65535;
 	}
 
 	public static function connect() {
@@ -363,22 +363,31 @@ class NetworkHandler {
 	private static function onSocketData(_: ProgressEvent = null) {
 		try {
 			while (socket != null && socket.connected) {
-				if (socket.bytesAvailable < 1)
+				if (socket.bytesAvailable < 2)
 					break;
 
-				var packetId = (lastUnreadUpdateLen != 65535 ? 9 : (lastUnreadNewTickLen != 65535 ? 12 : socket.readUnsignedByte()));
+				if (readLen == 65535)
+					readLen = socket.readUnsignedShort();
+
+				if (readLen != 65535 && readLen > socket.bytesAvailable)
+					break;
+
+				var data = new ByteArray();
+				socket.readBytes(data, 0, readLen);
+
+				readLen = 65535;
+
+				var packetId = data.readUnsignedByte();
 				#if log_packets
 				trace('Receiving $packetId, left to read: ${socket.bytesAvailable}');
 				#end
-				if (packetId == 0)
-					continue;
 
 				switch (packetId) {
 					case PacketType.AllyShoot:
-						var bulletId = socket.readByte();
-						var ownerId = socket.readInt();
-						var containerType = socket.readUnsignedShort();
-						var angle = socket.readFloat();
+						var bulletId = data.readByte();
+						var ownerId = data.readInt();
+						var containerType = data.readUnsignedShort();
+						var angle = data.readFloat();
 
 						var owner = Global.gameSprite.map.getPlayer(ownerId);
 						if (owner == null || owner.dead)
@@ -389,11 +398,11 @@ class NetworkHandler {
 						Global.gameSprite.map.addProjectile(proj, owner.mapX, owner.mapY);
 						owner.setAttack(containerType, angle);
 					case PacketType.AccountList:
-						var listId = socket.readInt();
+						var listId = data.readInt();
 						var ids = new Array<Int>();
-						var num: Int = socket.readShort();
+						var num: Int = data.readShort();
 						for (i in 0...num)
-							ids.push(socket.readInt());
+							ids.push(data.readInt());
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "AccountList: listId=" + listId + ", ids=" + ids);
@@ -404,14 +413,14 @@ class NetworkHandler {
 						if (listId == 1)
 							Global.gameSprite.map.party.setIgnores(ids); */
 					case PacketType.Aoe:
-						var x = socket.readFloat();
-						var y = socket.readFloat();
-						var radius = socket.readFloat();
-						var damage = socket.readUnsignedShort();
-						var effect = socket.readUnsignedByte();
-						var duration = socket.readFloat();
-						var origType = socket.readUnsignedShort();
-						var color = socket.readUnsignedInt();
+						var x = data.readFloat();
+						var y = data.readFloat();
+						var radius = data.readFloat();
+						var damage = data.readUnsignedShort();
+						var effect = data.readUnsignedByte();
+						var duration = data.readFloat();
+						var origType = data.readUnsignedShort();
+						var color = data.readUnsignedInt();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate,
@@ -457,8 +466,8 @@ class NetworkHandler {
 
 						aoeAck(Global.gameSprite.lastFixedUpdate, Global.gameSprite.map.player.mapX, Global.gameSprite.map.player.mapY);
 					case PacketType.BuyResult:
-						var result: BuyResultType = socket.readInt();
-						var resultStr = socket.readUTF();
+						var result: BuyResultType = data.readInt();
+						var resultStr = data.readUTF();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "BuyResult: result=" + result + ", resultStr=" + resultStr);
@@ -471,8 +480,8 @@ class NetworkHandler {
 								Global.gameSprite.textBox.addText(resultStr, result == Success ? 0x0000FF : 0xFF0000);
 						}
 					case PacketType.CreateSuccess:
-						playerId = socket.readInt();
-						charId = socket.readInt();
+						playerId = data.readInt();
+						charId = data.readInt();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "CreateSuccess: playerId=" + playerId + ", charId=" + charId);
@@ -481,17 +490,17 @@ class NetworkHandler {
 						Global.gameSprite.initialize();
 						createCharacter = false;
 					case PacketType.Damage:
-						var targetId = socket.readInt();
+						var targetId = data.readInt();
 						var effects = new Array<Int32>();
-						var effBitMask = socket.readUnsignedInt();
+						var effBitMask = data.readUnsignedInt();
 						for (i in 0...31)
 							if (effBitMask & (1 << i) != 0)
 								effects.push(i);
 
-						var damageAmount = socket.readUnsignedShort();
-						var kill = socket.readBoolean();
-						var bulletId = socket.readUnsignedByte();
-						var objectId = socket.readInt();
+						var damageAmount = data.readUnsignedShort();
+						var kill = data.readBoolean();
+						var bulletId = data.readUnsignedByte();
+						var objectId = data.readInt();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate,
@@ -523,9 +532,9 @@ class NetworkHandler {
 							go.damage(-1, damageAmount, effects, kill, proj);
 					case PacketType.Death:
 						// todo...
-						var accountId = socket.readInt();
-						var charId = socket.readInt();
-						var killedBy = socket.readUTF();
+						var accountId = data.readInt();
+						var charId = data.readInt();
+						var killedBy = data.readUTF();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "Death: accountId=" + accountId + ", charId=" + charId + ", killedBy=" + killedBy);
@@ -533,20 +542,20 @@ class NetworkHandler {
 
 						disconnect();
 					case PacketType.EnemyShoot:
-						var bulletId = socket.readUnsignedByte();
-						var ownerId = socket.readInt();
-						var bulletType = socket.readUnsignedByte();
-						var startX = socket.readFloat();
-						var startY = socket.readFloat();
-						var angle = socket.readFloat();
-						var damage = socket.readShort();
-						var magicDamage = socket.readShort();
-						var trueDamage = socket.readShort();
+						var bulletId = data.readUnsignedByte();
+						var ownerId = data.readInt();
+						var bulletType = data.readUnsignedByte();
+						var startX = data.readFloat();
+						var startY = data.readFloat();
+						var angle = data.readFloat();
+						var damage = data.readShort();
+						var magicDamage = data.readShort();
+						var trueDamage = data.readShort();
 						var numShots = 1;
 						var angleInc = 0.0;
 						if (socket.bytesAvailable > 0) {
-							numShots = socket.readUnsignedByte();
-							angleInc = socket.readFloat();
+							numShots = data.readUnsignedByte();
+							angleInc = data.readFloat();
 						}
 
 						#if log_packets
@@ -588,8 +597,8 @@ class NetworkHandler {
 						shootAck(Global.gameSprite.lastFixedUpdate);
 						owner.setAttack(owner.objectType, angle + angleInc * ((numShots - 1) / 2));
 					case PacketType.Failure:
-						var errorId: FailureType = socket.readInt();
-						var errorDescription = socket.readUTF();
+						var errorId: FailureType = data.readInt();
+						var errorDescription = data.readUTF();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "Failure: errorId=" + errorId + ", errorDesc=" + errorDescription);
@@ -631,9 +640,9 @@ class NetworkHandler {
 								Global.layers.dialogs.openDialog(dialog);
 						}
 					case PacketType.Goto:
-						var objId = socket.readInt();
-						var x = socket.readFloat();
-						var y = socket.readFloat();
+						var objId = data.readInt();
+						var x = data.readFloat();
+						var y = data.readFloat();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "Goto: objId=" + objId + ", x=" + x + ", y=" + y);
@@ -647,8 +656,8 @@ class NetworkHandler {
 
 						gotoAck(Global.gameSprite.lastFixedUpdate);
 					case PacketType.GuildResult:
-						var success = socket.readBoolean();
-						var errorText = socket.readUTF();
+						var success = data.readBoolean();
+						var errorText = data.readUTF();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "GuildResult: success=" + success + ", errorText=" + errorText);
@@ -657,8 +666,8 @@ class NetworkHandler {
 						Global.gameSprite.textBox.addText(errorText, 0xFF0000);
 						Global.gameSprite.dispatchEvent(new GuildResultEvent(success, errorText));
 					case PacketType.InvitedToGuild:
-						var name = socket.readUTF();
-						var guildName = socket.readUTF();
+						var name = data.readUTF();
+						var guildName = data.readUTF();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "InvitedToGuild: name=" + name + ", guildName=" + guildName);
@@ -669,7 +678,7 @@ class NetworkHandler {
 							+ ".\n  If you wish to join type \"/join " + guildName + "\"",
 							0x0000FF);
 					case PacketType.InvResult:
-						var result = socket.readInt();
+						var result = data.readInt();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "InvResult: result=" + result);
@@ -680,14 +689,14 @@ class NetworkHandler {
 							// Global.gameSprite.interactPanel.redraw();
 						}
 					case PacketType.MapInfo:
-						var width = socket.readInt();
-						var height = socket.readInt();
-						var name = socket.readUTF();
-						var displayName = socket.readUTF();
-						var background = socket.readInt();
-						var difficulty = socket.readInt();
-						var allowPlayerTeleport = socket.readBoolean();
-						var showDisplays = socket.readBoolean();
+						var width = data.readInt();
+						var height = data.readInt();
+						var name = data.readUTF();
+						var displayName = data.readUTF();
+						var background = data.readInt();
+						var difficulty = data.readInt();
+						var allowPlayerTeleport = data.readBoolean();
+						var showDisplays = data.readBoolean();
 
 						Global.gameSprite.map.setProps(width, height, name, background, allowPlayerTeleport, showDisplays);
 
@@ -711,25 +720,16 @@ class NetworkHandler {
 							+ showDisplays);
 						#end
 					case PacketType.NewTick:
-						if (lastUnreadNewTickLen != 65535) {
-							if (lastUnreadNewTickLen > socket.bytesAvailable)
-								break;
-						} else {
-							lastUnreadNewTickLen = socket.readUnsignedShort();
-							if (lastUnreadNewTickLen > socket.bytesAvailable)
-								break;
-						}
-
 						if (Global.gameSprite == null)
 							return;
 
-						var tickId = socket.readUnsignedByte();
-						var tickTime = Std.int(1000 / socket.readUnsignedByte());
-						var len = socket.readShort();
+						var tickId = data.readUnsignedByte();
+						var tickTime = Std.int(1000 / data.readUnsignedByte());
+						var len = data.readShort();
 						for (i in 0...len) {
-							var objId = socket.readInt();
-							var x = socket.readFloat();
-							var y = socket.readFloat();
+							var objId = data.readInt();
+							var x = data.readFloat();
+							var y = data.readFloat();
 
 							var map = Global.gameSprite.map;
 							var cont = false;
@@ -739,8 +739,8 @@ class NetworkHandler {
 								if (go.objectId == objId) {
 									if (tickTime != 0)
 										go.onTickPos(x, y, tickTime, tickId);
-									for (j in 0...socket.readShort())
-										parseStat(go, socket.readUnsignedByte());
+									for (j in 0...data.readShort())
+										parseStat(go, data.readUnsignedByte(), data);
 									cont = true;
 									break;
 								}
@@ -758,8 +758,8 @@ class NetworkHandler {
 									var self = objId == playerId;
 									if (tickTime != 0 && !self)
 										player.onTickPos(x, y, tickTime, tickId);
-									for (j in 0...socket.readShort())
-										parseStat(player, socket.readUnsignedByte());
+									for (j in 0...data.readShort())
+										parseStat(player, data.readUnsignedByte(), data);
 									cont = true;
 									break;
 								}
@@ -774,8 +774,8 @@ class NetworkHandler {
 							while (i < map.projectilesLen) {
 								var proj = map.projectiles.unsafeGet(i);
 								if (proj.objectId == objId) {
-									for (j in 0...socket.readShort())
-										parseStat(null, socket.readUnsignedByte());
+									for (j in 0...data.readShort())
+										parseStat(null, data.readUnsignedByte(), data);
 									cont = true;
 									break;
 								}
@@ -786,11 +786,9 @@ class NetworkHandler {
 								continue;
 
 							trace('Could not find NewTick GameObject: objId=$objId, x=$x, y=$y');
-							for (j in 0...socket.readShort())
-								parseStat(null, socket.readUnsignedByte());
+							for (j in 0...data.readShort())
+								parseStat(null, data.readUnsignedByte(), data);
 						}
-
-						lastUnreadNewTickLen = 65535;
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "NewTick");
@@ -800,9 +798,9 @@ class NetworkHandler {
 
 						lastTickId = tickId;
 					case PacketType.Notification:
-						var objectId = socket.readInt();
-						var text = socket.readUTF();
-						var color = socket.readUnsignedInt();
+						var objectId = data.readInt();
+						var text = data.readUTF();
+						var color = data.readUnsignedInt();
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "Notification: objId=" + objectId + ", text=" + text + ", color=" + color);
 						#end
@@ -819,7 +817,7 @@ class NetworkHandler {
 							}
 						}
 					case PacketType.Ping:
-						var serial = socket.readInt();
+						var serial = data.readInt();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "Ping: serial=" + serial);
@@ -827,8 +825,8 @@ class NetworkHandler {
 
 						pong(serial, System.getTimer());
 					case PacketType.PlaySound:
-						var ownerId = socket.readInt();
-						var soundId = socket.readUnsignedByte();
+						var ownerId = data.readInt();
+						var soundId = data.readUnsignedByte();
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "PlaySound: ownerId=" + ownerId + ", soundId=" + soundId);
 						#end
@@ -837,7 +835,7 @@ class NetworkHandler {
 						if (obj != null)
 							obj.playSound(soundId);
 					case PacketType.QuestObjId:
-						var objId = socket.readInt();
+						var objId = data.readInt();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "QuestObjId: objId=" + objId);
@@ -845,13 +843,13 @@ class NetworkHandler {
 
 						Global.gameSprite.map.quest.setObject(objId);
 					case PacketType.ServerPlayerShoot:
-						var bulletId = socket.readUnsignedByte();
-						var ownerId = socket.readInt();
-						var containerType = socket.readShort();
-						var startX = socket.readFloat();
-						var startY = socket.readFloat();
-						var angle = socket.readFloat();
-						var damage = socket.readShort();
+						var bulletId = data.readUnsignedByte();
+						var ownerId = data.readInt();
+						var containerType = data.readShort();
+						var startX = data.readFloat();
+						var startY = data.readFloat();
+						var angle = data.readFloat();
+						var damage = data.readShort();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate,
@@ -886,13 +884,13 @@ class NetworkHandler {
 						if (needsAck)
 							shootAck(Global.gameSprite.lastFixedUpdate);
 					case PacketType.ShowEffect:
-						var effectType: ShowEffectType = socket.readUnsignedByte();
-						var targetObjectId = socket.readInt();
-						var x1 = socket.readFloat();
-						var y1 = socket.readFloat();
-						var x2 = socket.readFloat();
-						var y2 = socket.readFloat();
-						var color = socket.readInt();
+						var effectType: ShowEffectType = data.readUnsignedByte();
+						var targetObjectId = data.readInt();
+						var x1 = data.readFloat();
+						var y1 = data.readFloat();
+						var x2 = data.readFloat();
+						var y2 = data.readFloat();
+						var color = data.readInt();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate,
@@ -966,17 +964,17 @@ class NetworkHandler {
 					}*/
 
 					case PacketType.Text:
-						var name = socket.readUTF();
-						var objectId = socket.readInt();
-						var bubbleTime = socket.readUnsignedByte();
-						var recipient = socket.readUTF();
-						var text = socket.readUTF();
+						var name = data.readUTF();
+						var objectId = data.readInt();
+						var bubbleTime = data.readUnsignedByte();
+						var recipient = data.readUTF();
+						var text = data.readUTF();
 						var textColor = 0xFFFFFF;
 						var nameColor = 0xFF00FF;
 						if (text != "")
-							textColor = socket.readUnsignedInt();
+							textColor = data.readUnsignedInt();
 						if (name != "")
-							nameColor = socket.readUnsignedInt();
+							nameColor = data.readUnsignedInt();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate,
@@ -1025,14 +1023,14 @@ class NetworkHandler {
 						Global.gameSprite.textBox.addTextFull(name, recipient, text, nameColor, textColor);
 					case PacketType.TradeAccepted:
 						var myOffer = new Array<Bool>();
-						var num = socket.readShort();
+						var num = data.readShort();
 						for (i in 0...num)
-							myOffer.push(socket.readBoolean());
+							myOffer.push(data.readBoolean());
 
 						var yourOffer = new Array<Bool>();
-						num = socket.readShort();
+						num = data.readShort();
 						for (i in 0...num)
-							yourOffer.push(socket.readBoolean());
+							yourOffer.push(data.readBoolean());
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "TradeAccepted: myOffer=" + myOffer + ", yourOffer=" + yourOffer);
@@ -1042,9 +1040,9 @@ class NetworkHandler {
 					// Global.gameSprite.hudView.tradeAccepted(tradeAccepted);
 					case PacketType.TradeChanged:
 						var offer = new Array<Bool>();
-						var num = socket.readShort();
+						var num = data.readShort();
 						for (i in 0...num)
-							offer.push(socket.readBoolean());
+							offer.push(data.readBoolean());
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "TradeChanged: offer=" + offer);
@@ -1053,8 +1051,8 @@ class NetworkHandler {
 					// todo trade
 					// Global.gameSprite.hudView.tradeChanged(tradeChanged);
 					case PacketType.TradeDone:
-						var code = socket.readInt();
-						var description = socket.readUTF();
+						var code = data.readInt();
+						var description = data.readUTF();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "TradeDone: code=" + code + ", description=" + description);
@@ -1064,7 +1062,7 @@ class NetworkHandler {
 						// Global.gameSprite.hudView.tradeDone();
 						Global.gameSprite.textBox.addText(description, 0x0000FF);
 					case PacketType.TradeRequested:
-						var name = socket.readUTF();
+						var name = data.readUTF();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "TradeRequested: name=" + name);
@@ -1074,22 +1072,22 @@ class NetworkHandler {
 						Global.gameSprite.textBox.addText(name + " wants to " + "trade with you.  Type \"/trade " + name + "\" to trade.", 0x0000FF);
 					case PacketType.TradeStart:
 						var myItems = new Array<TradeItem>();
-						for (i in 0...socket.readShort())
+						for (i in 0...data.readShort())
 							myItems.push({
-								item: socket.readInt(),
-								slotType: socket.readInt(),
-								tradeable: socket.readBoolean(),
-								included: socket.readBoolean()
+								item: data.readInt(),
+								slotType: data.readInt(),
+								tradeable: data.readBoolean(),
+								included: data.readBoolean()
 							});
 
-						var yourName = socket.readUTF();
+						var yourName = data.readUTF();
 						var yourItems = new Array<TradeItem>();
-						for (i in 0...socket.readShort())
+						for (i in 0...data.readShort())
 							yourItems.push({
-								item: socket.readInt(),
-								slotType: socket.readInt(),
-								tradeable: socket.readBoolean(),
-								included: socket.readBoolean()
+								item: data.readInt(),
+								slotType: data.readInt(),
+								tradeable: data.readBoolean(),
+								included: data.readBoolean()
 							});
 
 						#if log_packets
@@ -1099,35 +1097,26 @@ class NetworkHandler {
 					// todo trade
 					// Global.gameSprite.hudView.startTrade(Global.gameSprite_, tradeStart);
 					case PacketType.Update:
-						if (lastUnreadUpdateLen != 65535) {
-							if (lastUnreadUpdateLen > socket.bytesAvailable)
-								break;
-						} else {
-							lastUnreadUpdateLen = socket.readUnsignedShort();
-							if (lastUnreadUpdateLen > socket.bytesAvailable)
-								break;
-						}
-
-						for (i in 0...socket.readShort()) {
-							var x = socket.readShort();
-							var y = socket.readShort();
-							var tileType = socket.readUnsignedShort();
+						for (i in 0...data.readShort()) {
+							var x = data.readShort();
+							var y = data.readShort();
+							var tileType = data.readUnsignedShort();
 							Global.gameSprite.map.setGroundTile(x, y, tileType);
 							Global.gameSprite.miniMap.setGroundTile(x, y, tileType);
 						}
 
-						for (i in 0...socket.readShort()) {
-							var objType = socket.readUnsignedShort();
-							var objId = socket.readInt();
-							var x = socket.readFloat();
-							var y = socket.readFloat();
+						for (i in 0...data.readShort()) {
+							var objType = data.readUnsignedShort();
+							var objId = data.readInt();
+							var x = data.readFloat();
+							var y = data.readFloat();
 
 							var map = Global.gameSprite.map;
 							var go = ObjectLibrary.getObjectFromType(objType);
 							go?.setObjectId(objId);
 
-							for (j in 0...socket.readShort())
-								parseStat(go, socket.readUnsignedByte());
+							for (j in 0...data.readShort())
+								parseStat(go, data.readUnsignedByte(), data);
 
 							if (go == null) {
 								trace('Could not find Update GameObject: objId=$objId, x=$x, y=$y');
@@ -1150,12 +1139,10 @@ class NetworkHandler {
 								Global.gameSprite.miniMap.setGameObjectTile(Std.int(go.mapX), Std.int(go.mapY), go);
 						}
 
-						for (i in 0...socket.readShort())
-							Global.gameSprite.map.removeObj(socket.readInt());
+						for (i in 0...data.readShort())
+							Global.gameSprite.map.removeObj(data.readInt());
 
 						updateAck();
-
-						lastUnreadUpdateLen = 65535;
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate, "Update");
@@ -1756,110 +1743,110 @@ class NetworkHandler {
 		}
 	}
 
-	private static inline function parseStat(go: GameObject, statType: StatType) {
+	private static inline function parseStat(go: GameObject, statType: StatType, data: ByteArray) {
 		switch (statType) {
 			case MaxHP:
-				var maxHP = socket.readInt();
+				var maxHP = data.readInt();
 				if (go == null)
 					return;
 
 				go.maxHP = maxHP;
 			case HP:
-				var hp = socket.readInt();
+				var hp = data.readInt();
 				if (go == null)
 					return;
 
 				go.hp = hp;
 			case Size:
-				var size = socket.readUnsignedShort();
+				var size = data.readUnsignedShort();
 				if (go != null && size != 100)
 					go.size = size / 100;
 			case MaxMP:
-				var maxMP = socket.readShort();
+				var maxMP = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).maxMP = maxMP;
 			case MP:
-				var mp = socket.readShort();
+				var mp = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).mp = mp;
 			case Strength:
-				var strength = socket.readShort();
+				var strength = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).strength = strength;
 			case Wit:
-				var wit = socket.readShort();
+				var wit = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).wit = wit;
 			case Defense:
-				var defense = socket.readShort();
+				var defense = data.readShort();
 				if (go == null)
 					return;
 
 				go.defense = defense;
 			case Resistance:
-				var res = socket.readShort();
+				var res = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).resistance = res;
 			case Speed:
-				var speed = socket.readShort();
+				var speed = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).speed = speed;
 			case Haste:
-				var haste = socket.readShort();
+				var haste = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).haste = haste;
 			case Stamina:
-				var stam = socket.readShort();
+				var stam = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).stamina = stam;
 			case Intelligence:
-				var int = socket.readShort();
+				var int = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).intelligence = int;
 			case Piercing:
-				var pier = socket.readShort();
+				var pier = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).piercing = pier;
 			case Penetration:
-				var pen = socket.readShort();
+				var pen = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).penetration = pen;
 			case Tenacity:
-				var ten = socket.readShort();
+				var ten = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).tenacity = ten;
 			case Condition:
-				var cond = socket.readInt();
+				var cond = data.readInt();
 				if (go == null)
 					return;
 
 				go.condition = cond;
 			case Inv0 | Inv1 | Inv2 | Inv3 | Inv4 | Inv5 | Inv6 | Inv7 | Inv8 | Inv9 | Inv10 | Inv11:
-				var itemType = socket.readUnsignedShort();
+				var itemType = data.readUnsignedShort();
 				if (itemType == 65535)
 					itemType = -1;
 				if (go == null)
@@ -1867,7 +1854,7 @@ class NetworkHandler {
 
 				go.equipment[statType - StatType.Inv0] = itemType;
 			case Name:
-				var newName = socket.readUTF();
+				var newName = data.readUTF();
 				if (go == null)
 					return;
 
@@ -1879,127 +1866,127 @@ class NetworkHandler {
 					go.nameTex = null;
 				}
 			case MerchType:
-				var merchType = socket.readUnsignedShort();
+				var merchType = data.readUnsignedShort();
 			// if (go == null)
 			// return;
 
 			// go.setMerchandiseType(merchType);
 			case MerchPrice:
-				var merchPrice = socket.readShort();
+				var merchPrice = data.readShort();
 			// if (go == null)
 			// return;
 
 			// go.setPrice(merchPrice);
 			case Active:
-				var portalActive = socket.readBoolean();
+				var portalActive = data.readBoolean();
 			// if (go == null)
 			// return;
 
 			// go.portalActive = portalActive;
 			case AccId:
-				var accId = socket.readInt();
+				var accId = data.readInt();
 				if (go == null)
 					return;
 
 				cast(go, Player).accountId = accId;
 			case MerchCurrency:
-				var merchCurrency = socket.readUnsignedByte();
+				var merchCurrency = data.readUnsignedByte();
 			// if (go == null)
 			// return;
 
 			// go.setCurrency(merchCurrency);
 			case MerchCount:
-				var merchCount = socket.readByte();
+				var merchCount = data.readByte();
 			// if (go == null)
 			// return;
 
 			// go.merchCount = merchCount;
 			case MaxHPBoost:
-				var maxHPBoost = socket.readShort();
+				var maxHPBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).maxHPBoost = maxHPBoost;
 			case MaxMPBoost:
-				var maxMPBoost = socket.readShort();
+				var maxMPBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).maxMPBoost = maxMPBoost;
 			case StrengthBoost:
-				var strengthBoost = socket.readShort();
+				var strengthBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).strengthBoost = strengthBoost;
 			case WitBoost:
-				var witBoost = socket.readShort();
+				var witBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).witBoost = witBoost;
 			case DefenseBoost:
-				var defenseBoost = socket.readShort();
+				var defenseBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).defenseBoost = defenseBoost;
 			case ResistanceBoost:
-				var resBoost = socket.readShort();
+				var resBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).resistanceBoost = resBoost;
 			case SpeedBoost:
-				var speedBoost = socket.readShort();
+				var speedBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).speedBoost = speedBoost;
 			case HasteBoost:
-				var hasteBoost = socket.readShort();
+				var hasteBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).hasteBoost = hasteBoost;
 			case StaminaBoost:
-				var staminaBoost = socket.readShort();
+				var staminaBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).staminaBoost = staminaBoost;
 			case IntelligenceBoost:
-				var intBoost = socket.readShort();
+				var intBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).intelligenceBoost = intBoost;
 			case PiercingBoost:
-				var pierBoost = socket.readShort();
+				var pierBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).piercingBoost = pierBoost;
 			case PenetrationBoost:
-				var penBoost = socket.readShort();
+				var penBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).penetrationBoost = penBoost;
 			case TenacityBoost:
-				var tenBoost = socket.readShort();
+				var tenBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).tenacityBoost = tenBoost;
 			case OwnerAccId:
-				var ownerId = socket.readInt();
+				var ownerId = data.readInt();
 				if (go == null)
 					return;
 
 				go.ownerId = ownerId;
 			case SinkLevel:
-				var sinkLevel = socket.readByte() / 10;
+				var sinkLevel = data.readByte() / 10;
 				if (go == null)
 					return;
 
@@ -2007,37 +1994,37 @@ class NetworkHandler {
 				if (player != Global.gameSprite.map.player)
 					player.sinkLevel = sinkLevel;
 			case AltTexture:
-				var altTex = socket.readUnsignedShort();
+				var altTex = data.readUnsignedShort();
 				if (go == null)
 					return;
 
 				go.setAltTexture(altTex);
 			case GuildName:
-				var guildName = socket.readUTF();
+				var guildName = data.readUTF();
 				if (go == null)
 					return;
 
 				cast(go, Player).setGuildName(guildName);
 			case GuildRank:
-				var guildRank = socket.readByte();
+				var guildRank = data.readByte();
 				if (go == null)
 					return;
 
 				cast(go, Player).guildRank = guildRank;
 			case HealthVialStack:
-				var healthVialCount = socket.readUnsignedByte();
+				var healthVialCount = data.readUnsignedByte();
 				if (go == null)
 					return;
 
 				cast(go, Player).healthVialCount = healthVialCount;
 			case MagicVialStack:
-				var magicVialCount = socket.readUnsignedByte();
+				var magicVialCount = data.readUnsignedByte();
 				if (go == null)
 					return;
 
 				cast(go, Player).magicVialCount = magicVialCount;
 			case Texture:
-				var skinId = socket.readUnsignedShort();
+				var skinId = data.readUnsignedShort();
 				if (go == null)
 					return;
 
@@ -2045,7 +2032,7 @@ class NetworkHandler {
 				if (player.skinId != skinId)
 					setPlayerSkinTemplate(player, skinId);
 			case HasBackpack:
-				var hasBackpack = socket.readBoolean();
+				var hasBackpack = data.readBoolean();
 				if (go == null)
 					return;
 
@@ -2054,45 +2041,45 @@ class NetworkHandler {
 				if (player == Global.gameSprite.map.player && player.hasBackpack)
 					Global.gameSprite.inventory.addBackpackTab(player);
 			case DamageMultiplier:
-				var damageMult = socket.readFloat();
+				var damageMult = data.readFloat();
 				if (go == null)
 					return;
 
 				cast(go, Player).damageMult = damageMult;
 			case HitMultiplier:
-				var hitMult = socket.readFloat();
+				var hitMult = data.readFloat();
 				if (go == null)
 					return;
 
 				cast(go, Player).hitMult = hitMult;
 			case Tier:
-				var tier = socket.readUnsignedByte();
+				var tier = data.readUnsignedByte();
 				if (go == null)
 					return;
 
 				cast(go, Player).tier = tier;
 				cast(go, Player).updateMaxValues();
 			case Gems:
-				var gems = socket.readInt();
+				var gems = data.readInt();
 				if (go == null)
 					return;
 
 				cast(go, Player).gems = gems;
 			case Gold:
-				var gold = socket.readInt();
+				var gold = data.readInt();
 				if (go == null)
 					return;
 
 				cast(go, Player).gold = gold;
 			case Crowns:
-				var crowns = socket.readInt();
+				var crowns = data.readInt();
 				if (go == null)
 					return;
 
 				cast(go, Player).crowns = crowns;
 			case Inv12 | Inv13 | Inv14 | Inv15 | Inv16 | Inv17 | Inv18 | Inv19:
 				var index = statType - StatType.Inv12 + GeneralConstants.NUM_EQUIPMENT_SLOTS + GeneralConstants.NUM_INVENTORY_SLOTS;
-				var itemType = socket.readUnsignedShort();
+				var itemType = data.readUnsignedShort();
 				if (itemType == 65535)
 					itemType = -1;
 				if (go == null)

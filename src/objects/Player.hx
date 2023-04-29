@@ -611,16 +611,14 @@ class Player extends GameObject {
 	}
 
 	private function doShoot(time: Int32, weaponType: Int32, weaponXML: Xml, attackAngle: Float32, useMult: Bool) {
-		var bulletId = 0;
-		var proj: Projectile = null;
-		var attMult: Float32 = 0.0;
 		var numProjs = weaponXML.intElement("NumProjectiles", 1);
 		var arcGap = weaponXML.floatElement("ArcGap", 11.25) * MathUtil.TO_RAD;
 		var totalArc = arcGap * (numProjs - 1);
 		var angle = attackAngle - totalArc / 2;
 		for (i in 0...numProjs) {
-			bulletId = getBulletId();
-			proj = Global.projPool.get();
+			var bulletId = this.nextBulletId;
+			this.nextBulletId = (this.nextBulletId + 1) % 128;
+			var proj = Global.projPool.get();
 			proj.reset(weaponType, 0, objectId, bulletId, angle, time);
 			var physDmg = proj.projProps.physicalDamage;
 			var magicDmg = proj.projProps.magicDamage;
@@ -630,6 +628,7 @@ class Player extends GameObject {
 				magicDmg = Std.int(magicDmg * this.witMult());
 				trueDmg = Std.int(trueDmg * this.damageMult);
 			}
+
 			proj.setDamages(physDmg, magicDmg, trueDmg);
 			if (i == 0 && proj.sound != null)
 				SoundEffectLibrary.play(proj.sound, 0.75, false);
