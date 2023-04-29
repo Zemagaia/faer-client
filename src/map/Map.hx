@@ -1600,7 +1600,7 @@ class Map {
 			this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
 				sinX: 0, sinY: 0,
 				cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-				x: (screenX - 3) * RenderUtils.clipSpaceScaleX, y: (screenY - hBase + 30) * RenderUtils.clipSpaceScaleY,
+				x: (screenX - 3) * RenderUtils.clipSpaceScaleX, y: (screenY - hBase + 30 + (sink - 1) * hBase / 3) * RenderUtils.clipSpaceScaleY,
 				texelW: 0, texelH: 0,
 				texture: textureData.texture});
 
@@ -2147,11 +2147,12 @@ class Map {
 				player.nameTex.applyFilter(player.nameTex, player.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
 			}
 			
+			trace(hBase, sink, sink-1, (sink-1)*hBase);
 			var textureData = TextureFactory.make(player.nameTex);
 			this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
 				sinX: 0, sinY: 0,
 				cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-				x: screenX * RenderUtils.clipSpaceScaleX, y: (screenY - hBase + 30) * RenderUtils.clipSpaceScaleY,
+				x: screenX * RenderUtils.clipSpaceScaleX, y: (screenY - hBase + 30 + (sink - 1) * hBase / 3) * RenderUtils.clipSpaceScaleY,
 				texelW: 0, texelH: 0,
 				texture: textureData.texture});
 		}

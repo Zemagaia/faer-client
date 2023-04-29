@@ -98,6 +98,7 @@ class GameObject {
 	private var myLastTickId: Int32 = -1;
 	private var posAtTick: Point;
 	private var tickPosition: Point;
+	private var lastTickUpdateTime: Int32 = 0;
 
 	public var moveVec: Vector3D;
 	public var yBase: Float32 = 0.0;
@@ -247,6 +248,17 @@ class GameObject {
 	}
 
 	public function update(time: Int32, dt: Int16) {
+		if (!(this.moveVec.x == 0 && this.moveVec.y == 0)) {
+			if (this.myLastTickId < NetworkHandler.lastTickId) {
+				this.moveVec.x = 0;
+				this.moveVec.y = 0;
+				this.moveTo(this.tickPosition.x, this.tickPosition.y);
+			} else {
+				var tickDT = time - this.lastTickUpdateTime;
+				this.moveTo(this.posAtTick.x + tickDT * this.moveVec.x, this.posAtTick.y + tickDT * this.moveVec.y);
+			}
+		}
+
 		if (this.objectId != this.map.player.objectId) {
 			var scaleDt: Float32 = dt * 0.01;
 			this.moveTo(scaleDt * this.tickPosition.x + (1 - scaleDt) * this.mapX, scaleDt * this.tickPosition.y + (1 - scaleDt) * this.mapY);
@@ -391,6 +403,7 @@ class GameObject {
 
 	public function onGoto(x: Float32, y: Float32, time: Int32) {
 		this.moveTo(x, y);
+		this.lastTickUpdateTime = time;
 		this.tickPosition.x = x;
 		this.tickPosition.y = y;
 		this.posAtTick.x = x;
@@ -400,9 +413,10 @@ class GameObject {
 	}
 
 	public function onTickPos(x: Float32, y: Float32, tickTime: Int32, tickId: Int32) {
-		if (this.myLastTickId != NetworkHandler.lastTickId)
+		if (this.myLastTickId < NetworkHandler.lastTickId)
 			this.moveTo(this.tickPosition.x, this.tickPosition.y);
 
+		this.lastTickUpdateTime = Global.gameSprite.lastUpdate;
 		this.tickPosition.x = x;
 		this.tickPosition.y = y;
 		this.posAtTick.x = mapX;
