@@ -34,20 +34,11 @@ void main() {
                                 (glowColor & 0xFF) / 255.0, 1.0);
             } else {
                 float sum = 0.0;
-                for (int i = 0; i < 9; i++) {
-                    float uvY = data.uv.y + data.texelSize.y * float(i - 4.5);
-                    float texX4 = data.texelSize.x * 4;
-                    float texX3 = data.texelSize.x * 3;
-                    float texX2 = data.texelSize.x * 2;
-                    sum += texture(sampler, vec2(data.uv.x - texX4, uvY)).a;
-                    sum += texture(sampler, vec2(data.uv.x - texX3, uvY)).a;
-                    sum += texture(sampler, vec2(data.uv.x - texX2, uvY)).a;
+                for (int i = 0; i < 3; i++) {
+                    float uvY = data.uv.y + data.texelSize.y * float(i - 1.5);
                     sum += texture(sampler, vec2(data.uv.x - data.texelSize.x, uvY)).a;
                     sum += texture(sampler, vec2(data.uv.x, uvY)).a;
                     sum += texture(sampler, vec2(data.uv.x + data.texelSize.x, uvY)).a;
-                    sum += texture(sampler, vec2(data.uv.x + texX2, uvY)).a;
-                    sum += texture(sampler, vec2(data.uv.x + texX3, uvY)).a;
-                    sum += texture(sampler, vec2(data.uv.x + texX4, uvY)).a;
                 }
             
                 if (sum == 0.0)
@@ -55,7 +46,7 @@ void main() {
                 else
                     pixel = vec4(((glowColor >> 16) & 0xFF) / 255.0,
                         ((glowColor >> 8) & 0xFF) / 255.0, 
-                        (glowColor & 0xFF) / 255.0, sum / 81.0);
+                        (glowColor & 0xFF) / 255.0, sum / 9.0);
             }
         }
     } else {
