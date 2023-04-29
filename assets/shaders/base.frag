@@ -20,7 +20,7 @@ void main() {
         
     vec4 pixel = texture(sampler, data.uv);
 
-    if (pixel.a < 1.0) {
+    if (pixel.a == 0.0) {
         if (data.texelSize.x != 0) {
             float alpha = texture(sampler, data.uv - data.texelSize).a;
             alpha += texture(sampler, vec2(data.uv.x - data.texelSize.x, data.uv.y + data.texelSize.y)).a;
