@@ -1066,7 +1066,7 @@
     </Object>
     <Object type="0x158" id="Chasm Wall">
         <Class>Wall</Class>
-        <Texture><Sheet>ground</Sheet><Index>0x0e</Index></Texture>
+        <Texture><Sheet>ground</Sheet><Index>0xa3</Index></Texture>
         <Top>
             <Texture><Sheet>ground</Sheet><Index>0xa7</Index></Texture>
         </Top>
@@ -1076,7 +1076,24 @@
     </Object>
     <Object  type="0x159" id="Chasm Wall Candle">
         <Class>Wall</Class>
-        <Texture><Sheet>ground</Sheet><Index>0x0e</Index></Texture>
+        <Texture>
+            <Sheet>ground</Sheet>
+            <Index>0xA4</Index>
+        </Texture>  
+        <!--<Animation prob="1" period="0.4">
+            <Frame time="0.2">
+                <Texture>
+                    <Sheet>ground</Sheet>
+                    <Index>0xa4</Index>
+                </Texture>
+            </Frame>
+            <Frame time="0.2">
+                <Texture>
+                    <Sheet>ground</Sheet>
+                    <Index>0xa5</Index>
+                </Texture>
+            </Frame>
+        </Animation>!-->
         <Top>
             <Texture><Sheet>ground</Sheet><Index>0xa7</Index></Texture>
         </Top>
@@ -1086,9 +1103,43 @@
     </Object>
     <Object type="0x15a" id="Chasm Wall Dark">
         <Class>Wall</Class>
-        <Texture><Sheet>ground</Sheet><Index>0xa6</Index></Texture>
+        <RandomTexture>
+            <Texture>
+                <Sheet>ground</Sheet>
+                <Index>0xba</Index>
+            </Texture>
+            <Texture>
+                <Sheet>ground</Sheet>
+                <Index>0xbb</Index>
+            </Texture>
+            <Texture>
+                <Sheet>ground</Sheet>
+                <Index>0xbc</Index>
+            </Texture>
+            <Texture>
+                <Sheet>ground</Sheet>
+                <Index>0xbd</Index>
+            </Texture>
+        </RandomTexture>
         <Top>
-            <Texture><Sheet>ground</Sheet><Index>0xa9</Index></Texture>
+            <RandomTexture>
+                <Texture>
+                    <Sheet>ground</Sheet>
+                    <Index>0xbd</Index>
+                </Texture>
+                <Texture>
+                    <Sheet>ground</Sheet>
+                    <Index>0xbe</Index>
+                </Texture>
+                <Texture>
+                    <Sheet>ground</Sheet>
+                    <Index>0xbf</Index>
+                </Texture>
+                <Texture>
+                    <Sheet>ground</Sheet>
+                    <Index>0xba</Index>
+                </Texture>
+            </RandomTexture>
         </Top>
         <Static/>
         <FullOccupy/>
@@ -1096,9 +1147,43 @@
     </Object>
     <Object type="0x15b" id="Chasm Wall Lava">
         <Class>Wall</Class>
-        <Texture><Sheet>ground</Sheet><Index>0xac</Index></Texture>
+        <RandomTexture>
+            <Texture>
+                <Sheet>ground</Sheet>
+                <Index>0xb6</Index>
+            </Texture>
+            <Texture>
+                <Sheet>ground</Sheet>
+                <Index>0xb7</Index>
+            </Texture>
+            <Texture>
+                <Sheet>ground</Sheet>
+                <Index>0xb8</Index>
+            </Texture>
+            <Texture>
+                <Sheet>ground</Sheet>
+                <Index>0xb9</Index>
+            </Texture>
+        </RandomTexture>
         <Top>
-            <Texture><Sheet>ground</Sheet><Index>0xab</Index></Texture>
+            <RandomTexture>
+                <Texture>
+                    <Sheet>ground</Sheet>
+                    <Index>0xbe</Index>
+                </Texture>
+                <Texture>
+                    <Sheet>ground</Sheet>
+                    <Index>0xbf</Index>
+                </Texture>
+                <Texture>
+                    <Sheet>ground</Sheet>
+                    <Index>0xc0</Index>
+                </Texture>
+                <Texture>
+                    <Sheet>ground</Sheet>
+                    <Index>0xc1</Index>
+                </Texture>
+            </RandomTexture>
         </Top>
         <Static/>
         <FullOccupy/>
