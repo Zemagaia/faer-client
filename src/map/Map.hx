@@ -1,5 +1,6 @@
 package map;
 
+import objects.animation.Animations;
 import engine.GLTextureData;
 import util.Utils.KeyCodeUtil;
 import util.Settings;
@@ -133,10 +134,6 @@ class Map {
 	public var objVBOLen: Int32 = 0;
 	public var objIBO: GLBuffer;
 	public var objIBOLen: Int32 = 0;
-	public var vertexData: RawPointer<Float32>;
-	public var vertexLen: UInt32 = 262144;
-	public var indexData: RawPointer<UInt32>;
-	public var indexLen: UInt32 = 262144;
 
 	private var i: Int32 = 0;
 	private var vIdx: Int32 = 0;
@@ -193,9 +190,6 @@ class Map {
 		this.enemyBalloonTex = AssetLibrary.getImageFromSet("speechBalloons", 0x3);
 		this.partyBalloonTex = AssetLibrary.getImageFromSet("speechBalloons", 0x4);
 		this.adminBalloonTex = AssetLibrary.getImageFromSet("speechBalloons", 0x5);
-
-		this.vertexData = cast Stdlib.nativeMalloc(this.vertexLen * 4);
-		this.indexData = cast Stdlib.nativeMalloc(this.indexLen * 4);
 
 		var leftMaskRect = AssetLibrary.getRectFromSet("ground", 0x6b);
 		leftMaskU = (leftMaskRect.x + Main.PADDING) / Main.ATLAS_WIDTH;
@@ -309,9 +303,6 @@ class Map {
 	}
 
 	@:nonVirtual public function dispose() {
-		Stdlib.nativeFree(cast this.vertexData);
-		Stdlib.nativeFree(cast this.indexData);
-
 		this.squares = null;
 
 		if (this.gameObjects != null)
@@ -396,24 +387,7 @@ class Map {
 		return !(x < 0 || x >= this.mapWidth || y < 0 || y >= this.mapHeight);
 	}
 
-	@:nonVirtual public function setGroundTile(x: UInt16, y: UInt16, tileType: UInt16) {
-		if (!validPos(x, y))
-			return;
-
-		var idx: Int32 = x + y * this.mapWidth;
-		var square = this.squares[idx];
-		if (square == null) {
-			square = new Square(x + 0.5, y + 0.5);
-			this.squares[idx] = square;
-		}
-
-		square.tileType = tileType;
-		square.props = GroundLibrary.propsLibrary.get(square.tileType);
-		var texData = GroundLibrary.typeToTextureData.get(square.tileType).getTextureData();
-		square.baseU = texData.uValue;
-		square.baseV = texData.vValue;
-		square.sink = square.props != null && square.props.sink ? 0.6 : 0;
-
+	@:nonVirtual private inline function updateBlends(x: UInt16, y: UInt16, square: Square) {
 		if (validPos(x - 1, y)) {
 			var leftSq = this.squares[x - 1 + y * this.mapWidth];
 			if (leftSq != null) {
@@ -475,8 +449,32 @@ class Map {
 					square.bottomBlendU = square.bottomBlendV = -1.0;
 					bottomSq.topBlendU = bottomSq.topBlendV = -1.0;
 				}
-			};
+			}
 		}
+	}
+
+	@:nonVirtual public function setGroundTile(x: UInt16, y: UInt16, tileType: UInt16) {
+		if (!validPos(x, y))
+			return;
+
+		var idx: Int32 = x + y * this.mapWidth;
+		var square = this.squares[idx];
+		if (square == null) {
+			square = new Square(x + 0.5, y + 0.5);
+			this.squares[idx] = square;
+		}
+
+		square.tileType = tileType;
+		square.props = GroundLibrary.propsLibrary.get(tileType);
+		var texData = GroundLibrary.typeToTextureData.get(tileType).getTextureData();
+		square.baseU = texData.uValue;
+		square.baseV = texData.vValue;
+		var animationsData = GroundLibrary.typeToAnimationsData.get(tileType);
+		if (animationsData != null)
+			square.animations = new Animations(animationsData);
+		square.sink = square.props != null && square.props.sink ? 0.6 : 0;
+
+		updateBlends(x, y, square);
 	}
 
 	@:nonVirtual public function addGameObject(go: GameObject, posX: Float32, posY: Float32) {
@@ -650,7 +648,7 @@ class Map {
 		return square;
 	}
 
-	@:nonVirtual private final #if !tracing inline #end function drawSquares() {
+	@:nonVirtual private final #if !tracing inline #end function drawSquares(time: Int32) {
 		final xScaledCos = Camera.xScaledCos;
 		final yScaledCos = Camera.yScaledCos;
 		final xScaledSin = Camera.xScaledSin;
@@ -658,91 +656,100 @@ class Map {
 
 		while (this.i < this.visSquareLen) {
 			final square = this.visSquares[this.i];
+
+			if (square.animations != null) {
+				var rect = square.animations.getTexture(time);
+				if (rect != null) {
+					square.baseU = (rect.x + 2) / Main.ATLAS_WIDTH;
+					square.baseV = (rect.y + 2) / Main.ATLAS_WIDTH;
+					updateBlends(square.x, square.y, square);
+				}			
+			}
+
 			square.clipX = (square.middleX * Camera.cos + square.middleY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
 			square.clipY = (square.middleX * -Camera.sin + square.middleY * Camera.cos + Camera.csY) * RenderUtils.clipSpaceScaleY;
 
-			this.vertexData[this.vIdx] = -xScaledCos - xScaledSin + square.clipX;
-			this.vertexData[this.vIdx + 1] = yScaledSin - yScaledCos + square.clipY;
-			this.vertexData[this.vIdx + 2] = 0;
-			this.vertexData[this.vIdx + 3] = 0;
+			setF32ValueAt(this.vIdx, -xScaledCos - xScaledSin + square.clipX);
+			setF32ValueAt(this.vIdx + 1, yScaledSin - yScaledCos + square.clipY);
+			setF32ValueAt(this.vIdx + 2, 0);
+			setF32ValueAt(this.vIdx + 3, 0);
 
-			this.vertexData[this.vIdx + 4] = square.leftBlendU;
-			this.vertexData[this.vIdx + 5] = square.leftBlendV;
-			this.vertexData[this.vIdx + 6] = square.topBlendU;
-			this.vertexData[this.vIdx + 7] = square.topBlendV;
+			setF32ValueAt(this.vIdx + 4, square.leftBlendU);
+			setF32ValueAt(this.vIdx + 5, square.leftBlendV);
+			setF32ValueAt(this.vIdx + 6, square.topBlendU);
+			setF32ValueAt(this.vIdx + 7, square.topBlendV);
 
-			this.vertexData[this.vIdx + 8] = square.rightBlendU;
-			this.vertexData[this.vIdx + 9] = square.rightBlendV;
-			this.vertexData[this.vIdx + 10] = square.bottomBlendU;
-			this.vertexData[this.vIdx + 11] = square.bottomBlendV;
+			setF32ValueAt(this.vIdx + 8, square.rightBlendU);
+			setF32ValueAt(this.vIdx + 9, square.rightBlendV);
+			setF32ValueAt(this.vIdx + 10, square.bottomBlendU);
+			setF32ValueAt(this.vIdx + 11, square.bottomBlendV);
 
-			this.vertexData[this.vIdx + 12] = square.baseU;
-			this.vertexData[this.vIdx + 13] = square.baseV;
+			setF32ValueAt(this.vIdx + 12, square.baseU);
+			setF32ValueAt(this.vIdx + 13, square.baseV);
 
-			this.vertexData[this.vIdx + 14] = xScaledCos - xScaledSin + square.clipX;
-			this.vertexData[this.vIdx + 15] = -yScaledSin - yScaledCos + square.clipY;
-			this.vertexData[this.vIdx + 16] = 8 / Main.ATLAS_WIDTH;
-			this.vertexData[this.vIdx + 17] = 0;
+			setF32ValueAt(this.vIdx + 14, xScaledCos - xScaledSin + square.clipX);
+			setF32ValueAt(this.vIdx + 15, -yScaledSin - yScaledCos + square.clipY);
+			setF32ValueAt(this.vIdx + 16, 8 / Main.ATLAS_WIDTH);
+			setF32ValueAt(this.vIdx + 17, 0);
 
-			this.vertexData[this.vIdx + 18] = square.leftBlendU;
-			this.vertexData[this.vIdx + 19] = square.leftBlendV;
-			this.vertexData[this.vIdx + 20] = square.topBlendU;
-			this.vertexData[this.vIdx + 21] = square.topBlendV;
+			setF32ValueAt(this.vIdx + 18, square.leftBlendU);
+			setF32ValueAt(this.vIdx + 19, square.leftBlendV);
+			setF32ValueAt(this.vIdx + 20, square.topBlendU);
+			setF32ValueAt(this.vIdx + 21, square.topBlendV);
 
-			this.vertexData[this.vIdx + 22] = square.rightBlendU;
-			this.vertexData[this.vIdx + 23] = square.rightBlendV;
-			this.vertexData[this.vIdx + 24] = square.bottomBlendU;
-			this.vertexData[this.vIdx + 25] = square.bottomBlendV;
+			setF32ValueAt(this.vIdx + 22, square.rightBlendU);
+			setF32ValueAt(this.vIdx + 23, square.rightBlendV);
+			setF32ValueAt(this.vIdx + 24, square.bottomBlendU);
+			setF32ValueAt(this.vIdx + 25, square.bottomBlendV);
 
-			this.vertexData[this.vIdx + 26] = square.baseU;
-			this.vertexData[this.vIdx + 27] = square.baseV;
+			setF32ValueAt(this.vIdx + 26, square.baseU);
+			setF32ValueAt(this.vIdx + 27, square.baseV);
 
-			this.vertexData[this.vIdx + 28] = -xScaledCos + xScaledSin + square.clipX;
-			this.vertexData[this.vIdx + 29] = yScaledSin + yScaledCos + square.clipY;
-			this.vertexData[this.vIdx + 30] = 0;
-			this.vertexData[this.vIdx + 31] = 8 / Main.ATLAS_WIDTH;
+			setF32ValueAt(this.vIdx + 28, -xScaledCos + xScaledSin + square.clipX);
+			setF32ValueAt(this.vIdx + 29, yScaledSin + yScaledCos + square.clipY);
+			setF32ValueAt(this.vIdx + 30, 0);
+			setF32ValueAt(this.vIdx + 31, 8 / Main.ATLAS_WIDTH);
 
-			this.vertexData[this.vIdx + 32] = square.leftBlendU;
-			this.vertexData[this.vIdx + 33] = square.leftBlendV;
-			this.vertexData[this.vIdx + 34] = square.topBlendU;
-			this.vertexData[this.vIdx + 35] = square.topBlendV;
+			setF32ValueAt(this.vIdx + 32, square.leftBlendU);
+			setF32ValueAt(this.vIdx + 33, square.leftBlendV);
+			setF32ValueAt(this.vIdx + 34, square.topBlendU);
+			setF32ValueAt(this.vIdx + 35, square.topBlendV);
 
-			this.vertexData[this.vIdx + 36] = square.rightBlendU;
-			this.vertexData[this.vIdx + 37] = square.rightBlendV;
-			this.vertexData[this.vIdx + 38] = square.bottomBlendU;
-			this.vertexData[this.vIdx + 39] = square.bottomBlendV;
+			setF32ValueAt(this.vIdx + 36, square.rightBlendU);
+			setF32ValueAt(this.vIdx + 37, square.rightBlendV);
+			setF32ValueAt(this.vIdx + 38, square.bottomBlendU);
+			setF32ValueAt(this.vIdx + 39, square.bottomBlendV);
 
-			this.vertexData[this.vIdx + 40] = square.baseU;
-			this.vertexData[this.vIdx + 41] = square.baseV;
+			setF32ValueAt(this.vIdx + 40, square.baseU);
+			setF32ValueAt(this.vIdx + 41, square.baseV);
 
-			this.vertexData[this.vIdx + 42] = xScaledCos + xScaledSin + square.clipX;
-			this.vertexData[this.vIdx + 43] = -yScaledSin + yScaledCos + square.clipY;
-			this.vertexData[this.vIdx + 44] = 8 / Main.ATLAS_WIDTH;
-			this.vertexData[this.vIdx + 45] = 8 / Main.ATLAS_WIDTH;
+			setF32ValueAt(this.vIdx + 42, xScaledCos + xScaledSin + square.clipX);
+			setF32ValueAt(this.vIdx + 43, -yScaledSin + yScaledCos + square.clipY);
+			setF32ValueAt(this.vIdx + 44, 8 / Main.ATLAS_WIDTH);
+			setF32ValueAt(this.vIdx + 45, 8 / Main.ATLAS_WIDTH);
 
-			this.vertexData[this.vIdx + 46] = square.leftBlendU;
-			this.vertexData[this.vIdx + 47] = square.leftBlendV;
-			this.vertexData[this.vIdx + 48] = square.topBlendU;
-			this.vertexData[this.vIdx + 49] = square.topBlendV;
+			setF32ValueAt(this.vIdx + 46, square.leftBlendU);
+			setF32ValueAt(this.vIdx + 47, square.leftBlendV);
+			setF32ValueAt(this.vIdx + 48, square.topBlendU);
+			setF32ValueAt(this.vIdx + 49, square.topBlendV);
 
-			this.vertexData[this.vIdx + 50] = square.rightBlendU;
-			this.vertexData[this.vIdx + 51] = square.rightBlendV;
-			this.vertexData[this.vIdx + 52] = square.bottomBlendU;
-			this.vertexData[this.vIdx + 53] = square.bottomBlendV;
+			setF32ValueAt(this.vIdx + 50, square.rightBlendU);
+			setF32ValueAt(this.vIdx + 51, square.rightBlendV);
+			setF32ValueAt(this.vIdx + 52, square.bottomBlendU);
+			setF32ValueAt(this.vIdx + 53, square.bottomBlendV);
 
-			this.vertexData[this.vIdx + 54] = square.baseU;
-			this.vertexData[this.vIdx + 55] = square.baseV;
+			setF32ValueAt(this.vIdx + 54, square.baseU);
+			setF32ValueAt(this.vIdx + 55, square.baseV);
 			this.vIdx += 56;
 
 			final i4: UInt32 = this.i * 4;
-			this.indexData[this.iIdx] = i4;
-			this.indexData[this.iIdx + 1] = 1 + i4;
-			this.indexData[this.iIdx + 2] = 2 + i4;
-			this.indexData[this.iIdx + 3] = 2 + i4;
-			this.indexData[this.iIdx + 4] = 1 + i4;
-			this.indexData[this.iIdx + 5] = 3 + i4;
+			setI32ValueAt(this.iIdx, i4);
+			setI32ValueAt(this.iIdx + 1, 1 + i4);
+			setI32ValueAt(this.iIdx + 2, 2 + i4);
+			setI32ValueAt(this.iIdx + 3, 2 + i4);
+			setI32ValueAt(this.iIdx + 4, 1 + i4);
+			setI32ValueAt(this.iIdx + 5, 3 + i4);
 			this.iIdx += 6;
-
 			this.i++;
 		}
 	}
@@ -784,62 +791,62 @@ class Map {
 		if (boundAngle >= MathUtil.PI_DIV_2 && boundAngle <= MathUtil.PI || boundAngle >= -MathUtil.PI && boundAngle <= -MathUtil.PI_DIV_2) {
 			var topSquare = this.squares[(Math.floor(objY) - 1) * this.mapWidth + Math.floor(objX)];
 			if (topSquare != null && (topSquare.obj == null || topSquare.obj.objClass != "Wall")) {
-				this.vertexData[this.vIdx] = -xScaledCos + xScaledSin + xBaseTop - xScaledSin * 2;
-				this.vertexData[this.vIdx + 1] = yScaledSin + yScaledCos + yBaseTop - yScaledCos * 2;
-				this.vertexData[this.vIdx + 2] = obj.uValue;
-				this.vertexData[this.vIdx + 3] = obj.vValue;
+				setF32ValueAt(this.vIdx, -xScaledCos + xScaledSin + xBaseTop - xScaledSin * 2);
+				setF32ValueAt(this.vIdx + 1, yScaledSin + yScaledCos + yBaseTop - yScaledCos * 2);
+				setF32ValueAt(this.vIdx + 2, obj.uValue);
+				setF32ValueAt(this.vIdx + 3, obj.vValue);
 
-				this.vertexData[this.vIdx + 4] = 0;
-				this.vertexData[this.vIdx + 5] = 0;
-				this.vertexData[this.vIdx + 6] = 0;
-				this.vertexData[this.vIdx + 7] = 1.0;
-				this.vertexData[this.vIdx + 8] = 0.25;
-				this.vertexData[this.vIdx + 9] = -1;
+				setF32ValueAt(this.vIdx + 4, 0);
+				setF32ValueAt(this.vIdx + 5, 0);
+				setF32ValueAt(this.vIdx + 6, 0);
+				setF32ValueAt(this.vIdx + 7, 1.0);
+				setF32ValueAt(this.vIdx + 8, 0.25);
+				setF32ValueAt(this.vIdx + 9, -1);
 
-				this.vertexData[this.vIdx + 10] = xScaledCos + xScaledSin + xBaseTop - xScaledSin * 2;
-				this.vertexData[this.vIdx + 11] = -yScaledSin + yScaledCos + yBaseTop - yScaledCos * 2;
-				this.vertexData[this.vIdx + 12] = obj.uValue + size;
-				this.vertexData[this.vIdx + 13] = obj.vValue;
+				setF32ValueAt(this.vIdx + 10, xScaledCos + xScaledSin + xBaseTop - xScaledSin * 2);
+				setF32ValueAt(this.vIdx + 11, -yScaledSin + yScaledCos + yBaseTop - yScaledCos * 2);
+				setF32ValueAt(this.vIdx + 12, obj.uValue + size);
+				setF32ValueAt(this.vIdx + 13, obj.vValue);
 
-				this.vertexData[this.vIdx + 14] = 0;
-				this.vertexData[this.vIdx + 15] = 0;
-				this.vertexData[this.vIdx + 16] = 0;
-				this.vertexData[this.vIdx + 17] = 1.0;
-				this.vertexData[this.vIdx + 18] = 0.25;
-				this.vertexData[this.vIdx + 19] = -1;
+				setF32ValueAt(this.vIdx + 14, 0);
+				setF32ValueAt(this.vIdx + 15, 0);
+				setF32ValueAt(this.vIdx + 16, 0);
+				setF32ValueAt(this.vIdx + 17, 1.0);
+				setF32ValueAt(this.vIdx + 18, 0.25);
+				setF32ValueAt(this.vIdx + 19, -1);
 
-				this.vertexData[this.vIdx + 20] = -xScaledCos + xScaledSin + xBase - xScaledSin * 2;
-				this.vertexData[this.vIdx + 21] = yScaledSin + yScaledCos + yBase - yScaledCos * 2;
-				this.vertexData[this.vIdx + 22] = obj.uValue;
-				this.vertexData[this.vIdx + 23] = obj.vValue + size;
+				setF32ValueAt(this.vIdx + 20, -xScaledCos + xScaledSin + xBase - xScaledSin * 2);
+				setF32ValueAt(this.vIdx + 21, yScaledSin + yScaledCos + yBase - yScaledCos * 2);
+				setF32ValueAt(this.vIdx + 22, obj.uValue);
+				setF32ValueAt(this.vIdx + 23, obj.vValue + size);
 
-				this.vertexData[this.vIdx + 24] = 0;
-				this.vertexData[this.vIdx + 25] = 0;
-				this.vertexData[this.vIdx + 26] = 0;
-				this.vertexData[this.vIdx + 27] = 1.0;
-				this.vertexData[this.vIdx + 28] = 0.25;
-				this.vertexData[this.vIdx + 29] = -1;
+				setF32ValueAt(this.vIdx + 24, 0);
+				setF32ValueAt(this.vIdx + 25, 0);
+				setF32ValueAt(this.vIdx + 26, 0);
+				setF32ValueAt(this.vIdx + 27, 1.0);
+				setF32ValueAt(this.vIdx + 28, 0.25);
+				setF32ValueAt(this.vIdx + 29, -1);
 
-				this.vertexData[this.vIdx + 30] = xScaledCos + xScaledSin + xBase - xScaledSin * 2;
-				this.vertexData[this.vIdx + 31] = -yScaledSin + yScaledCos + yBase - yScaledCos * 2;
-				this.vertexData[this.vIdx + 32] = obj.uValue + size;
-				this.vertexData[this.vIdx + 33] = obj.vValue + size;
+				setF32ValueAt(this.vIdx + 30, xScaledCos + xScaledSin + xBase - xScaledSin * 2);
+				setF32ValueAt(this.vIdx + 31, -yScaledSin + yScaledCos + yBase - yScaledCos * 2);
+				setF32ValueAt(this.vIdx + 32, obj.uValue + size);
+				setF32ValueAt(this.vIdx + 33, obj.vValue + size);
 
-				this.vertexData[this.vIdx + 34] = 0;
-				this.vertexData[this.vIdx + 35] = 0;
-				this.vertexData[this.vIdx + 36] = 0;
-				this.vertexData[this.vIdx + 37] = 1.0;
-				this.vertexData[this.vIdx + 38] = 0.25;
-				this.vertexData[this.vIdx + 39] = -1;
+				setF32ValueAt(this.vIdx + 34, 0);
+				setF32ValueAt(this.vIdx + 35, 0);
+				setF32ValueAt(this.vIdx + 36, 0);
+				setF32ValueAt(this.vIdx + 37, 1.0);
+				setF32ValueAt(this.vIdx + 38, 0.25);
+				setF32ValueAt(this.vIdx + 39, -1);
 				this.vIdx += 40;
 
 				final i4 = this.i * 4;
-				this.indexData[this.iIdx] = i4;
-				this.indexData[this.iIdx + 1] = 1 + i4;
-				this.indexData[this.iIdx + 2] = 2 + i4;
-				this.indexData[this.iIdx + 3] = 2 + i4;
-				this.indexData[this.iIdx + 4] = 1 + i4;
-				this.indexData[this.iIdx + 5] = 3 + i4;
+				setI32ValueAt(this.iIdx, i4);
+				setI32ValueAt(this.iIdx + 1, 1 + i4);
+				setI32ValueAt(this.iIdx + 2, 2 + i4);
+				setI32ValueAt(this.iIdx + 3, 2 + i4);
+				setI32ValueAt(this.iIdx + 4, 1 + i4);
+				setI32ValueAt(this.iIdx + 5, 3 + i4);
 				this.iIdx += 6;
 				this.i++;
 			}
@@ -848,62 +855,62 @@ class Map {
 		if (boundAngle <= MathUtil.PI_DIV_2 && boundAngle >= -MathUtil.PI_DIV_2) {
 			var bottomSquare = this.squares[(Math.floor(objY) + 1) * this.mapWidth + Math.floor(objX)];
 			if (bottomSquare != null && (bottomSquare.obj == null || bottomSquare.obj.objClass != "Wall")) { 
-				this.vertexData[this.vIdx] = -xScaledCos + xScaledSin + xBaseTop;
-				this.vertexData[this.vIdx + 1] = yScaledSin + yScaledCos + yBaseTop;
-				this.vertexData[this.vIdx + 2] = obj.uValue;
-				this.vertexData[this.vIdx + 3] = obj.vValue;
+				setF32ValueAt(this.vIdx, -xScaledCos + xScaledSin + xBaseTop);
+				setF32ValueAt(this.vIdx + 1, yScaledSin + yScaledCos + yBaseTop);
+				setF32ValueAt(this.vIdx + 2, obj.uValue);
+				setF32ValueAt(this.vIdx + 3, obj.vValue);
 
-				this.vertexData[this.vIdx + 4] = 0;
-				this.vertexData[this.vIdx + 5] = 0;
-				this.vertexData[this.vIdx + 6] = 0;
-				this.vertexData[this.vIdx + 7] = 1.0;
-				this.vertexData[this.vIdx + 8] = 0.25;
-				this.vertexData[this.vIdx + 9] = -1;
+				setF32ValueAt(this.vIdx + 4, 0);
+				setF32ValueAt(this.vIdx + 5, 0);
+				setF32ValueAt(this.vIdx + 6, 0);
+				setF32ValueAt(this.vIdx + 7, 1.0);
+				setF32ValueAt(this.vIdx + 8, 0.25);
+				setF32ValueAt(this.vIdx + 9, -1);
 
-				this.vertexData[this.vIdx + 10] = xScaledCos + xScaledSin + xBaseTop;
-				this.vertexData[this.vIdx + 11] = -yScaledSin + yScaledCos + yBaseTop;
-				this.vertexData[this.vIdx + 12] = obj.uValue + size;
-				this.vertexData[this.vIdx + 13] = obj.vValue;
+				setF32ValueAt(this.vIdx + 10, xScaledCos + xScaledSin + xBaseTop);
+				setF32ValueAt(this.vIdx + 11, -yScaledSin + yScaledCos + yBaseTop);
+				setF32ValueAt(this.vIdx + 12, obj.uValue + size);
+				setF32ValueAt(this.vIdx + 13, obj.vValue);
 
-				this.vertexData[this.vIdx + 14] = 0;
-				this.vertexData[this.vIdx + 15] = 0;
-				this.vertexData[this.vIdx + 16] = 0;
-				this.vertexData[this.vIdx + 17] = 1.0;
-				this.vertexData[this.vIdx + 18] = 0.25;
-				this.vertexData[this.vIdx + 19] = -1;
+				setF32ValueAt(this.vIdx + 14, 0);
+				setF32ValueAt(this.vIdx + 15, 0);
+				setF32ValueAt(this.vIdx + 16, 0);
+				setF32ValueAt(this.vIdx + 17, 1.0);
+				setF32ValueAt(this.vIdx + 18, 0.25);
+				setF32ValueAt(this.vIdx + 19, -1);
 
-				this.vertexData[this.vIdx + 20] = -xScaledCos + xScaledSin + xBase;
-				this.vertexData[this.vIdx + 21] = yScaledSin + yScaledCos + yBase;
-				this.vertexData[this.vIdx + 22] = obj.uValue;
-				this.vertexData[this.vIdx + 23] = obj.vValue + size;
+				setF32ValueAt(this.vIdx + 20, -xScaledCos + xScaledSin + xBase);
+				setF32ValueAt(this.vIdx + 21, yScaledSin + yScaledCos + yBase);
+				setF32ValueAt(this.vIdx + 22, obj.uValue);
+				setF32ValueAt(this.vIdx + 23, obj.vValue + size);
 
-				this.vertexData[this.vIdx + 24] = 0;
-				this.vertexData[this.vIdx + 25] = 0;
-				this.vertexData[this.vIdx + 26] = 0;
-				this.vertexData[this.vIdx + 27] = 1.0;
-				this.vertexData[this.vIdx + 28] = 0.25;
-				this.vertexData[this.vIdx + 29] = -1;
+				setF32ValueAt(this.vIdx + 24, 0);
+				setF32ValueAt(this.vIdx + 25, 0);
+				setF32ValueAt(this.vIdx + 26, 0);
+				setF32ValueAt(this.vIdx + 27, 1.0);
+				setF32ValueAt(this.vIdx + 28, 0.25);
+				setF32ValueAt(this.vIdx + 29, -1);
 
-				this.vertexData[this.vIdx + 30] = xScaledCos + xScaledSin + xBase;
-				this.vertexData[this.vIdx + 31] = -yScaledSin + yScaledCos + yBase;
-				this.vertexData[this.vIdx + 32] = obj.uValue + size;
-				this.vertexData[this.vIdx + 33] = obj.vValue + size;
+				setF32ValueAt(this.vIdx + 30, xScaledCos + xScaledSin + xBase);
+				setF32ValueAt(this.vIdx + 31, -yScaledSin + yScaledCos + yBase);
+				setF32ValueAt(this.vIdx + 32, obj.uValue + size);
+				setF32ValueAt(this.vIdx + 33, obj.vValue + size);
 
-				this.vertexData[this.vIdx + 34] = 0;
-				this.vertexData[this.vIdx + 35] = 0;
-				this.vertexData[this.vIdx + 36] = 0;
-				this.vertexData[this.vIdx + 37] = 1.0;
-				this.vertexData[this.vIdx + 38] = 0.25;
-				this.vertexData[this.vIdx + 39] = -1;
+				setF32ValueAt(this.vIdx + 34, 0);
+				setF32ValueAt(this.vIdx + 35, 0);
+				setF32ValueAt(this.vIdx + 36, 0);
+				setF32ValueAt(this.vIdx + 37, 1.0);
+				setF32ValueAt(this.vIdx + 38, 0.25);
+				setF32ValueAt(this.vIdx + 39, -1);
 				this.vIdx += 40;
 
 				final i4 = this.i * 4;
-				this.indexData[this.iIdx] = i4;
-				this.indexData[this.iIdx + 1] = 1 + i4;
-				this.indexData[this.iIdx + 2] = 2 + i4;
-				this.indexData[this.iIdx + 3] = 2 + i4;
-				this.indexData[this.iIdx + 4] = 1 + i4;
-				this.indexData[this.iIdx + 5] = 3 + i4;
+				setI32ValueAt(this.iIdx, i4);
+				setI32ValueAt(this.iIdx + 1, 1 + i4);
+				setI32ValueAt(this.iIdx + 2, 2 + i4);
+				setI32ValueAt(this.iIdx + 3, 2 + i4);
+				setI32ValueAt(this.iIdx + 4, 1 + i4);
+				setI32ValueAt(this.iIdx + 5, 3 + i4);
 				this.iIdx += 6;
 				this.i++;
 			}
@@ -913,62 +920,62 @@ class Map {
 		if (boundAngle >= 0 && boundAngle <= MathUtil.PI) {
 			var leftSquare = this.squares[Math.floor(objY) * this.mapWidth + Math.floor(objX) - 1];
 			if (leftSquare != null && (leftSquare.obj == null || leftSquare.obj.objClass != "Wall")) { 
-				this.vertexData[this.vIdx] = -xScaledCos - xScaledSin + xBaseTop;
-				this.vertexData[this.vIdx + 1] = yScaledSin - yScaledCos + yBaseTop;
-				this.vertexData[this.vIdx + 2] = obj.uValue;
-				this.vertexData[this.vIdx + 3] = obj.vValue;
+				setF32ValueAt(this.vIdx, -xScaledCos - xScaledSin + xBaseTop);
+				setF32ValueAt(this.vIdx + 1, yScaledSin - yScaledCos + yBaseTop);
+				setF32ValueAt(this.vIdx + 2, obj.uValue);
+				setF32ValueAt(this.vIdx + 3, obj.vValue);
 
-				this.vertexData[this.vIdx + 4] = 0;
-				this.vertexData[this.vIdx + 5] = 0;
-				this.vertexData[this.vIdx + 6] = 0;
-				this.vertexData[this.vIdx + 7] = 1.0;
-				this.vertexData[this.vIdx + 8] = 0.25;
-				this.vertexData[this.vIdx + 9] = -1;
+				setF32ValueAt(this.vIdx + 4, 0);
+				setF32ValueAt(this.vIdx + 5, 0);
+				setF32ValueAt(this.vIdx + 6, 0);
+				setF32ValueAt(this.vIdx + 7, 1.0);
+				setF32ValueAt(this.vIdx + 8, 0.25);
+				setF32ValueAt(this.vIdx + 9, -1);
 
-				this.vertexData[this.vIdx + 10] = -xScaledCos + xScaledSin + xBaseTop;
-				this.vertexData[this.vIdx + 11] = yScaledSin + yScaledCos + yBaseTop;
-				this.vertexData[this.vIdx + 12] = obj.uValue + size;
-				this.vertexData[this.vIdx + 13] = obj.vValue;
+				setF32ValueAt(this.vIdx + 10, -xScaledCos + xScaledSin + xBaseTop);
+				setF32ValueAt(this.vIdx + 11, yScaledSin + yScaledCos + yBaseTop);
+				setF32ValueAt(this.vIdx + 12, obj.uValue + size);
+				setF32ValueAt(this.vIdx + 13, obj.vValue);
 
-				this.vertexData[this.vIdx + 14] = 0;
-				this.vertexData[this.vIdx + 15] = 0;
-				this.vertexData[this.vIdx + 16] = 0;
-				this.vertexData[this.vIdx + 17] = 1.0;
-				this.vertexData[this.vIdx + 18] = 0.25;
-				this.vertexData[this.vIdx + 19] = -1;
+				setF32ValueAt(this.vIdx + 14, 0);
+				setF32ValueAt(this.vIdx + 15, 0);
+				setF32ValueAt(this.vIdx + 16, 0);
+				setF32ValueAt(this.vIdx + 17, 1.0);
+				setF32ValueAt(this.vIdx + 18, 0.25);
+				setF32ValueAt(this.vIdx + 19, -1);
 
-				this.vertexData[this.vIdx + 20] = -xScaledCos + xScaledSin + xBase - xScaledSin * 2;
-				this.vertexData[this.vIdx + 21] = yScaledSin + yScaledCos + yBase - yScaledCos * 2;
-				this.vertexData[this.vIdx + 22] = obj.uValue;
-				this.vertexData[this.vIdx + 23] = obj.vValue + size;
+				setF32ValueAt(this.vIdx + 20, -xScaledCos + xScaledSin + xBase - xScaledSin * 2);
+				setF32ValueAt(this.vIdx + 21, yScaledSin + yScaledCos + yBase - yScaledCos * 2);
+				setF32ValueAt(this.vIdx + 22, obj.uValue);
+				setF32ValueAt(this.vIdx + 23, obj.vValue + size);
 
-				this.vertexData[this.vIdx + 24] = 0;
-				this.vertexData[this.vIdx + 25] = 0;
-				this.vertexData[this.vIdx + 26] = 0;
-				this.vertexData[this.vIdx + 27] = 1.0;
-				this.vertexData[this.vIdx + 28] = 0.25;
-				this.vertexData[this.vIdx + 29] = -1;
+				setF32ValueAt(this.vIdx + 24, 0);
+				setF32ValueAt(this.vIdx + 25, 0);
+				setF32ValueAt(this.vIdx + 26, 0);
+				setF32ValueAt(this.vIdx + 27, 1.0);
+				setF32ValueAt(this.vIdx + 28, 0.25);
+				setF32ValueAt(this.vIdx + 29, -1);
 
-				this.vertexData[this.vIdx + 30] = -xScaledCos + xScaledSin + xBase;
-				this.vertexData[this.vIdx + 31] = yScaledSin + yScaledCos + yBase;
-				this.vertexData[this.vIdx + 32] = obj.uValue + size;
-				this.vertexData[this.vIdx + 33] = obj.vValue + size;
+				setF32ValueAt(this.vIdx + 30, -xScaledCos + xScaledSin + xBase);
+				setF32ValueAt(this.vIdx + 31, yScaledSin + yScaledCos + yBase);
+				setF32ValueAt(this.vIdx + 32, obj.uValue + size);
+				setF32ValueAt(this.vIdx + 33, obj.vValue + size);
 
-				this.vertexData[this.vIdx + 34] = 0;
-				this.vertexData[this.vIdx + 35] = 0;
-				this.vertexData[this.vIdx + 36] = 0;
-				this.vertexData[this.vIdx + 37] = 1.0;
-				this.vertexData[this.vIdx + 38] = 0.25;
-				this.vertexData[this.vIdx + 39] = -1;
+				setF32ValueAt(this.vIdx + 34, 0);
+				setF32ValueAt(this.vIdx + 35, 0);
+				setF32ValueAt(this.vIdx + 36, 0);
+				setF32ValueAt(this.vIdx + 37, 1.0);
+				setF32ValueAt(this.vIdx + 38, 0.25);
+				setF32ValueAt(this.vIdx + 39, -1);
 				this.vIdx += 40;
 
 				final i4 = this.i * 4;
-				this.indexData[this.iIdx] = i4;
-				this.indexData[this.iIdx + 1] = 1 + i4;
-				this.indexData[this.iIdx + 2] = 2 + i4;
-				this.indexData[this.iIdx + 3] = 2 + i4;
-				this.indexData[this.iIdx + 4] = 1 + i4;
-				this.indexData[this.iIdx + 5] = 3 + i4;
+				setI32ValueAt(this.iIdx, i4);
+				setI32ValueAt(this.iIdx + 1, 1 + i4);
+				setI32ValueAt(this.iIdx + 2, 2 + i4);
+				setI32ValueAt(this.iIdx + 3, 2 + i4);
+				setI32ValueAt(this.iIdx + 4, 1 + i4);
+				setI32ValueAt(this.iIdx + 5, 3 + i4);
 				this.iIdx += 6;
 				this.i++;
 			}
@@ -977,123 +984,123 @@ class Map {
 		if (boundAngle <= 0 && boundAngle >= -MathUtil.PI) {
 			var rightSquare = this.squares[Math.floor(objY) * this.mapWidth + Math.floor(objX) + 1];
 			if (rightSquare != null && (rightSquare.obj == null || rightSquare.obj.objClass != "Wall")) { 
-				this.vertexData[this.vIdx] = xScaledCos - xScaledSin + xBaseTop;
-				this.vertexData[this.vIdx + 1] = -yScaledSin - yScaledCos + yBaseTop;
-				this.vertexData[this.vIdx + 2] = obj.uValue;
-				this.vertexData[this.vIdx + 3] = obj.vValue;
+				setF32ValueAt(this.vIdx, xScaledCos - xScaledSin + xBaseTop);
+				setF32ValueAt(this.vIdx + 1, -yScaledSin - yScaledCos + yBaseTop);
+				setF32ValueAt(this.vIdx + 2, obj.uValue);
+				setF32ValueAt(this.vIdx + 3, obj.vValue);
 
-				this.vertexData[this.vIdx + 4] = 0;
-				this.vertexData[this.vIdx + 5] = 0;
-				this.vertexData[this.vIdx + 6] = 0;
-				this.vertexData[this.vIdx + 7] = 1.0;
-				this.vertexData[this.vIdx + 8] = 0.25;
-				this.vertexData[this.vIdx + 9] = -1;
+				setF32ValueAt(this.vIdx + 4, 0);
+				setF32ValueAt(this.vIdx + 5, 0);
+				setF32ValueAt(this.vIdx + 6, 0);
+				setF32ValueAt(this.vIdx + 7, 1.0);
+				setF32ValueAt(this.vIdx + 8, 0.25);
+				setF32ValueAt(this.vIdx + 9, -1);
 
-				this.vertexData[this.vIdx + 10] = xScaledCos + xScaledSin + xBaseTop;
-				this.vertexData[this.vIdx + 11] = -yScaledSin + yScaledCos + yBaseTop;
-				this.vertexData[this.vIdx + 12] = obj.uValue + size;
-				this.vertexData[this.vIdx + 13] = obj.vValue;
+				setF32ValueAt(this.vIdx + 10, xScaledCos + xScaledSin + xBaseTop);
+				setF32ValueAt(this.vIdx + 11, -yScaledSin + yScaledCos + yBaseTop);
+				setF32ValueAt(this.vIdx + 12, obj.uValue + size);
+				setF32ValueAt(this.vIdx + 13, obj.vValue);
 
-				this.vertexData[this.vIdx + 14] = 0;
-				this.vertexData[this.vIdx + 15] = 0;
-				this.vertexData[this.vIdx + 16] = 0;
-				this.vertexData[this.vIdx + 17] = 1.0;
-				this.vertexData[this.vIdx + 18] = 0.25;
-				this.vertexData[this.vIdx + 19] = -1;
+				setF32ValueAt(this.vIdx + 14, 0);
+				setF32ValueAt(this.vIdx + 15, 0);
+				setF32ValueAt(this.vIdx + 16, 0);
+				setF32ValueAt(this.vIdx + 17, 1.0);
+				setF32ValueAt(this.vIdx + 18, 0.25);
+				setF32ValueAt(this.vIdx + 19, -1);
 
-				this.vertexData[this.vIdx + 20] = xScaledCos + xScaledSin + xBase - xScaledSin * 2;
-				this.vertexData[this.vIdx + 21] = -yScaledSin + yScaledCos + yBase - yScaledCos * 2;
-				this.vertexData[this.vIdx + 22] = obj.uValue;
-				this.vertexData[this.vIdx + 23] = obj.vValue + size;
+				setF32ValueAt(this.vIdx + 20, xScaledCos + xScaledSin + xBase - xScaledSin * 2);
+				setF32ValueAt(this.vIdx + 21, -yScaledSin + yScaledCos + yBase - yScaledCos * 2);
+				setF32ValueAt(this.vIdx + 22, obj.uValue);
+				setF32ValueAt(this.vIdx + 23, obj.vValue + size);
 
-				this.vertexData[this.vIdx + 24] = 0;
-				this.vertexData[this.vIdx + 25] = 0;
-				this.vertexData[this.vIdx + 26] = 0;
-				this.vertexData[this.vIdx + 27] = 1.0;
-				this.vertexData[this.vIdx + 28] = 0.25;
-				this.vertexData[this.vIdx + 29] = -1;
+				setF32ValueAt(this.vIdx + 24, 0);
+				setF32ValueAt(this.vIdx + 25, 0);
+				setF32ValueAt(this.vIdx + 26, 0);
+				setF32ValueAt(this.vIdx + 27, 1.0);
+				setF32ValueAt(this.vIdx + 28, 0.25);
+				setF32ValueAt(this.vIdx + 29, -1);
 
-				this.vertexData[this.vIdx + 30] = xScaledCos + xScaledSin + xBase;
-				this.vertexData[this.vIdx + 31] = -yScaledSin + yScaledCos + yBase;
-				this.vertexData[this.vIdx + 32] = obj.uValue + size;
-				this.vertexData[this.vIdx + 33] = obj.vValue + size;
+				setF32ValueAt(this.vIdx + 30, xScaledCos + xScaledSin + xBase);
+				setF32ValueAt(this.vIdx + 31, -yScaledSin + yScaledCos + yBase);
+				setF32ValueAt(this.vIdx + 32, obj.uValue + size);
+				setF32ValueAt(this.vIdx + 33, obj.vValue + size);
 
-				this.vertexData[this.vIdx + 34] = 0;
-				this.vertexData[this.vIdx + 35] = 0;
-				this.vertexData[this.vIdx + 36] = 0;
-				this.vertexData[this.vIdx + 37] = 1.0;
-				this.vertexData[this.vIdx + 38] = 0.25;
-				this.vertexData[this.vIdx + 39] = -1;
+				setF32ValueAt(this.vIdx + 34, 0);
+				setF32ValueAt(this.vIdx + 35, 0);
+				setF32ValueAt(this.vIdx + 36, 0);
+				setF32ValueAt(this.vIdx + 37, 1.0);
+				setF32ValueAt(this.vIdx + 38, 0.25);
+				setF32ValueAt(this.vIdx + 39, -1);
 				this.vIdx += 40;
 
 				final i4 = this.i * 4;
-				this.indexData[this.iIdx] = i4;
-				this.indexData[this.iIdx + 1] = 1 + i4;
-				this.indexData[this.iIdx + 2] = 2 + i4;
-				this.indexData[this.iIdx + 3] = 2 + i4;
-				this.indexData[this.iIdx + 4] = 1 + i4;
-				this.indexData[this.iIdx + 5] = 3 + i4;
+				setI32ValueAt(this.iIdx, i4);
+				setI32ValueAt(this.iIdx + 1, 1 + i4);
+				setI32ValueAt(this.iIdx + 2, 2 + i4);
+				setI32ValueAt(this.iIdx + 3, 2 + i4);
+				setI32ValueAt(this.iIdx + 4, 1 + i4);
+				setI32ValueAt(this.iIdx + 5, 3 + i4);
 				this.iIdx += 6;
 				this.i++;
 			}
 		}
 
-		this.vertexData[this.vIdx] = -xScaledCos - xScaledSin + xBaseTop;
-		this.vertexData[this.vIdx + 1] = yScaledSin - yScaledCos + yBaseTop;
-		this.vertexData[this.vIdx + 2] = obj.topUValue;
-		this.vertexData[this.vIdx + 3] = obj.topVValue;
+		setF32ValueAt(this.vIdx, -xScaledCos - xScaledSin + xBaseTop);
+		setF32ValueAt(this.vIdx + 1, yScaledSin - yScaledCos + yBaseTop);
+		setF32ValueAt(this.vIdx + 2, obj.topUValue);
+		setF32ValueAt(this.vIdx + 3, obj.topVValue);
 
-		this.vertexData[this.vIdx + 4] = 0;
-		this.vertexData[this.vIdx + 5] = 0;
-		this.vertexData[this.vIdx + 6] = 0;
-		this.vertexData[this.vIdx + 7] = 0;
-		this.vertexData[this.vIdx + 8] = 0;
-		this.vertexData[this.vIdx + 9] = -1;
+		setF32ValueAt(this.vIdx + 4, 0);
+		setF32ValueAt(this.vIdx + 5, 0);
+		setF32ValueAt(this.vIdx + 6, 0);
+		setF32ValueAt(this.vIdx + 7, 0);
+		setF32ValueAt(this.vIdx + 8, 0);
+		setF32ValueAt(this.vIdx + 9, -1);
 
-		this.vertexData[this.vIdx + 10] = xScaledCos - xScaledSin + xBaseTop;
-		this.vertexData[this.vIdx + 11] = -yScaledSin - yScaledCos + yBaseTop;
-		this.vertexData[this.vIdx + 12] = obj.topUValue + size;
-		this.vertexData[this.vIdx + 13] = obj.topVValue;
+		setF32ValueAt(this.vIdx + 10, xScaledCos - xScaledSin + xBaseTop);
+		setF32ValueAt(this.vIdx + 11, -yScaledSin - yScaledCos + yBaseTop);
+		setF32ValueAt(this.vIdx + 12, obj.topUValue + size);
+		setF32ValueAt(this.vIdx + 13, obj.topVValue);
 
-		this.vertexData[this.vIdx + 14] = 0;
-		this.vertexData[this.vIdx + 15] = 0;
-		this.vertexData[this.vIdx + 16] = 0;
-		this.vertexData[this.vIdx + 17] = 0;
-		this.vertexData[this.vIdx + 18] = 0;
-		this.vertexData[this.vIdx + 19] = -1;
+		setF32ValueAt(this.vIdx + 14, 0);
+		setF32ValueAt(this.vIdx + 15, 0);
+		setF32ValueAt(this.vIdx + 16, 0);
+		setF32ValueAt(this.vIdx + 17, 0);
+		setF32ValueAt(this.vIdx + 18, 0);
+		setF32ValueAt(this.vIdx + 19, -1);
 
-		this.vertexData[this.vIdx + 20] = -xScaledCos + xScaledSin + xBaseTop;
-		this.vertexData[this.vIdx + 21] = yScaledSin + yScaledCos + yBaseTop;
-		this.vertexData[this.vIdx + 22] = obj.topUValue;
-		this.vertexData[this.vIdx + 23] = obj.topVValue + size;
+		setF32ValueAt(this.vIdx + 20, -xScaledCos + xScaledSin + xBaseTop);
+		setF32ValueAt(this.vIdx + 21, yScaledSin + yScaledCos + yBaseTop);
+		setF32ValueAt(this.vIdx + 22, obj.topUValue);
+		setF32ValueAt(this.vIdx + 23, obj.topVValue + size);
 
-		this.vertexData[this.vIdx + 24] = 0;
-		this.vertexData[this.vIdx + 25] = 0;
-		this.vertexData[this.vIdx + 26] = 0;
-		this.vertexData[this.vIdx + 27] = 0;
-		this.vertexData[this.vIdx + 28] = 0;
-		this.vertexData[this.vIdx + 29] = -1;
+		setF32ValueAt(this.vIdx + 24, 0);
+		setF32ValueAt(this.vIdx + 25, 0);
+		setF32ValueAt(this.vIdx + 26, 0);
+		setF32ValueAt(this.vIdx + 27, 0);
+		setF32ValueAt(this.vIdx + 28, 0);
+		setF32ValueAt(this.vIdx + 29, -1);
 
-		this.vertexData[this.vIdx + 30] = xScaledCos + xScaledSin + xBaseTop;
-		this.vertexData[this.vIdx + 31] = -yScaledSin + yScaledCos + yBaseTop;
-		this.vertexData[this.vIdx + 32] = obj.topUValue + size;
-		this.vertexData[this.vIdx + 33] = obj.topVValue + size;
+		setF32ValueAt(this.vIdx + 30, xScaledCos + xScaledSin + xBaseTop);
+		setF32ValueAt(this.vIdx + 31, -yScaledSin + yScaledCos + yBaseTop);
+		setF32ValueAt(this.vIdx + 32, obj.topUValue + size);
+		setF32ValueAt(this.vIdx + 33, obj.topVValue + size);
 
-		this.vertexData[this.vIdx + 34] = 0;
-		this.vertexData[this.vIdx + 35] = 0;
-		this.vertexData[this.vIdx + 36] = 0;
-		this.vertexData[this.vIdx + 37] = 0;
-		this.vertexData[this.vIdx + 38] = 0;
-		this.vertexData[this.vIdx + 39] = -1;
+		setF32ValueAt(this.vIdx + 34, 0);
+		setF32ValueAt(this.vIdx + 35, 0);
+		setF32ValueAt(this.vIdx + 36, 0);
+		setF32ValueAt(this.vIdx + 37, 0);
+		setF32ValueAt(this.vIdx + 38, 0);
+		setF32ValueAt(this.vIdx + 39, -1);
 		this.vIdx += 40;
 
 		final i4 = this.i * 4;
-		this.indexData[this.iIdx] = i4;
-		this.indexData[this.iIdx + 1] = 1 + i4;
-		this.indexData[this.iIdx + 2] = 2 + i4;
-		this.indexData[this.iIdx + 3] = 2 + i4;
-		this.indexData[this.iIdx + 4] = 1 + i4;
-		this.indexData[this.iIdx + 5] = 3 + i4;
+		setI32ValueAt(this.iIdx, i4);
+		setI32ValueAt(this.iIdx + 1, 1 + i4);
+		setI32ValueAt(this.iIdx + 2, 2 + i4);
+		setI32ValueAt(this.iIdx + 3, 2 + i4);
+		setI32ValueAt(this.iIdx + 4, 1 + i4);
+		setI32ValueAt(this.iIdx + 5, 3 + i4);
 		this.iIdx += 6;
 		this.i++;
 	}
@@ -1117,62 +1124,62 @@ class Map {
 			final clipX = obj.curSquare.clipX;
 			final clipY = obj.curSquare.clipY;
 
-			this.vertexData[this.vIdx] = -xScaledCos - xScaledSin + clipX;
-			this.vertexData[this.vIdx + 1] = yScaledSin - yScaledCos + clipY;
-			this.vertexData[this.vIdx + 2] = obj.uValue;
-			this.vertexData[this.vIdx + 3] = obj.vValue;
+			setF32ValueAt(this.vIdx, -xScaledCos - xScaledSin + clipX);
+			setF32ValueAt(this.vIdx + 1, yScaledSin - yScaledCos + clipY);
+			setF32ValueAt(this.vIdx + 2, obj.uValue);
+			setF32ValueAt(this.vIdx + 3, obj.vValue);
 
-			this.vertexData[this.vIdx + 4] = 0;
-			this.vertexData[this.vIdx + 5] = 0;
-			this.vertexData[this.vIdx + 6] = 0;
-			this.vertexData[this.vIdx + 7] = 0;
-			this.vertexData[this.vIdx + 8] = 0;
-			this.vertexData[this.vIdx + 9] = -1;
+			setF32ValueAt(this.vIdx + 4, 0);
+			setF32ValueAt(this.vIdx + 5, 0);
+			setF32ValueAt(this.vIdx + 6, 0);
+			setF32ValueAt(this.vIdx + 7, 0);
+			setF32ValueAt(this.vIdx + 8, 0);
+			setF32ValueAt(this.vIdx + 9, -1);
 
-			this.vertexData[this.vIdx + 10] = xScaledCos - xScaledSin + clipX;
-			this.vertexData[this.vIdx + 11] = -yScaledSin - yScaledCos + clipY;
-			this.vertexData[this.vIdx + 12] = obj.uValue + obj.width;
-			this.vertexData[this.vIdx + 13] = obj.vValue;
+			setF32ValueAt(this.vIdx + 10, xScaledCos - xScaledSin + clipX);
+			setF32ValueAt(this.vIdx + 11, -yScaledSin - yScaledCos + clipY);
+			setF32ValueAt(this.vIdx + 12, obj.uValue + obj.width);
+			setF32ValueAt(this.vIdx + 13, obj.vValue);
 
-			this.vertexData[this.vIdx + 14] = 0;
-			this.vertexData[this.vIdx + 15] = 0;
-			this.vertexData[this.vIdx + 16] = 0;
-			this.vertexData[this.vIdx + 17] = 0;
-			this.vertexData[this.vIdx + 18] = 0;
-			this.vertexData[this.vIdx + 19] = -1;
+			setF32ValueAt(this.vIdx + 14, 0);
+			setF32ValueAt(this.vIdx + 15, 0);
+			setF32ValueAt(this.vIdx + 16, 0);
+			setF32ValueAt(this.vIdx + 17, 0);
+			setF32ValueAt(this.vIdx + 18, 0);
+			setF32ValueAt(this.vIdx + 19, -1);
 
-			this.vertexData[this.vIdx + 20] = -xScaledCos + xScaledSin + clipX;
-			this.vertexData[this.vIdx + 21] = yScaledSin + yScaledCos + clipY;
-			this.vertexData[this.vIdx + 22] = obj.uValue;
-			this.vertexData[this.vIdx + 23] = obj.vValue + obj.height;
+			setF32ValueAt(this.vIdx + 20, -xScaledCos + xScaledSin + clipX);
+			setF32ValueAt(this.vIdx + 21, yScaledSin + yScaledCos + clipY);
+			setF32ValueAt(this.vIdx + 22, obj.uValue);
+			setF32ValueAt(this.vIdx + 23, obj.vValue + obj.height);
 
-			this.vertexData[this.vIdx + 24] = 0;
-			this.vertexData[this.vIdx + 25] = 0;
-			this.vertexData[this.vIdx + 26] = 0;
-			this.vertexData[this.vIdx + 27] = 0;
-			this.vertexData[this.vIdx + 28] = 0;
-			this.vertexData[this.vIdx + 29] = -1;
+			setF32ValueAt(this.vIdx + 24, 0);
+			setF32ValueAt(this.vIdx + 25, 0);
+			setF32ValueAt(this.vIdx + 26, 0);
+			setF32ValueAt(this.vIdx + 27, 0);
+			setF32ValueAt(this.vIdx + 28, 0);
+			setF32ValueAt(this.vIdx + 29, -1);
 
-			this.vertexData[this.vIdx + 30] = xScaledCos + xScaledSin + clipX;
-			this.vertexData[this.vIdx + 31] = -yScaledSin + yScaledCos + clipY;
-			this.vertexData[this.vIdx + 32] = obj.uValue + obj.width;
-			this.vertexData[this.vIdx + 33] = obj.vValue + obj.height;
+			setF32ValueAt(this.vIdx + 30, xScaledCos + xScaledSin + clipX);
+			setF32ValueAt(this.vIdx + 31, -yScaledSin + yScaledCos + clipY);
+			setF32ValueAt(this.vIdx + 32, obj.uValue + obj.width);
+			setF32ValueAt(this.vIdx + 33, obj.vValue + obj.height);
 
-			this.vertexData[this.vIdx + 34] = 0;
-			this.vertexData[this.vIdx + 35] = 0;
-			this.vertexData[this.vIdx + 36] = 0;
-			this.vertexData[this.vIdx + 37] = 0;
-			this.vertexData[this.vIdx + 38] = 0;
-			this.vertexData[this.vIdx + 39] = -1;
+			setF32ValueAt(this.vIdx + 34, 0);
+			setF32ValueAt(this.vIdx + 35, 0);
+			setF32ValueAt(this.vIdx + 36, 0);
+			setF32ValueAt(this.vIdx + 37, 0);
+			setF32ValueAt(this.vIdx + 38, 0);
+			setF32ValueAt(this.vIdx + 39, -1);
 			this.vIdx += 40;
 
 			final i4: UInt32 = this.i * 4;
-			this.indexData[this.iIdx] = i4;
-			this.indexData[this.iIdx + 1] = 1 + i4;
-			this.indexData[this.iIdx + 2] = 2 + i4;
-			this.indexData[this.iIdx + 3] = 2 + i4;
-			this.indexData[this.iIdx + 4] = 1 + i4;
-			this.indexData[this.iIdx + 5] = 3 + i4;
+			setI32ValueAt(this.iIdx, i4);
+			setI32ValueAt(this.iIdx + 1, 1 + i4);
+			setI32ValueAt(this.iIdx + 2, 2 + i4);
+			setI32ValueAt(this.iIdx + 3, 2 + i4);
+			setI32ValueAt(this.iIdx + 4, 1 + i4);
+			setI32ValueAt(this.iIdx + 5, 3 + i4);
 			this.iIdx += 6;
 			this.i++;
 
@@ -1298,62 +1305,62 @@ class Map {
 		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
 		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
 
-		this.vertexData[this.vIdx] = -w + xBase;
-		this.vertexData[this.vIdx + 1] = -h + yBase;
-		this.vertexData[this.vIdx + 2] = obj.uValue;
-		this.vertexData[this.vIdx + 3] = obj.vValue;
+		setF32ValueAt(this.vIdx, -w + xBase);
+		setF32ValueAt(this.vIdx + 1, -h + yBase);
+		setF32ValueAt(this.vIdx + 2, obj.uValue);
+		setF32ValueAt(this.vIdx + 3, obj.vValue);
 
-		this.vertexData[this.vIdx + 4] = texelW;
-		this.vertexData[this.vIdx + 5] = texelH;
-		this.vertexData[this.vIdx + 6] = obj.glowColor;
-		this.vertexData[this.vIdx + 7] = obj.flashColor;
-		this.vertexData[this.vIdx + 8] = flashStrength;
-		this.vertexData[this.vIdx + 9] = -1;
+		setF32ValueAt(this.vIdx + 4, texelW);
+		setF32ValueAt(this.vIdx + 5, texelH);
+		setF32ValueAt(this.vIdx + 6, obj.glowColor);
+		setF32ValueAt(this.vIdx + 7, obj.flashColor);
+		setF32ValueAt(this.vIdx + 8, flashStrength);
+		setF32ValueAt(this.vIdx + 9, -1);
 
-		this.vertexData[this.vIdx + 10] = w + xBase;
-		this.vertexData[this.vIdx + 11] = -h + yBase;
-		this.vertexData[this.vIdx + 12] = obj.uValue + obj.width;
-		this.vertexData[this.vIdx + 13] = obj.vValue;
+		setF32ValueAt(this.vIdx + 10, w + xBase);
+		setF32ValueAt(this.vIdx + 11, -h + yBase);
+		setF32ValueAt(this.vIdx + 12, obj.uValue + obj.width);
+		setF32ValueAt(this.vIdx + 13, obj.vValue);
 
-		this.vertexData[this.vIdx + 14] = texelW;
-		this.vertexData[this.vIdx + 15] = texelH;
-		this.vertexData[this.vIdx + 16] = obj.glowColor;
-		this.vertexData[this.vIdx + 17] = obj.flashColor;
-		this.vertexData[this.vIdx + 18] = flashStrength;
-		this.vertexData[this.vIdx + 19] = -1;
+		setF32ValueAt(this.vIdx + 14, texelW);
+		setF32ValueAt(this.vIdx + 15, texelH);
+		setF32ValueAt(this.vIdx + 16, obj.glowColor);
+		setF32ValueAt(this.vIdx + 17, obj.flashColor);
+		setF32ValueAt(this.vIdx + 18, flashStrength);
+		setF32ValueAt(this.vIdx + 19, -1);
 
-		this.vertexData[this.vIdx + 20] = -w + xBase;
-		this.vertexData[this.vIdx + 21] = h + yBase;
-		this.vertexData[this.vIdx + 22] = obj.uValue;
-		this.vertexData[this.vIdx + 23] = obj.vValue + obj.height / sink;
+		setF32ValueAt(this.vIdx + 20, -w + xBase);
+		setF32ValueAt(this.vIdx + 21, h + yBase);
+		setF32ValueAt(this.vIdx + 22, obj.uValue);
+		setF32ValueAt(this.vIdx + 23, obj.vValue + obj.height / sink);
 
-		this.vertexData[this.vIdx + 24] = texelW;
-		this.vertexData[this.vIdx + 25] = texelH;
-		this.vertexData[this.vIdx + 26] = obj.glowColor;
-		this.vertexData[this.vIdx + 27] = obj.flashColor;
-		this.vertexData[this.vIdx + 28] = flashStrength;
-		this.vertexData[this.vIdx + 29] = -1;
+		setF32ValueAt(this.vIdx + 24, texelW);
+		setF32ValueAt(this.vIdx + 25, texelH);
+		setF32ValueAt(this.vIdx + 26, obj.glowColor);
+		setF32ValueAt(this.vIdx + 27, obj.flashColor);
+		setF32ValueAt(this.vIdx + 28, flashStrength);
+		setF32ValueAt(this.vIdx + 29, -1);
 
-		this.vertexData[this.vIdx + 30] = w + xBase;
-		this.vertexData[this.vIdx + 31] = h + yBase;
-		this.vertexData[this.vIdx + 32] = obj.uValue + obj.width;
-		this.vertexData[this.vIdx + 33] = obj.vValue + obj.height / sink;
+		setF32ValueAt(this.vIdx + 30, w + xBase);
+		setF32ValueAt(this.vIdx + 31, h + yBase);
+		setF32ValueAt(this.vIdx + 32, obj.uValue + obj.width);
+		setF32ValueAt(this.vIdx + 33, obj.vValue + obj.height / sink);
 
-		this.vertexData[this.vIdx + 34] = texelW;
-		this.vertexData[this.vIdx + 35] = texelH;
-		this.vertexData[this.vIdx + 36] = obj.glowColor;
-		this.vertexData[this.vIdx + 37] = obj.flashColor;
-		this.vertexData[this.vIdx + 38] = flashStrength;
-		this.vertexData[this.vIdx + 39] = -1;
+		setF32ValueAt(this.vIdx + 34, texelW);
+		setF32ValueAt(this.vIdx + 35, texelH);
+		setF32ValueAt(this.vIdx + 36, obj.glowColor);
+		setF32ValueAt(this.vIdx + 37, obj.flashColor);
+		setF32ValueAt(this.vIdx + 38, flashStrength);
+		setF32ValueAt(this.vIdx + 39, -1);
 		this.vIdx += 40;
 
 		final i4 = this.i * 4;
-		this.indexData[this.iIdx] = i4;
-		this.indexData[this.iIdx + 1] = 1 + i4;
-		this.indexData[this.iIdx + 2] = 2 + i4;
-		this.indexData[this.iIdx + 3] = 2 + i4;
-		this.indexData[this.iIdx + 4] = 1 + i4;
-		this.indexData[this.iIdx + 5] = 3 + i4;
+		setI32ValueAt(this.iIdx, i4);
+		setI32ValueAt(this.iIdx + 1, 1 + i4);
+		setI32ValueAt(this.iIdx + 2, 2 + i4);
+		setI32ValueAt(this.iIdx + 3, 2 + i4);
+		setI32ValueAt(this.iIdx + 4, 1 + i4);
+		setI32ValueAt(this.iIdx + 5, 3 + i4);
 		this.iIdx += 6;
 		this.i++;
 
@@ -1376,121 +1383,121 @@ class Map {
 				texelW = 0.5 / Main.ATLAS_WIDTH;
 				texelH = 0.5 / Main.ATLAS_HEIGHT;
 
-				this.vertexData[this.vIdx] = -w + xBase;
-				this.vertexData[this.vIdx + 1] = -h + yBase;
-				this.vertexData[this.vIdx + 2] = emptyBarU;
-				this.vertexData[this.vIdx + 3] = emptyBarV;
+				setF32ValueAt(this.vIdx, -w + xBase);
+				setF32ValueAt(this.vIdx + 1, -h + yBase);
+				setF32ValueAt(this.vIdx + 2, emptyBarU);
+				setF32ValueAt(this.vIdx + 3, emptyBarV);
 
-				this.vertexData[this.vIdx + 4] = texelW;
-				this.vertexData[this.vIdx + 5] = texelH;
-				this.vertexData[this.vIdx + 6] = 0;
-				this.vertexData[this.vIdx + 7] = 0;
-				this.vertexData[this.vIdx + 8] = 0;
-				this.vertexData[this.vIdx + 9] = -1;
+				setF32ValueAt(this.vIdx + 4, texelW);
+				setF32ValueAt(this.vIdx + 5, texelH);
+				setF32ValueAt(this.vIdx + 6, 0);
+				setF32ValueAt(this.vIdx + 7, 0);
+				setF32ValueAt(this.vIdx + 8, 0);
+				setF32ValueAt(this.vIdx + 9, -1);
 
-				this.vertexData[this.vIdx + 10] = w + xBase;
-				this.vertexData[this.vIdx + 11] = -h + yBase;
-				this.vertexData[this.vIdx + 12] = emptyBarU + scaledEmptyBarW;
-				this.vertexData[this.vIdx + 13] = emptyBarV;
+				setF32ValueAt(this.vIdx + 10, w + xBase);
+				setF32ValueAt(this.vIdx + 11, -h + yBase);
+				setF32ValueAt(this.vIdx + 12, emptyBarU + scaledEmptyBarW);
+				setF32ValueAt(this.vIdx + 13, emptyBarV);
 
-				this.vertexData[this.vIdx + 14] = texelW;
-				this.vertexData[this.vIdx + 15] = texelH;
-				this.vertexData[this.vIdx + 16] = 0;
-				this.vertexData[this.vIdx + 17] = 0;
-				this.vertexData[this.vIdx + 18] = 0;
-				this.vertexData[this.vIdx + 19] = -1;
+				setF32ValueAt(this.vIdx + 14, texelW);
+				setF32ValueAt(this.vIdx + 15, texelH);
+				setF32ValueAt(this.vIdx + 16, 0);
+				setF32ValueAt(this.vIdx + 17, 0);
+				setF32ValueAt(this.vIdx + 18, 0);
+				setF32ValueAt(this.vIdx + 19, -1);
 
-				this.vertexData[this.vIdx + 20] = -w + xBase;
-				this.vertexData[this.vIdx + 21] = h + yBase;
-				this.vertexData[this.vIdx + 22] = emptyBarU;
-				this.vertexData[this.vIdx + 23] = emptyBarV + scaledEmptyBarH;
+				setF32ValueAt(this.vIdx + 20, -w + xBase);
+				setF32ValueAt(this.vIdx + 21, h + yBase);
+				setF32ValueAt(this.vIdx + 22, emptyBarU);
+				setF32ValueAt(this.vIdx + 23, emptyBarV + scaledEmptyBarH);
 
-				this.vertexData[this.vIdx + 24] = texelW;
-				this.vertexData[this.vIdx + 25] = texelH;
-				this.vertexData[this.vIdx + 26] = 0;
-				this.vertexData[this.vIdx + 27] = 0;
-				this.vertexData[this.vIdx + 28] = 0;
-				this.vertexData[this.vIdx + 29] = -1;
+				setF32ValueAt(this.vIdx + 24, texelW);
+				setF32ValueAt(this.vIdx + 25, texelH);
+				setF32ValueAt(this.vIdx + 26, 0);
+				setF32ValueAt(this.vIdx + 27, 0);
+				setF32ValueAt(this.vIdx + 28, 0);
+				setF32ValueAt(this.vIdx + 29, -1);
 
-				this.vertexData[this.vIdx + 30] = w + xBase;
-				this.vertexData[this.vIdx + 31] = h + yBase;
-				this.vertexData[this.vIdx + 32] = emptyBarU + scaledEmptyBarW;
-				this.vertexData[this.vIdx + 33] = emptyBarV + scaledEmptyBarH;
+				setF32ValueAt(this.vIdx + 30, w + xBase);
+				setF32ValueAt(this.vIdx + 31, h + yBase);
+				setF32ValueAt(this.vIdx + 32, emptyBarU + scaledEmptyBarW);
+				setF32ValueAt(this.vIdx + 33, emptyBarV + scaledEmptyBarH);
 
-				this.vertexData[this.vIdx + 34] = texelW;
-				this.vertexData[this.vIdx + 35] = texelH;
-				this.vertexData[this.vIdx + 36] = 0;
-				this.vertexData[this.vIdx + 37] = 0;
-				this.vertexData[this.vIdx + 38] = 0;
-				this.vertexData[this.vIdx + 39] = -1;
+				setF32ValueAt(this.vIdx + 34, texelW);
+				setF32ValueAt(this.vIdx + 35, texelH);
+				setF32ValueAt(this.vIdx + 36, 0);
+				setF32ValueAt(this.vIdx + 37, 0);
+				setF32ValueAt(this.vIdx + 38, 0);
+				setF32ValueAt(this.vIdx + 39, -1);
 				this.vIdx += 40;
 
 				final i4 = this.i * 4;
-				this.indexData[this.iIdx] = i4;
-				this.indexData[this.iIdx + 1] = 1 + i4;
-				this.indexData[this.iIdx + 2] = 2 + i4;
-				this.indexData[this.iIdx + 3] = 2 + i4;
-				this.indexData[this.iIdx + 4] = 1 + i4;
-				this.indexData[this.iIdx + 5] = 3 + i4;
+				setI32ValueAt(this.iIdx, i4);
+				setI32ValueAt(this.iIdx + 1, 1 + i4);
+				setI32ValueAt(this.iIdx + 2, 2 + i4);
+				setI32ValueAt(this.iIdx + 3, 2 + i4);
+				setI32ValueAt(this.iIdx + 4, 1 + i4);
+				setI32ValueAt(this.iIdx + 5, 3 + i4);
 				this.iIdx += 6;
 				this.i++;
 
-				this.vertexData[this.vIdx] = -w + xBase;
-				this.vertexData[this.vIdx + 1] = -h + yBase;
-				this.vertexData[this.vIdx + 2] = hpBarU;
-				this.vertexData[this.vIdx + 3] = hpBarV;
+				setF32ValueAt(this.vIdx, -w + xBase);
+				setF32ValueAt(this.vIdx + 1, -h + yBase);
+				setF32ValueAt(this.vIdx + 2, hpBarU);
+				setF32ValueAt(this.vIdx + 3, hpBarV);
 
-				this.vertexData[this.vIdx + 4] = texelW;
-				this.vertexData[this.vIdx + 5] = texelH;
-				this.vertexData[this.vIdx + 6] = 0;
-				this.vertexData[this.vIdx + 7] = 0;
-				this.vertexData[this.vIdx + 8] = 0;
-				this.vertexData[this.vIdx + 9] = barThreshU;
+				setF32ValueAt(this.vIdx + 4, texelW);
+				setF32ValueAt(this.vIdx + 5, texelH);
+				setF32ValueAt(this.vIdx + 6, 0);
+				setF32ValueAt(this.vIdx + 7, 0);
+				setF32ValueAt(this.vIdx + 8, 0);
+				setF32ValueAt(this.vIdx + 9, barThreshU);
 
-				this.vertexData[this.vIdx + 10] = w + xBase;
-				this.vertexData[this.vIdx + 11] = -h + yBase;
-				this.vertexData[this.vIdx + 12] = hpBarU + scaledBarW;
-				this.vertexData[this.vIdx + 13] = hpBarV;
+				setF32ValueAt(this.vIdx + 10, w + xBase);
+				setF32ValueAt(this.vIdx + 11, -h + yBase);
+				setF32ValueAt(this.vIdx + 12, hpBarU + scaledBarW);
+				setF32ValueAt(this.vIdx + 13, hpBarV);
 
-				this.vertexData[this.vIdx + 14] = texelW;
-				this.vertexData[this.vIdx + 15] = texelH;
-				this.vertexData[this.vIdx + 16] = 0;
-				this.vertexData[this.vIdx + 17] = 0;
-				this.vertexData[this.vIdx + 18] = 0;
-				this.vertexData[this.vIdx + 19] = barThreshU;
+				setF32ValueAt(this.vIdx + 14, texelW);
+				setF32ValueAt(this.vIdx + 15, texelH);
+				setF32ValueAt(this.vIdx + 16, 0);
+				setF32ValueAt(this.vIdx + 17, 0);
+				setF32ValueAt(this.vIdx + 18, 0);
+				setF32ValueAt(this.vIdx + 19, barThreshU);
 
-				this.vertexData[this.vIdx + 20] = -w + xBase;
-				this.vertexData[this.vIdx + 21] = h + yBase;
-				this.vertexData[this.vIdx + 22] = hpBarU;
-				this.vertexData[this.vIdx + 23] = hpBarV + scaledBarH;
+				setF32ValueAt(this.vIdx + 20, -w + xBase);
+				setF32ValueAt(this.vIdx + 21, h + yBase);
+				setF32ValueAt(this.vIdx + 22, hpBarU);
+				setF32ValueAt(this.vIdx + 23, hpBarV + scaledBarH);
 
-				this.vertexData[this.vIdx + 24] = texelW;
-				this.vertexData[this.vIdx + 25] = texelH;
-				this.vertexData[this.vIdx + 26] = 0;
-				this.vertexData[this.vIdx + 27] = 0;
-				this.vertexData[this.vIdx + 28] = 0;
-				this.vertexData[this.vIdx + 29] = barThreshU;
+				setF32ValueAt(this.vIdx + 24, texelW);
+				setF32ValueAt(this.vIdx + 25, texelH);
+				setF32ValueAt(this.vIdx + 26, 0);
+				setF32ValueAt(this.vIdx + 27, 0);
+				setF32ValueAt(this.vIdx + 28, 0);
+				setF32ValueAt(this.vIdx + 29, barThreshU);
 
-				this.vertexData[this.vIdx + 30] = w + xBase;
-				this.vertexData[this.vIdx + 31] = h + yBase;
-				this.vertexData[this.vIdx + 32] = hpBarU + scaledBarW;
-				this.vertexData[this.vIdx + 33] = hpBarV + scaledBarH;
+				setF32ValueAt(this.vIdx + 30, w + xBase);
+				setF32ValueAt(this.vIdx + 31, h + yBase);
+				setF32ValueAt(this.vIdx + 32, hpBarU + scaledBarW);
+				setF32ValueAt(this.vIdx + 33, hpBarV + scaledBarH);
 
-				this.vertexData[this.vIdx + 34] = texelW;
-				this.vertexData[this.vIdx + 35] = texelH;
-				this.vertexData[this.vIdx + 36] = 0;
-				this.vertexData[this.vIdx + 37] = 0;
-				this.vertexData[this.vIdx + 38] = 0;
-				this.vertexData[this.vIdx + 39] = barThreshU;
+				setF32ValueAt(this.vIdx + 34, texelW);
+				setF32ValueAt(this.vIdx + 35, texelH);
+				setF32ValueAt(this.vIdx + 36, 0);
+				setF32ValueAt(this.vIdx + 37, 0);
+				setF32ValueAt(this.vIdx + 38, 0);
+				setF32ValueAt(this.vIdx + 39, barThreshU);
 				this.vIdx += 40;
 
 				final i4 = this.i * 4;
-				this.indexData[this.iIdx] = i4;
-				this.indexData[this.iIdx + 1] = 1 + i4;
-				this.indexData[this.iIdx + 2] = 2 + i4;
-				this.indexData[this.iIdx + 3] = 2 + i4;
-				this.indexData[this.iIdx + 4] = 1 + i4;
-				this.indexData[this.iIdx + 5] = 3 + i4;
+				setI32ValueAt(this.iIdx, i4);
+				setI32ValueAt(this.iIdx + 1, 1 + i4);
+				setI32ValueAt(this.iIdx + 2, 2 + i4);
+				setI32ValueAt(this.iIdx + 3, 2 + i4);
+				setI32ValueAt(this.iIdx + 4, 1 + i4);
+				setI32ValueAt(this.iIdx + 5, 3 + i4);
 				this.iIdx += 6;
 				this.i++;
 
@@ -1522,62 +1529,62 @@ class Map {
 					texelW = 0.5 / Main.ATLAS_WIDTH;
 					texelH = 0.5 / Main.ATLAS_HEIGHT;
 
-					this.vertexData[this.vIdx] = -w + xBase;
-					this.vertexData[this.vIdx + 1] = -h + yBase;
-					this.vertexData[this.vIdx + 2] = scaledU;
-					this.vertexData[this.vIdx + 3] = scaledV;
+					setF32ValueAt(this.vIdx, -w + xBase);
+					setF32ValueAt(this.vIdx + 1, -h + yBase);
+					setF32ValueAt(this.vIdx + 2, scaledU);
+					setF32ValueAt(this.vIdx + 3, scaledV);
 
-					this.vertexData[this.vIdx + 4] = texelW;
-					this.vertexData[this.vIdx + 5] = texelH;
-					this.vertexData[this.vIdx + 6] = 0;
-					this.vertexData[this.vIdx + 7] = 0;
-					this.vertexData[this.vIdx + 8] = 0;
-					this.vertexData[this.vIdx + 9] = -1;
+					setF32ValueAt(this.vIdx + 4, texelW);
+					setF32ValueAt(this.vIdx + 5, texelH);
+					setF32ValueAt(this.vIdx + 6, 0);
+					setF32ValueAt(this.vIdx + 7, 0);
+					setF32ValueAt(this.vIdx + 8, 0);
+					setF32ValueAt(this.vIdx + 9, -1);
 
-					this.vertexData[this.vIdx + 10] = w + xBase;
-					this.vertexData[this.vIdx + 11] = -h + yBase;
-					this.vertexData[this.vIdx + 12] = scaledU + scaledW;
-					this.vertexData[this.vIdx + 13] = scaledV;
+					setF32ValueAt(this.vIdx + 10, w + xBase);
+					setF32ValueAt(this.vIdx + 11, -h + yBase);
+					setF32ValueAt(this.vIdx + 12, scaledU + scaledW);
+					setF32ValueAt(this.vIdx + 13, scaledV);
 
-					this.vertexData[this.vIdx + 14] = texelW;
-					this.vertexData[this.vIdx + 15] = texelH;
-					this.vertexData[this.vIdx + 16] = 0;
-					this.vertexData[this.vIdx + 17] = 0;
-					this.vertexData[this.vIdx + 18] = 0;
-					this.vertexData[this.vIdx + 19] = -1;
+					setF32ValueAt(this.vIdx + 14, texelW);
+					setF32ValueAt(this.vIdx + 15, texelH);
+					setF32ValueAt(this.vIdx + 16, 0);
+					setF32ValueAt(this.vIdx + 17, 0);
+					setF32ValueAt(this.vIdx + 18, 0);
+					setF32ValueAt(this.vIdx + 19, -1);
 
-					this.vertexData[this.vIdx + 20] = -w + xBase;
-					this.vertexData[this.vIdx + 21] = h + yBase;
-					this.vertexData[this.vIdx + 22] = scaledU;
-					this.vertexData[this.vIdx + 23] = scaledV + scaledH;
+					setF32ValueAt(this.vIdx + 20, -w + xBase);
+					setF32ValueAt(this.vIdx + 21, h + yBase);
+					setF32ValueAt(this.vIdx + 22, scaledU);
+					setF32ValueAt(this.vIdx + 23, scaledV + scaledH);
 
-					this.vertexData[this.vIdx + 24] = texelW;
-					this.vertexData[this.vIdx + 25] = texelH;
-					this.vertexData[this.vIdx + 26] = 0;
-					this.vertexData[this.vIdx + 27] = 0;
-					this.vertexData[this.vIdx + 28] = 0;
-					this.vertexData[this.vIdx + 29] = -1;
+					setF32ValueAt(this.vIdx + 24, texelW);
+					setF32ValueAt(this.vIdx + 25, texelH);
+					setF32ValueAt(this.vIdx + 26, 0);
+					setF32ValueAt(this.vIdx + 27, 0);
+					setF32ValueAt(this.vIdx + 28, 0);
+					setF32ValueAt(this.vIdx + 29, -1);
 
-					this.vertexData[this.vIdx + 30] = w + xBase;
-					this.vertexData[this.vIdx + 31] = h + yBase;
-					this.vertexData[this.vIdx + 32] = scaledU + scaledW;
-					this.vertexData[this.vIdx + 33] = scaledV + scaledH;
+					setF32ValueAt(this.vIdx + 30, w + xBase);
+					setF32ValueAt(this.vIdx + 31, h + yBase);
+					setF32ValueAt(this.vIdx + 32, scaledU + scaledW);
+					setF32ValueAt(this.vIdx + 33, scaledV + scaledH);
 
-					this.vertexData[this.vIdx + 34] = texelW;
-					this.vertexData[this.vIdx + 35] = texelH;
-					this.vertexData[this.vIdx + 36] = 0;
-					this.vertexData[this.vIdx + 37] = 0;
-					this.vertexData[this.vIdx + 38] = 0;
-					this.vertexData[this.vIdx + 39] = -1;
+					setF32ValueAt(this.vIdx + 34, texelW);
+					setF32ValueAt(this.vIdx + 35, texelH);
+					setF32ValueAt(this.vIdx + 36, 0);
+					setF32ValueAt(this.vIdx + 37, 0);
+					setF32ValueAt(this.vIdx + 38, 0);
+					setF32ValueAt(this.vIdx + 39, -1);
 					this.vIdx += 40;
 
 					final i4 = this.i * 4;
-					this.indexData[this.iIdx] = i4;
-					this.indexData[this.iIdx + 1] = 1 + i4;
-					this.indexData[this.iIdx + 2] = 2 + i4;
-					this.indexData[this.iIdx + 3] = 2 + i4;
-					this.indexData[this.iIdx + 4] = 1 + i4;
-					this.indexData[this.iIdx + 5] = 3 + i4;
+					setI32ValueAt(this.iIdx, i4);
+					setI32ValueAt(this.iIdx + 1, 1 + i4);
+					setI32ValueAt(this.iIdx + 2, 2 + i4);
+					setI32ValueAt(this.iIdx + 3, 2 + i4);
+					setI32ValueAt(this.iIdx + 4, 1 + i4);
+					setI32ValueAt(this.iIdx + 5, 3 + i4);
 					this.iIdx += 6;
 					this.i++;
 				}
@@ -1600,7 +1607,7 @@ class Map {
 			this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
 				sinX: 0, sinY: 0,
 				cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-				x: (screenX - 3) * RenderUtils.clipSpaceScaleX, y: (screenY - hBase + 30) * RenderUtils.clipSpaceScaleY,
+				x: (screenX - 3) * RenderUtils.clipSpaceScaleX, y: (screenY - hBase + 30 + (sink - 1) * hBase / 3) * RenderUtils.clipSpaceScaleY,
 				texelW: 0, texelH: 0,
 				texture: textureData.texture});
 
@@ -1713,62 +1720,62 @@ class Map {
 		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
 		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
 
-		this.vertexData[this.vIdx] = -w + xBase;
-		this.vertexData[this.vIdx + 1] = -h + yBase;
-		this.vertexData[this.vIdx + 2] = player.uValue;
-		this.vertexData[this.vIdx + 3] = player.vValue;
+		setF32ValueAt(this.vIdx, -w + xBase);
+		setF32ValueAt(this.vIdx + 1, -h + yBase);
+		setF32ValueAt(this.vIdx + 2, player.uValue);
+		setF32ValueAt(this.vIdx + 3, player.vValue);
 
-		this.vertexData[this.vIdx + 4] = texelW;
-		this.vertexData[this.vIdx + 5] = texelH;
-		this.vertexData[this.vIdx + 6] = player.glowColor;
-		this.vertexData[this.vIdx + 7] = player.flashColor;
-		this.vertexData[this.vIdx + 8] = flashStrength;
-		this.vertexData[this.vIdx + 9] = -1;
+		setF32ValueAt(this.vIdx + 4, texelW);
+		setF32ValueAt(this.vIdx + 5, texelH);
+		setF32ValueAt(this.vIdx + 6, player.glowColor);
+		setF32ValueAt(this.vIdx + 7, player.flashColor);
+		setF32ValueAt(this.vIdx + 8, flashStrength);
+		setF32ValueAt(this.vIdx + 9, -1);
 
-		this.vertexData[this.vIdx + 10] = w + xBase;
-		this.vertexData[this.vIdx + 11] = -h + yBase;
-		this.vertexData[this.vIdx + 12] = player.uValue + player.width;
-		this.vertexData[this.vIdx + 13] = player.vValue;
+		setF32ValueAt(this.vIdx + 10, w + xBase);
+		setF32ValueAt(this.vIdx + 11, -h + yBase);
+		setF32ValueAt(this.vIdx + 12, player.uValue + player.width);
+		setF32ValueAt(this.vIdx + 13, player.vValue);
 
-		this.vertexData[this.vIdx + 14] = texelW;
-		this.vertexData[this.vIdx + 15] = texelH;
-		this.vertexData[this.vIdx + 16] = player.glowColor;
-		this.vertexData[this.vIdx + 17] = player.flashColor;
-		this.vertexData[this.vIdx + 18] = flashStrength;
-		this.vertexData[this.vIdx + 19] = -1;
+		setF32ValueAt(this.vIdx + 14, texelW);
+		setF32ValueAt(this.vIdx + 15, texelH);
+		setF32ValueAt(this.vIdx + 16, player.glowColor);
+		setF32ValueAt(this.vIdx + 17, player.flashColor);
+		setF32ValueAt(this.vIdx + 18, flashStrength);
+		setF32ValueAt(this.vIdx + 19, -1);
 
-		this.vertexData[this.vIdx + 20] = -w + xBase;
-		this.vertexData[this.vIdx + 21] = h + yBase;
-		this.vertexData[this.vIdx + 22] = player.uValue;
-		this.vertexData[this.vIdx + 23] = player.vValue + player.height / sink;
+		setF32ValueAt(this.vIdx + 20, -w + xBase);
+		setF32ValueAt(this.vIdx + 21, h + yBase);
+		setF32ValueAt(this.vIdx + 22, player.uValue);
+		setF32ValueAt(this.vIdx + 23, player.vValue + player.height / sink);
 
-		this.vertexData[this.vIdx + 24] = texelW;
-		this.vertexData[this.vIdx + 25] = texelH;
-		this.vertexData[this.vIdx + 26] = player.glowColor;
-		this.vertexData[this.vIdx + 27] = player.flashColor;
-		this.vertexData[this.vIdx + 28] = flashStrength;
-		this.vertexData[this.vIdx + 29] = -1;
+		setF32ValueAt(this.vIdx + 24, texelW);
+		setF32ValueAt(this.vIdx + 25, texelH);
+		setF32ValueAt(this.vIdx + 26, player.glowColor);
+		setF32ValueAt(this.vIdx + 27, player.flashColor);
+		setF32ValueAt(this.vIdx + 28, flashStrength);
+		setF32ValueAt(this.vIdx + 29, -1);
 
-		this.vertexData[this.vIdx + 30] = w + xBase;
-		this.vertexData[this.vIdx + 31] = h + yBase;
-		this.vertexData[this.vIdx + 32] = player.uValue + player.width;
-		this.vertexData[this.vIdx + 33] = player.vValue + player.height / sink;
+		setF32ValueAt(this.vIdx + 30, w + xBase);
+		setF32ValueAt(this.vIdx + 31, h + yBase);
+		setF32ValueAt(this.vIdx + 32, player.uValue + player.width);
+		setF32ValueAt(this.vIdx + 33, player.vValue + player.height / sink);
 
-		this.vertexData[this.vIdx + 34] = texelW;
-		this.vertexData[this.vIdx + 35] = texelH;
-		this.vertexData[this.vIdx + 36] = player.glowColor;
-		this.vertexData[this.vIdx + 37] = player.flashColor;
-		this.vertexData[this.vIdx + 38] = flashStrength;
-		this.vertexData[this.vIdx + 39] = -1;
+		setF32ValueAt(this.vIdx + 34, texelW);
+		setF32ValueAt(this.vIdx + 35, texelH);
+		setF32ValueAt(this.vIdx + 36, player.glowColor);
+		setF32ValueAt(this.vIdx + 37, player.flashColor);
+		setF32ValueAt(this.vIdx + 38, flashStrength);
+		setF32ValueAt(this.vIdx + 39, -1);
 		this.vIdx += 40;
 
 		final i4 = this.i * 4;
-		this.indexData[this.iIdx] = i4;
-		this.indexData[this.iIdx + 1] = 1 + i4;
-		this.indexData[this.iIdx + 2] = 2 + i4;
-		this.indexData[this.iIdx + 3] = 2 + i4;
-		this.indexData[this.iIdx + 4] = 1 + i4;
-		this.indexData[this.iIdx + 5] = 3 + i4;
+		setI32ValueAt(this.iIdx, i4);
+		setI32ValueAt(this.iIdx + 1, 1 + i4);
+		setI32ValueAt(this.iIdx + 2, 2 + i4);
+		setI32ValueAt(this.iIdx + 3, 2 + i4);
+		setI32ValueAt(this.iIdx + 4, 1 + i4);
+		setI32ValueAt(this.iIdx + 5, 3 + i4);
 		this.iIdx += 6;
 		this.i++;
 
@@ -1794,121 +1801,121 @@ class Map {
 				texelW = 0.5 / Main.ATLAS_WIDTH;
 				texelH = 0.5 / Main.ATLAS_HEIGHT;
 
-				this.vertexData[this.vIdx] = -w + xBase;
-				this.vertexData[this.vIdx + 1] = -h + yBase;
-				this.vertexData[this.vIdx + 2] = emptyBarU;
-				this.vertexData[this.vIdx + 3] = emptyBarV;
+				setF32ValueAt(this.vIdx, -w + xBase);
+				setF32ValueAt(this.vIdx + 1, -h + yBase);
+				setF32ValueAt(this.vIdx + 2, emptyBarU);
+				setF32ValueAt(this.vIdx + 3, emptyBarV);
 
-				this.vertexData[this.vIdx + 4] = texelW;
-				this.vertexData[this.vIdx + 5] = texelH;
-				this.vertexData[this.vIdx + 6] = 0;
-				this.vertexData[this.vIdx + 7] = 0;
-				this.vertexData[this.vIdx + 8] = 0;
-				this.vertexData[this.vIdx + 9] = -1;
+				setF32ValueAt(this.vIdx + 4, texelW);
+				setF32ValueAt(this.vIdx + 5, texelH);
+				setF32ValueAt(this.vIdx + 6, 0);
+				setF32ValueAt(this.vIdx + 7, 0);
+				setF32ValueAt(this.vIdx + 8, 0);
+				setF32ValueAt(this.vIdx + 9, -1);
 
-				this.vertexData[this.vIdx + 10] = w + xBase;
-				this.vertexData[this.vIdx + 11] = -h + yBase;
-				this.vertexData[this.vIdx + 12] = emptyBarU + scaledEmptyBarW;
-				this.vertexData[this.vIdx + 13] = emptyBarV;
+				setF32ValueAt(this.vIdx + 10, w + xBase);
+				setF32ValueAt(this.vIdx + 11, -h + yBase);
+				setF32ValueAt(this.vIdx + 12, emptyBarU + scaledEmptyBarW);
+				setF32ValueAt(this.vIdx + 13, emptyBarV);
 
-				this.vertexData[this.vIdx + 14] = texelW;
-				this.vertexData[this.vIdx + 15] = texelH;
-				this.vertexData[this.vIdx + 16] = 0;
-				this.vertexData[this.vIdx + 17] = 0;
-				this.vertexData[this.vIdx + 18] = 0;
-				this.vertexData[this.vIdx + 19] = -1;
+				setF32ValueAt(this.vIdx + 14, texelW);
+				setF32ValueAt(this.vIdx + 15, texelH);
+				setF32ValueAt(this.vIdx + 16, 0);
+				setF32ValueAt(this.vIdx + 17, 0);
+				setF32ValueAt(this.vIdx + 18, 0);
+				setF32ValueAt(this.vIdx + 19, -1);
 
-				this.vertexData[this.vIdx + 20] = -w + xBase;
-				this.vertexData[this.vIdx + 21] = h + yBase;
-				this.vertexData[this.vIdx + 22] = emptyBarU;
-				this.vertexData[this.vIdx + 23] = emptyBarV + scaledEmptyBarH;
+				setF32ValueAt(this.vIdx + 20, -w + xBase);
+				setF32ValueAt(this.vIdx + 21, h + yBase);
+				setF32ValueAt(this.vIdx + 22, emptyBarU);
+				setF32ValueAt(this.vIdx + 23, emptyBarV + scaledEmptyBarH);
 
-				this.vertexData[this.vIdx + 24] = texelW;
-				this.vertexData[this.vIdx + 25] = texelH;
-				this.vertexData[this.vIdx + 26] = 0;
-				this.vertexData[this.vIdx + 27] = 0;
-				this.vertexData[this.vIdx + 28] = 0;
-				this.vertexData[this.vIdx + 29] = -1;
+				setF32ValueAt(this.vIdx + 24, texelW);
+				setF32ValueAt(this.vIdx + 25, texelH);
+				setF32ValueAt(this.vIdx + 26, 0);
+				setF32ValueAt(this.vIdx + 27, 0);
+				setF32ValueAt(this.vIdx + 28, 0);
+				setF32ValueAt(this.vIdx + 29, -1);
 
-				this.vertexData[this.vIdx + 30] = w + xBase;
-				this.vertexData[this.vIdx + 31] = h + yBase;
-				this.vertexData[this.vIdx + 32] = emptyBarU + scaledEmptyBarW;
-				this.vertexData[this.vIdx + 33] = emptyBarV + scaledEmptyBarH;
+				setF32ValueAt(this.vIdx + 30, w + xBase);
+				setF32ValueAt(this.vIdx + 31, h + yBase);
+				setF32ValueAt(this.vIdx + 32, emptyBarU + scaledEmptyBarW);
+				setF32ValueAt(this.vIdx + 33, emptyBarV + scaledEmptyBarH);
 
-				this.vertexData[this.vIdx + 34] = texelW;
-				this.vertexData[this.vIdx + 35] = texelH;
-				this.vertexData[this.vIdx + 36] = 0;
-				this.vertexData[this.vIdx + 37] = 0;
-				this.vertexData[this.vIdx + 38] = 0;
-				this.vertexData[this.vIdx + 39] = -1;
+				setF32ValueAt(this.vIdx + 34, texelW);
+				setF32ValueAt(this.vIdx + 35, texelH);
+				setF32ValueAt(this.vIdx + 36, 0);
+				setF32ValueAt(this.vIdx + 37, 0);
+				setF32ValueAt(this.vIdx + 38, 0);
+				setF32ValueAt(this.vIdx + 39, -1);
 				this.vIdx += 40;
 
 				final i4 = this.i * 4;
-				this.indexData[this.iIdx] = i4;
-				this.indexData[this.iIdx + 1] = 1 + i4;
-				this.indexData[this.iIdx + 2] = 2 + i4;
-				this.indexData[this.iIdx + 3] = 2 + i4;
-				this.indexData[this.iIdx + 4] = 1 + i4;
-				this.indexData[this.iIdx + 5] = 3 + i4;
+				setI32ValueAt(this.iIdx, i4);
+				setI32ValueAt(this.iIdx + 1, 1 + i4);
+				setI32ValueAt(this.iIdx + 2, 2 + i4);
+				setI32ValueAt(this.iIdx + 3, 2 + i4);
+				setI32ValueAt(this.iIdx + 4, 1 + i4);
+				setI32ValueAt(this.iIdx + 5, 3 + i4);
 				this.iIdx += 6;
 				this.i++;
 
-				this.vertexData[this.vIdx] = -w + xBase;
-				this.vertexData[this.vIdx + 1] = -h + yBase;
-				this.vertexData[this.vIdx + 2] = hpBarU;
-				this.vertexData[this.vIdx + 3] = hpBarV;
+				setF32ValueAt(this.vIdx, -w + xBase);
+				setF32ValueAt(this.vIdx + 1, -h + yBase);
+				setF32ValueAt(this.vIdx + 2, hpBarU);
+				setF32ValueAt(this.vIdx + 3, hpBarV);
 
-				this.vertexData[this.vIdx + 4] = texelW;
-				this.vertexData[this.vIdx + 5] = texelH;
-				this.vertexData[this.vIdx + 6] = 0;
-				this.vertexData[this.vIdx + 7] = 0;
-				this.vertexData[this.vIdx + 8] = 0;
-				this.vertexData[this.vIdx + 9] = barThreshU;
+				setF32ValueAt(this.vIdx + 4, texelW);
+				setF32ValueAt(this.vIdx + 5, texelH);
+				setF32ValueAt(this.vIdx + 6, 0);
+				setF32ValueAt(this.vIdx + 7, 0);
+				setF32ValueAt(this.vIdx + 8, 0);
+				setF32ValueAt(this.vIdx + 9, barThreshU);
 
-				this.vertexData[this.vIdx + 10] = w + xBase;
-				this.vertexData[this.vIdx + 11] = -h + yBase;
-				this.vertexData[this.vIdx + 12] = hpBarU + scaledBarW;
-				this.vertexData[this.vIdx + 13] = hpBarV;
+				setF32ValueAt(this.vIdx + 10, w + xBase);
+				setF32ValueAt(this.vIdx + 11, -h + yBase);
+				setF32ValueAt(this.vIdx + 12, hpBarU + scaledBarW);
+				setF32ValueAt(this.vIdx + 13, hpBarV);
 
-				this.vertexData[this.vIdx + 14] = texelW;
-				this.vertexData[this.vIdx + 15] = texelH;
-				this.vertexData[this.vIdx + 16] = 0;
-				this.vertexData[this.vIdx + 17] = 0;
-				this.vertexData[this.vIdx + 18] = 0;
-				this.vertexData[this.vIdx + 19] = barThreshU;
+				setF32ValueAt(this.vIdx + 14, texelW);
+				setF32ValueAt(this.vIdx + 15, texelH);
+				setF32ValueAt(this.vIdx + 16, 0);
+				setF32ValueAt(this.vIdx + 17, 0);
+				setF32ValueAt(this.vIdx + 18, 0);
+				setF32ValueAt(this.vIdx + 19, barThreshU);
 
-				this.vertexData[this.vIdx + 20] = -w + xBase;
-				this.vertexData[this.vIdx + 21] = h + yBase;
-				this.vertexData[this.vIdx + 22] = hpBarU;
-				this.vertexData[this.vIdx + 23] = hpBarV + scaledBarH;
+				setF32ValueAt(this.vIdx + 20, -w + xBase);
+				setF32ValueAt(this.vIdx + 21, h + yBase);
+				setF32ValueAt(this.vIdx + 22, hpBarU);
+				setF32ValueAt(this.vIdx + 23, hpBarV + scaledBarH);
 
-				this.vertexData[this.vIdx + 24] = texelW;
-				this.vertexData[this.vIdx + 25] = texelH;
-				this.vertexData[this.vIdx + 26] = 0;
-				this.vertexData[this.vIdx + 27] = 0;
-				this.vertexData[this.vIdx + 28] = 0;
-				this.vertexData[this.vIdx + 29] = barThreshU;
+				setF32ValueAt(this.vIdx + 24, texelW);
+				setF32ValueAt(this.vIdx + 25, texelH);
+				setF32ValueAt(this.vIdx + 26, 0);
+				setF32ValueAt(this.vIdx + 27, 0);
+				setF32ValueAt(this.vIdx + 28, 0);
+				setF32ValueAt(this.vIdx + 29, barThreshU);
 
-				this.vertexData[this.vIdx + 30] = w + xBase;
-				this.vertexData[this.vIdx + 31] = h + yBase;
-				this.vertexData[this.vIdx + 32] = hpBarU + scaledBarW;
-				this.vertexData[this.vIdx + 33] = hpBarV + scaledBarH;
+				setF32ValueAt(this.vIdx + 30, w + xBase);
+				setF32ValueAt(this.vIdx + 31, h + yBase);
+				setF32ValueAt(this.vIdx + 32, hpBarU + scaledBarW);
+				setF32ValueAt(this.vIdx + 33, hpBarV + scaledBarH);
 
-				this.vertexData[this.vIdx + 34] = texelW;
-				this.vertexData[this.vIdx + 35] = texelH;
-				this.vertexData[this.vIdx + 36] = 0;
-				this.vertexData[this.vIdx + 37] = 0;
-				this.vertexData[this.vIdx + 38] = 0;
-				this.vertexData[this.vIdx + 39] = barThreshU;
+				setF32ValueAt(this.vIdx + 34, texelW);
+				setF32ValueAt(this.vIdx + 35, texelH);
+				setF32ValueAt(this.vIdx + 36, 0);
+				setF32ValueAt(this.vIdx + 37, 0);
+				setF32ValueAt(this.vIdx + 38, 0);
+				setF32ValueAt(this.vIdx + 39, barThreshU);
 				this.vIdx += 40;
 
 				final i4 = this.i * 4;
-				this.indexData[this.iIdx] = i4;
-				this.indexData[this.iIdx + 1] = 1 + i4;
-				this.indexData[this.iIdx + 2] = 2 + i4;
-				this.indexData[this.iIdx + 3] = 2 + i4;
-				this.indexData[this.iIdx + 4] = 1 + i4;
-				this.indexData[this.iIdx + 5] = 3 + i4;
+				setI32ValueAt(this.iIdx, i4);
+				setI32ValueAt(this.iIdx + 1, 1 + i4);
+				setI32ValueAt(this.iIdx + 2, 2 + i4);
+				setI32ValueAt(this.iIdx + 3, 2 + i4);
+				setI32ValueAt(this.iIdx + 4, 1 + i4);
+				setI32ValueAt(this.iIdx + 5, 3 + i4);
 				this.iIdx += 6;
 				this.i++;
 
@@ -1925,121 +1932,121 @@ class Map {
 				texelW = 0.5 / Main.ATLAS_WIDTH;
 				texelH = 0.5 / Main.ATLAS_HEIGHT;
 
-				this.vertexData[this.vIdx] = -w + xBase;
-				this.vertexData[this.vIdx + 1] = -h + yBase;
-				this.vertexData[this.vIdx + 2] = emptyBarU;
-				this.vertexData[this.vIdx + 3] = emptyBarV;
+				setF32ValueAt(this.vIdx, -w + xBase);
+				setF32ValueAt(this.vIdx + 1, -h + yBase);
+				setF32ValueAt(this.vIdx + 2, emptyBarU);
+				setF32ValueAt(this.vIdx + 3, emptyBarV);
 
-				this.vertexData[this.vIdx + 4] = texelW;
-				this.vertexData[this.vIdx + 5] = texelH;
-				this.vertexData[this.vIdx + 6] = 0;
-				this.vertexData[this.vIdx + 7] = 0;
-				this.vertexData[this.vIdx + 8] = 0;
-				this.vertexData[this.vIdx + 9] = -1;
+				setF32ValueAt(this.vIdx + 4, texelW);
+				setF32ValueAt(this.vIdx + 5, texelH);
+				setF32ValueAt(this.vIdx + 6, 0);
+				setF32ValueAt(this.vIdx + 7, 0);
+				setF32ValueAt(this.vIdx + 8, 0);
+				setF32ValueAt(this.vIdx + 9, -1);
 
-				this.vertexData[this.vIdx + 10] = w + xBase;
-				this.vertexData[this.vIdx + 11] = -h + yBase;
-				this.vertexData[this.vIdx + 12] = emptyBarU + scaledEmptyBarW;
-				this.vertexData[this.vIdx + 13] = emptyBarV;
+				setF32ValueAt(this.vIdx + 10, w + xBase);
+				setF32ValueAt(this.vIdx + 11, -h + yBase);
+				setF32ValueAt(this.vIdx + 12, emptyBarU + scaledEmptyBarW);
+				setF32ValueAt(this.vIdx + 13, emptyBarV);
 
-				this.vertexData[this.vIdx + 14] = texelW;
-				this.vertexData[this.vIdx + 15] = texelH;
-				this.vertexData[this.vIdx + 16] = 0;
-				this.vertexData[this.vIdx + 17] = 0;
-				this.vertexData[this.vIdx + 18] = 0;
-				this.vertexData[this.vIdx + 19] = -1;
+				setF32ValueAt(this.vIdx + 14, texelW);
+				setF32ValueAt(this.vIdx + 15, texelH);
+				setF32ValueAt(this.vIdx + 16, 0);
+				setF32ValueAt(this.vIdx + 17, 0);
+				setF32ValueAt(this.vIdx + 18, 0);
+				setF32ValueAt(this.vIdx + 19, -1);
 
-				this.vertexData[this.vIdx + 20] = -w + xBase;
-				this.vertexData[this.vIdx + 21] = h + yBase;
-				this.vertexData[this.vIdx + 22] = emptyBarU;
-				this.vertexData[this.vIdx + 23] = emptyBarV + scaledEmptyBarH;
+				setF32ValueAt(this.vIdx + 20, -w + xBase);
+				setF32ValueAt(this.vIdx + 21, h + yBase);
+				setF32ValueAt(this.vIdx + 22, emptyBarU);
+				setF32ValueAt(this.vIdx + 23, emptyBarV + scaledEmptyBarH);
 
-				this.vertexData[this.vIdx + 24] = texelW;
-				this.vertexData[this.vIdx + 25] = texelH;
-				this.vertexData[this.vIdx + 26] = 0;
-				this.vertexData[this.vIdx + 27] = 0;
-				this.vertexData[this.vIdx + 28] = 0;
-				this.vertexData[this.vIdx + 29] = -1;
+				setF32ValueAt(this.vIdx + 24, texelW);
+				setF32ValueAt(this.vIdx + 25, texelH);
+				setF32ValueAt(this.vIdx + 26, 0);
+				setF32ValueAt(this.vIdx + 27, 0);
+				setF32ValueAt(this.vIdx + 28, 0);
+				setF32ValueAt(this.vIdx + 29, -1);
 
-				this.vertexData[this.vIdx + 30] = w + xBase;
-				this.vertexData[this.vIdx + 31] = h + yBase;
-				this.vertexData[this.vIdx + 32] = emptyBarU + scaledEmptyBarW;
-				this.vertexData[this.vIdx + 33] = emptyBarV + scaledEmptyBarH;
+				setF32ValueAt(this.vIdx + 30, w + xBase);
+				setF32ValueAt(this.vIdx + 31, h + yBase);
+				setF32ValueAt(this.vIdx + 32, emptyBarU + scaledEmptyBarW);
+				setF32ValueAt(this.vIdx + 33, emptyBarV + scaledEmptyBarH);
 
-				this.vertexData[this.vIdx + 34] = texelW;
-				this.vertexData[this.vIdx + 35] = texelH;
-				this.vertexData[this.vIdx + 36] = 0;
-				this.vertexData[this.vIdx + 37] = 0;
-				this.vertexData[this.vIdx + 38] = 0;
-				this.vertexData[this.vIdx + 39] = -1;
+				setF32ValueAt(this.vIdx + 34, texelW);
+				setF32ValueAt(this.vIdx + 35, texelH);
+				setF32ValueAt(this.vIdx + 36, 0);
+				setF32ValueAt(this.vIdx + 37, 0);
+				setF32ValueAt(this.vIdx + 38, 0);
+				setF32ValueAt(this.vIdx + 39, -1);
 				this.vIdx += 40;
 
 				final i4 = this.i * 4;
-				this.indexData[this.iIdx] = i4;
-				this.indexData[this.iIdx + 1] = 1 + i4;
-				this.indexData[this.iIdx + 2] = 2 + i4;
-				this.indexData[this.iIdx + 3] = 2 + i4;
-				this.indexData[this.iIdx + 4] = 1 + i4;
-				this.indexData[this.iIdx + 5] = 3 + i4;
+				setI32ValueAt(this.iIdx, i4);
+				setI32ValueAt(this.iIdx + 1, 1 + i4);
+				setI32ValueAt(this.iIdx + 2, 2 + i4);
+				setI32ValueAt(this.iIdx + 3, 2 + i4);
+				setI32ValueAt(this.iIdx + 4, 1 + i4);
+				setI32ValueAt(this.iIdx + 5, 3 + i4);
 				this.iIdx += 6;
 				this.i++;
 
-				this.vertexData[this.vIdx] = -w + xBase;
-				this.vertexData[this.vIdx + 1] = -h + yBase;
-				this.vertexData[this.vIdx + 2] = mpBarU;
-				this.vertexData[this.vIdx + 3] = mpBarV;
+				setF32ValueAt(this.vIdx, -w + xBase);
+				setF32ValueAt(this.vIdx + 1, -h + yBase);
+				setF32ValueAt(this.vIdx + 2, mpBarU);
+				setF32ValueAt(this.vIdx + 3, mpBarV);
 
-				this.vertexData[this.vIdx + 4] = texelW;
-				this.vertexData[this.vIdx + 5] = texelH;
-				this.vertexData[this.vIdx + 6] = 0;
-				this.vertexData[this.vIdx + 7] = 0;
-				this.vertexData[this.vIdx + 8] = 0;
-				this.vertexData[this.vIdx + 9] = barThreshU;
+				setF32ValueAt(this.vIdx + 4, texelW);
+				setF32ValueAt(this.vIdx + 5, texelH);
+				setF32ValueAt(this.vIdx + 6, 0);
+				setF32ValueAt(this.vIdx + 7, 0);
+				setF32ValueAt(this.vIdx + 8, 0);
+				setF32ValueAt(this.vIdx + 9, barThreshU);
 
-				this.vertexData[this.vIdx + 10] = w + xBase;
-				this.vertexData[this.vIdx + 11] = -h + yBase;
-				this.vertexData[this.vIdx + 12] = mpBarU + scaledBarW;
-				this.vertexData[this.vIdx + 13] = mpBarV;
+				setF32ValueAt(this.vIdx + 10, w + xBase);
+				setF32ValueAt(this.vIdx + 11, -h + yBase);
+				setF32ValueAt(this.vIdx + 12, mpBarU + scaledBarW);
+				setF32ValueAt(this.vIdx + 13, mpBarV);
 
-				this.vertexData[this.vIdx + 14] = texelW;
-				this.vertexData[this.vIdx + 15] = texelH;
-				this.vertexData[this.vIdx + 16] = 0;
-				this.vertexData[this.vIdx + 17] = 0;
-				this.vertexData[this.vIdx + 18] = 0;
-				this.vertexData[this.vIdx + 19] = barThreshU;
+				setF32ValueAt(this.vIdx + 14, texelW);
+				setF32ValueAt(this.vIdx + 15, texelH);
+				setF32ValueAt(this.vIdx + 16, 0);
+				setF32ValueAt(this.vIdx + 17, 0);
+				setF32ValueAt(this.vIdx + 18, 0);
+				setF32ValueAt(this.vIdx + 19, barThreshU);
 
-				this.vertexData[this.vIdx + 20] = -w + xBase;
-				this.vertexData[this.vIdx + 21] = h + yBase;
-				this.vertexData[this.vIdx + 22] = mpBarU;
-				this.vertexData[this.vIdx + 23] = mpBarV + scaledBarH;
+				setF32ValueAt(this.vIdx + 20, -w + xBase);
+				setF32ValueAt(this.vIdx + 21, h + yBase);
+				setF32ValueAt(this.vIdx + 22, mpBarU);
+				setF32ValueAt(this.vIdx + 23, mpBarV + scaledBarH);
 
-				this.vertexData[this.vIdx + 24] = texelW;
-				this.vertexData[this.vIdx + 25] = texelH;
-				this.vertexData[this.vIdx + 26] = 0;
-				this.vertexData[this.vIdx + 27] = 0;
-				this.vertexData[this.vIdx + 28] = 0;
-				this.vertexData[this.vIdx + 29] = barThreshU;
+				setF32ValueAt(this.vIdx + 24, texelW);
+				setF32ValueAt(this.vIdx + 25, texelH);
+				setF32ValueAt(this.vIdx + 26, 0);
+				setF32ValueAt(this.vIdx + 27, 0);
+				setF32ValueAt(this.vIdx + 28, 0);
+				setF32ValueAt(this.vIdx + 29, barThreshU);
 
-				this.vertexData[this.vIdx + 30] = w + xBase;
-				this.vertexData[this.vIdx + 31] = h + yBase;
-				this.vertexData[this.vIdx + 32] = mpBarU + scaledBarW;
-				this.vertexData[this.vIdx + 33] = mpBarV + scaledBarH;
+				setF32ValueAt(this.vIdx + 30, w + xBase);
+				setF32ValueAt(this.vIdx + 31, h + yBase);
+				setF32ValueAt(this.vIdx + 32, mpBarU + scaledBarW);
+				setF32ValueAt(this.vIdx + 33, mpBarV + scaledBarH);
 
-				this.vertexData[this.vIdx + 34] = texelW;
-				this.vertexData[this.vIdx + 35] = texelH;
-				this.vertexData[this.vIdx + 36] = 0;
-				this.vertexData[this.vIdx + 37] = 0;
-				this.vertexData[this.vIdx + 38] = 0;
-				this.vertexData[this.vIdx + 39] = barThreshU;
+				setF32ValueAt(this.vIdx + 34, texelW);
+				setF32ValueAt(this.vIdx + 35, texelH);
+				setF32ValueAt(this.vIdx + 36, 0);
+				setF32ValueAt(this.vIdx + 37, 0);
+				setF32ValueAt(this.vIdx + 38, 0);
+				setF32ValueAt(this.vIdx + 39, barThreshU);
 				this.vIdx += 40;
 
 				final i4 = this.i * 4;
-				this.indexData[this.iIdx] = i4;
-				this.indexData[this.iIdx + 1] = 1 + i4;
-				this.indexData[this.iIdx + 2] = 2 + i4;
-				this.indexData[this.iIdx + 3] = 2 + i4;
-				this.indexData[this.iIdx + 4] = 1 + i4;
-				this.indexData[this.iIdx + 5] = 3 + i4;
+				setI32ValueAt(this.iIdx, i4);
+				setI32ValueAt(this.iIdx + 1, 1 + i4);
+				setI32ValueAt(this.iIdx + 2, 2 + i4);
+				setI32ValueAt(this.iIdx + 3, 2 + i4);
+				setI32ValueAt(this.iIdx + 4, 1 + i4);
+				setI32ValueAt(this.iIdx + 5, 3 + i4);
 				this.iIdx += 6;
 				this.i++;
 
@@ -2073,62 +2080,62 @@ class Map {
 					texelW = 1 / Main.ATLAS_WIDTH;
 					texelH = 1 / Main.ATLAS_HEIGHT;
 
-					this.vertexData[this.vIdx] = -w + xBase;
-					this.vertexData[this.vIdx + 1] = -h + yBase;
-					this.vertexData[this.vIdx + 2] = scaledU;
-					this.vertexData[this.vIdx + 3] = scaledV;
+					setF32ValueAt(this.vIdx, -w + xBase);
+					setF32ValueAt(this.vIdx + 1, -h + yBase);
+					setF32ValueAt(this.vIdx + 2, scaledU);
+					setF32ValueAt(this.vIdx + 3, scaledV);
 
-					this.vertexData[this.vIdx + 4] = texelW;
-					this.vertexData[this.vIdx + 5] = texelH;
-					this.vertexData[this.vIdx + 6] = 0;
-					this.vertexData[this.vIdx + 7] = 0;
-					this.vertexData[this.vIdx + 8] = 0;
-					this.vertexData[this.vIdx + 9] = -1;
+					setF32ValueAt(this.vIdx + 4, texelW);
+					setF32ValueAt(this.vIdx + 5, texelH);
+					setF32ValueAt(this.vIdx + 6, 0);
+					setF32ValueAt(this.vIdx + 7, 0);
+					setF32ValueAt(this.vIdx + 8, 0);
+					setF32ValueAt(this.vIdx + 9, -1);
 
-					this.vertexData[this.vIdx + 10] = w + xBase;
-					this.vertexData[this.vIdx + 11] = -h + yBase;
-					this.vertexData[this.vIdx + 12] = scaledU + scaledW;
-					this.vertexData[this.vIdx + 13] = scaledV;
+					setF32ValueAt(this.vIdx + 10, w + xBase);
+					setF32ValueAt(this.vIdx + 11, -h + yBase);
+					setF32ValueAt(this.vIdx + 12, scaledU + scaledW);
+					setF32ValueAt(this.vIdx + 13, scaledV);
 
-					this.vertexData[this.vIdx + 14] = texelW;
-					this.vertexData[this.vIdx + 15] = texelH;
-					this.vertexData[this.vIdx + 16] = 0;
-					this.vertexData[this.vIdx + 17] = 0;
-					this.vertexData[this.vIdx + 18] = 0;
-					this.vertexData[this.vIdx + 19] = -1;
+					setF32ValueAt(this.vIdx + 14, texelW);
+					setF32ValueAt(this.vIdx + 15, texelH);
+					setF32ValueAt(this.vIdx + 16, 0);
+					setF32ValueAt(this.vIdx + 17, 0);
+					setF32ValueAt(this.vIdx + 18, 0);
+					setF32ValueAt(this.vIdx + 19, -1);
 
-					this.vertexData[this.vIdx + 20] = -w + xBase;
-					this.vertexData[this.vIdx + 21] = h + yBase;
-					this.vertexData[this.vIdx + 22] = scaledU;
-					this.vertexData[this.vIdx + 23] = scaledV + scaledH;
+					setF32ValueAt(this.vIdx + 20, -w + xBase);
+					setF32ValueAt(this.vIdx + 21, h + yBase);
+					setF32ValueAt(this.vIdx + 22, scaledU);
+					setF32ValueAt(this.vIdx + 23, scaledV + scaledH);
 
-					this.vertexData[this.vIdx + 24] = texelW;
-					this.vertexData[this.vIdx + 25] = texelH;
-					this.vertexData[this.vIdx + 26] = 0;
-					this.vertexData[this.vIdx + 27] = 0;
-					this.vertexData[this.vIdx + 28] = 0;
-					this.vertexData[this.vIdx + 29] = -1;
+					setF32ValueAt(this.vIdx + 24, texelW);
+					setF32ValueAt(this.vIdx + 25, texelH);
+					setF32ValueAt(this.vIdx + 26, 0);
+					setF32ValueAt(this.vIdx + 27, 0);
+					setF32ValueAt(this.vIdx + 28, 0);
+					setF32ValueAt(this.vIdx + 29, -1);
 
-					this.vertexData[this.vIdx + 30] = w + xBase;
-					this.vertexData[this.vIdx + 31] = h + yBase;
-					this.vertexData[this.vIdx + 32] = scaledU + scaledW;
-					this.vertexData[this.vIdx + 33] = scaledV + scaledH;
+					setF32ValueAt(this.vIdx + 30, w + xBase);
+					setF32ValueAt(this.vIdx + 31, h + yBase);
+					setF32ValueAt(this.vIdx + 32, scaledU + scaledW);
+					setF32ValueAt(this.vIdx + 33, scaledV + scaledH);
 
-					this.vertexData[this.vIdx + 34] = texelW;
-					this.vertexData[this.vIdx + 35] = texelH;
-					this.vertexData[this.vIdx + 36] = 0;
-					this.vertexData[this.vIdx + 37] = 0;
-					this.vertexData[this.vIdx + 38] = 0;
-					this.vertexData[this.vIdx + 39] = -1;
+					setF32ValueAt(this.vIdx + 34, texelW);
+					setF32ValueAt(this.vIdx + 35, texelH);
+					setF32ValueAt(this.vIdx + 36, 0);
+					setF32ValueAt(this.vIdx + 37, 0);
+					setF32ValueAt(this.vIdx + 38, 0);
+					setF32ValueAt(this.vIdx + 39, -1);
 					this.vIdx += 40;
 
 					final i4 = this.i * 4;
-					this.indexData[this.iIdx] = i4;
-					this.indexData[this.iIdx + 1] = 1 + i4;
-					this.indexData[this.iIdx + 2] = 2 + i4;
-					this.indexData[this.iIdx + 3] = 2 + i4;
-					this.indexData[this.iIdx + 4] = 1 + i4;
-					this.indexData[this.iIdx + 5] = 3 + i4;
+					setI32ValueAt(this.iIdx, i4);
+					setI32ValueAt(this.iIdx + 1, 1 + i4);
+					setI32ValueAt(this.iIdx + 2, 2 + i4);
+					setI32ValueAt(this.iIdx + 3, 2 + i4);
+					setI32ValueAt(this.iIdx + 4, 1 + i4);
+					setI32ValueAt(this.iIdx + 5, 3 + i4);
 					this.iIdx += 6;
 					this.i++;
 					idx++;
@@ -2147,11 +2154,12 @@ class Map {
 				player.nameTex.applyFilter(player.nameTex, player.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
 			}
 			
+			trace(hBase, sink, sink-1, (sink-1)*hBase);
 			var textureData = TextureFactory.make(player.nameTex);
 			this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
 				sinX: 0, sinY: 0,
 				cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-				x: screenX * RenderUtils.clipSpaceScaleX, y: (screenY - hBase + 30) * RenderUtils.clipSpaceScaleY,
+				x: screenX * RenderUtils.clipSpaceScaleX, y: (screenY - hBase + 30 + (sink - 1) * hBase / 3) * RenderUtils.clipSpaceScaleY,
 				texelW: 0, texelH: 0,
 				texture: textureData.texture});
 		}
@@ -2180,64 +2188,80 @@ class Map {
 		final yScaledCos = cosAngle * w * RenderUtils.clipSpaceScaleY * 0.5;
 		final yScaledSinInv = -sinAngle * h * RenderUtils.clipSpaceScaleY * 0.5;
 
-		this.vertexData[this.vIdx] = -xScaledCos + xScaledSin + xBase;
-		this.vertexData[this.vIdx + 1] = yScaledSinInv + -yScaledCos + yBase;
-		this.vertexData[this.vIdx + 2] = proj.uValue;
-		this.vertexData[this.vIdx + 3] = proj.vValue;
+		setF32ValueAt(this.vIdx, -xScaledCos + xScaledSin + xBase);
+		setF32ValueAt(this.vIdx + 1, yScaledSinInv + -yScaledCos + yBase);
+		setF32ValueAt(this.vIdx + 2, proj.uValue);
+		setF32ValueAt(this.vIdx + 3, proj.vValue);
 
-		this.vertexData[this.vIdx + 4] = texelW;
-		this.vertexData[this.vIdx + 5] = texelH;
-		this.vertexData[this.vIdx + 6] = 0;
-		this.vertexData[this.vIdx + 7] = 0;
-		this.vertexData[this.vIdx + 8] = 0;
-		this.vertexData[this.vIdx + 9] = -1;
+		setF32ValueAt(this.vIdx + 4, texelW);
+		setF32ValueAt(this.vIdx + 5, texelH);
+		setF32ValueAt(this.vIdx + 6, 0);
+		setF32ValueAt(this.vIdx + 7, 0);
+		setF32ValueAt(this.vIdx + 8, 0);
+		setF32ValueAt(this.vIdx + 9, -1);
 
-		this.vertexData[this.vIdx + 10] = xScaledCos + xScaledSin + xBase;
-		this.vertexData[this.vIdx + 11] = -(yScaledSinInv + yScaledCos) + yBase;
-		this.vertexData[this.vIdx + 12] = proj.uValue + proj.width;
-		this.vertexData[this.vIdx + 13] = proj.vValue;
+		setF32ValueAt(this.vIdx + 10, xScaledCos + xScaledSin + xBase);
+		setF32ValueAt(this.vIdx + 11, -(yScaledSinInv + yScaledCos) + yBase);
+		setF32ValueAt(this.vIdx + 12, proj.uValue + proj.width);
+		setF32ValueAt(this.vIdx + 13, proj.vValue);
 
-		this.vertexData[this.vIdx + 14] = texelW;
-		this.vertexData[this.vIdx + 15] = texelH;
-		this.vertexData[this.vIdx + 16] = 0;
-		this.vertexData[this.vIdx + 17] = 0;
-		this.vertexData[this.vIdx + 18] = 0;
-		this.vertexData[this.vIdx + 19] = -1;
+		setF32ValueAt(this.vIdx + 14, texelW);
+		setF32ValueAt(this.vIdx + 15, texelH);
+		setF32ValueAt(this.vIdx + 16, 0);
+		setF32ValueAt(this.vIdx + 17, 0);
+		setF32ValueAt(this.vIdx + 18, 0);
+		setF32ValueAt(this.vIdx + 19, -1);
 
-		this.vertexData[this.vIdx + 20] = -(xScaledCos + xScaledSin) + xBase;
-		this.vertexData[this.vIdx + 21] = yScaledSinInv + yScaledCos + yBase;
-		this.vertexData[this.vIdx + 22] = proj.uValue;
-		this.vertexData[this.vIdx + 23] = proj.vValue + proj.height;
+		setF32ValueAt(this.vIdx + 20, -(xScaledCos + xScaledSin) + xBase);
+		setF32ValueAt(this.vIdx + 21, yScaledSinInv + yScaledCos + yBase);
+		setF32ValueAt(this.vIdx + 22, proj.uValue);
+		setF32ValueAt(this.vIdx + 23, proj.vValue + proj.height);
 
-		this.vertexData[this.vIdx + 24] = texelW;
-		this.vertexData[this.vIdx + 25] = texelH;
-		this.vertexData[this.vIdx + 26] = 0;
-		this.vertexData[this.vIdx + 27] = 0;
-		this.vertexData[this.vIdx + 28] = 0;
-		this.vertexData[this.vIdx + 29] = -1;
+		setF32ValueAt(this.vIdx + 24, texelW);
+		setF32ValueAt(this.vIdx + 25, texelH);
+		setF32ValueAt(this.vIdx + 26, 0);
+		setF32ValueAt(this.vIdx + 27, 0);
+		setF32ValueAt(this.vIdx + 28, 0);
+		setF32ValueAt(this.vIdx + 29, -1);
 
-		this.vertexData[this.vIdx + 30] = xScaledCos + -xScaledSin + xBase;
-		this.vertexData[this.vIdx + 31] = -yScaledSinInv + yScaledCos + yBase;
-		this.vertexData[this.vIdx + 32] = proj.uValue + proj.width;
-		this.vertexData[this.vIdx + 33] = proj.vValue + proj.height;
+		setF32ValueAt(this.vIdx + 30, xScaledCos + -xScaledSin + xBase);
+		setF32ValueAt(this.vIdx + 31, -yScaledSinInv + yScaledCos + yBase);
+		setF32ValueAt(this.vIdx + 32, proj.uValue + proj.width);
+		setF32ValueAt(this.vIdx + 33, proj.vValue + proj.height);
 
-		this.vertexData[this.vIdx + 34] = texelW;
-		this.vertexData[this.vIdx + 35] = texelH;
-		this.vertexData[this.vIdx + 36] = 0;
-		this.vertexData[this.vIdx + 37] = 0;
-		this.vertexData[this.vIdx + 38] = 0;
-		this.vertexData[this.vIdx + 39] = -1;
+		setF32ValueAt(this.vIdx + 34, texelW);
+		setF32ValueAt(this.vIdx + 35, texelH);
+		setF32ValueAt(this.vIdx + 36, 0);
+		setF32ValueAt(this.vIdx + 37, 0);
+		setF32ValueAt(this.vIdx + 38, 0);
+		setF32ValueAt(this.vIdx + 39, -1);
 		this.vIdx += 40;
 
 		final i4 = this.i * 4;
-		this.indexData[this.iIdx] = i4;
-		this.indexData[this.iIdx + 1] = 1 + i4;
-		this.indexData[this.iIdx + 2] = 2 + i4;
-		this.indexData[this.iIdx + 3] = 2 + i4;
-		this.indexData[this.iIdx + 4] = 1 + i4;
-		this.indexData[this.iIdx + 5] = 3 + i4;
+		setI32ValueAt(this.iIdx, i4);
+		setI32ValueAt(this.iIdx + 1, 1 + i4);
+		setI32ValueAt(this.iIdx + 2, 2 + i4);
+		setI32ValueAt(this.iIdx + 3, 2 + i4);
+		setI32ValueAt(this.iIdx + 4, 1 + i4);
+		setI32ValueAt(this.iIdx + 5, 3 + i4);
 		this.iIdx += 6;
 		this.i++;
+	}
+
+	@:nonVirtual private inline function setF32ValueAt(index: Int32, value: Float32): Void {
+		return untyped __cpp__('_f32Arr_[{0}] = {1}', index, value);
+	}
+
+	@:nonVirtual private inline function setI32ValueAt(index: Int32, value: Int32): Void {
+		return untyped __cpp__('_i32Arr_[{0}] = {1}', index, value);
+	}
+
+	@:nonVirtual private inline function getF32Pointer() {
+		return untyped __cpp__('(uintptr_t)_f32Arr_');
+	}
+
+	@:nonVirtual private inline function getI32Pointer() {
+		return untyped __cpp__('(uintptr_t)_i32Arr_');
 	}
 
 	@:nonVirtual public final function draw(time: Int32) {
@@ -2296,18 +2320,16 @@ class Map {
 		GL.activeTexture(GL.TEXTURE0);
 		GL.bindTexture(GL.TEXTURE_2D, Main.atlas.texture);
 
-		while (this.vertexLen < this.visSquareLen * 56) {
-			this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
-			this.vertexLen *= 2;
-		}
+		var totalObjsLen = this.gameObjectsLen + this.playersLen + this.projectilesLen;
 
-		while (this.indexLen < this.visSquareLen * 6) {
-			this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
-			this.indexLen *= 2;
-		}
+		// this will break at 13k+ objects because of stack size... todo break into multiple batches
+		var vSize = Std.int(Math.max(this.visSquareLen * 56, totalObjsLen * 40));
+		var iSize = Std.int(Math.max(this.visSquareLen * 6, totalObjsLen * 6));
+		untyped __cpp__('float _f32Arr_[{0}]', vSize);
+		untyped __cpp__('int _i32Arr_[{0}]', iSize);
 
 		this.i = this.vIdx = this.iIdx = 0;
-		drawSquares();
+		drawSquares(time);
 
 		GL.useProgram(this.groundProgram);
 		GL.uniform2f(cast 0, leftMaskU, leftMaskV);
@@ -2319,10 +2341,10 @@ class Map {
 		GL.bindBuffer(GL.ARRAY_BUFFER, this.groundVBO);
 		// think about 2x scaling factor... todo
 		if (this.vIdx > this.groundVBOLen) {
-			GL.bufferData(GL.ARRAY_BUFFER, this.vIdx * 4, untyped __cpp__('(uintptr_t){0}', this.vertexData), GL.DYNAMIC_DRAW);
+			GL.bufferData(GL.ARRAY_BUFFER, this.vIdx * 4, getF32Pointer(), GL.DYNAMIC_DRAW);
 			this.groundVBOLen = this.vIdx;
 		} else
-			GL.bufferSubData(GL.ARRAY_BUFFER, 0, this.vIdx * 4, untyped __cpp__('(uintptr_t){0}', this.vertexData));
+			GL.bufferSubData(GL.ARRAY_BUFFER, 0, this.vIdx * 4, getF32Pointer());
 
 		GL.enableVertexAttribArray(0);
 		GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 56, 0);
@@ -2339,26 +2361,15 @@ class Map {
 
 		GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.groundIBO);
 		if (this.iIdx > this.groundIBOLen) {
-			GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, this.iIdx * 4, untyped __cpp__('(uintptr_t){0}', this.indexData), GL.DYNAMIC_DRAW);
+			GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, this.iIdx * 4, getI32Pointer(), GL.DYNAMIC_DRAW);
 			this.groundIBOLen = this.iIdx;
 		} else
-			GL.bufferSubData(GL.ELEMENT_ARRAY_BUFFER, 0, this.iIdx * 4, untyped __cpp__('(uintptr_t){0}', this.indexData));
+			GL.bufferSubData(GL.ELEMENT_ARRAY_BUFFER, 0, this.iIdx * 4, getI32Pointer());
 		GL.drawElements(GL.TRIANGLES, this.iIdx, GL.UNSIGNED_INT, 0);
 
-		var totalLen = this.gameObjectsLen + this.playersLen + this.projectilesLen;
-		if (totalLen == 0) {
+		if (totalObjsLen == 0) {
 			this.c3d.present();
 			return;
-		}
-
-		while (this.vertexLen < totalLen * 40) {
-			this.vertexData = cast Stdlib.nativeRealloc(cast this.vertexData, this.vertexLen * 2);
-			this.vertexLen *= 2;
-		}
-
-		while (this.indexLen < totalLen * 6) {
-			this.indexData = cast Stdlib.nativeRealloc(cast this.indexData, this.indexLen * 2);
-			this.indexLen *= 2;
 		}
 
 		this.i = this.vIdx = this.iIdx = 0;
@@ -2414,10 +2425,10 @@ class Map {
 
 		GL.bindBuffer(GL.ARRAY_BUFFER, this.objVBO);
 		if (this.vIdx > this.objVBOLen) {
-			GL.bufferData(GL.ARRAY_BUFFER, this.vIdx * 4, untyped __cpp__('(uintptr_t){0}', this.vertexData), GL.DYNAMIC_DRAW);
+			GL.bufferData(GL.ARRAY_BUFFER, this.vIdx * 4, getF32Pointer(), GL.DYNAMIC_DRAW);
 			this.objVBOLen = this.vIdx;
 		} else
-			GL.bufferSubData(GL.ARRAY_BUFFER, 0, this.vIdx * 4, untyped __cpp__('(uintptr_t){0}', this.vertexData));
+			GL.bufferSubData(GL.ARRAY_BUFFER, 0, this.vIdx * 4, getF32Pointer());
 
 		GL.enableVertexAttribArray(0);
 		GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 40, 0);
@@ -2432,10 +2443,10 @@ class Map {
 
 		GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.objIBO);
 		if (this.iIdx > this.objIBOLen) {
-			GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, this.iIdx * 4, untyped __cpp__('(uintptr_t){0}', this.indexData), GL.DYNAMIC_DRAW);
+			GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, this.iIdx * 4, getI32Pointer(), GL.DYNAMIC_DRAW);
 			this.objIBOLen = this.iIdx;
 		} else
-			GL.bufferSubData(GL.ELEMENT_ARRAY_BUFFER, 0, this.iIdx * 4, untyped __cpp__('(uintptr_t){0}', this.indexData));
+			GL.bufferSubData(GL.ELEMENT_ARRAY_BUFFER, 0, this.iIdx * 4, getI32Pointer());
 
 		GL.drawElements(GL.TRIANGLES, iIdx, GL.UNSIGNED_INT, 0);
 

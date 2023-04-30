@@ -68,7 +68,7 @@ class Settings {
 	public static var selectedServer = "";
 	public static var cameraAngle: Float32 = 0.0;
 	public static var selectedCursor: Int8 = 3;
-	public static var glowType: GlowType = GlowType.None;
+	public static var glowType: GlowType = GlowType.High;
 
 	public static var messagesSent = new Array<String>();
 

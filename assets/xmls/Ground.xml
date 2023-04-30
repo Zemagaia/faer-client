@@ -26,6 +26,20 @@
             <Sheet>ground</Sheet>
             <Index>0x03</Index>
         </Texture>
+        <Animation prob="1" period="0.4">
+            <Frame time="0.2">
+                <Texture>
+                    <Sheet>ground</Sheet>
+                    <Index>0x03</Index>
+                </Texture>
+            </Frame>
+            <Frame time="0.2">
+                <Texture>
+                    <Sheet>ground</Sheet>
+                    <Index>0x04</Index>
+                </Texture>
+            </Frame>
+        </Animation>
         <BlendPriority>99</BlendPriority>
         <Sink/>
         <Speed>0.7</Speed>
