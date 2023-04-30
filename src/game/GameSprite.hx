@@ -16,7 +16,7 @@ import lime.system.System;
 import screens.CharacterSelectionScreen;
 import game.view.CurrencyDisplay;
 import map.Map;
-import minimap.MiniMap;
+import ui.MiniMap;
 import objects.Player;
 import objects.Projectile;
 import openfl.display.Sprite;
@@ -66,8 +66,8 @@ class GameSprite extends Sprite {
 		this.fromEditor = fmMap?.length > 0;
 		NetworkHandler.reset(server, gameId, createCharacter, charId, fmMap);
 		this.inputHandler = new InputHandler(this);
-		this.textBox = new TextBox(this, 600, 600);
-		this.textBox.y = Math.max(0, Main.stageHeight - 600);
+		this.textBox = new TextBox(this, 400, 250);
+		this.textBox.y = Math.max(0, Main.stageHeight - 250);
 		addChild(this.textBox);
 		addEventListener(Event.ADDED_TO_STAGE, this.onAdded);
 	}

@@ -1,5 +1,7 @@
-package minimap;
+package ui;
 
+import openfl.Assets;
+import openfl.display.Bitmap;
 import map.Camera;
 import network.NetworkHandler;
 import haxe.ds.IntMap;
@@ -43,8 +45,10 @@ class MiniMap extends Sprite {
 	public var groundLayer: Shape;
 	public var characterLayer: Shape;
 
-	private var button: IconButton;
+	private var optionsButton: IconButton;
+	private var hubButton: IconButton;
 	private var zoomButtons: MiniMapZoomButtons;
+	private var decor: Bitmap;
 	private var isMouseOver = false;
 	private var tooltip: PlayerGroupToolTip = null;
 	private var menu: PlayerGroupMenu = null;
@@ -92,7 +96,7 @@ class MiniMap extends Sprite {
 		this.map = Global.gameSprite.map;
 		this.zoomLevels.resize(0);
 		this.makeViewModel();
-		this.createButton(this.map.mapName == "Hub" ? "OPTIONS_BUTTON" : "HUB_BUTTON");
+		this.createButton();
 	}
 
 	private static function onGotoHub() {
@@ -129,6 +133,11 @@ class MiniMap extends Sprite {
 			this.blueArrow = null;
 		}
 
+		if (this.decor != null) {
+			this.decor.bitmapData?.dispose();
+			this.decor = null;
+		}
+
 		if (this.tooltip != null) {
 			if (this.tooltip.parent != null)
 				this.tooltip.parent.removeChild(this.tooltip);
@@ -154,6 +163,52 @@ class MiniMap extends Sprite {
 		var color = gameObjectToColor(go);
 		if (color != 0)
 			this.miniMapData.setPixel(x, y, color);
+	}
+
+	public static function lineSegmentIntersectXY(rect: Rectangle, p1x: Float, p1y: Float, p2x: Float, p2y: Float, result: Point) {
+		var slope: Float;
+		var c: Float;
+		var y: Float;
+		var x: Float;
+		if (p2x <= rect.x) {
+			slope = (p2y - p1y) / (p2x - p1x);
+			c = p1y - p1x * slope;
+			y = slope * rect.x + c;
+			if (y >= rect.y && y <= rect.y + rect.height) {
+				result.x = rect.x;
+				result.y = y;
+				return true;
+			}
+		} else if (p2x >= rect.x + rect.width) {
+			slope = (p2y - p1y) / (p2x - p1x);
+			c = p1y - p1x * slope;
+			y = slope * (rect.x + rect.width) + c;
+			if (y >= rect.y && y <= rect.y + rect.height) {
+				result.x = rect.x + rect.width;
+				result.y = y;
+				return true;
+			}
+		}
+		if (p2y <= rect.y) {
+			slope = (p2x - p1x) / (p2y - p1y);
+			c = p1x - p1y * slope;
+			x = slope * rect.y + c;
+			if (x >= rect.x && x <= rect.x + rect.width) {
+				result.x = x;
+				result.y = rect.y;
+				return true;
+			}
+		} else if (p2y >= rect.y + rect.height) {
+			slope = (p2x - p1x) / (p2y - p1y);
+			c = p1x - p1y * slope;
+			x = slope * (rect.y + rect.height) + c;
+			if (x >= rect.x && x <= rect.x + rect.width) {
+				result.x = x;
+				result.y = rect.y + rect.height;
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public inline function draw() {
@@ -192,7 +247,7 @@ class MiniMap extends Sprite {
 		this.mapMatrix.translate(tx, ty);
 		g = this.groundLayer.graphics;
 		g.beginBitmapFill(this.miniMapData, this.mapMatrix, false);
-		g.drawCircle(0, 0, 75);
+		g.drawRect(-188/2, -188/2, 188, 188);
 		g.endFill();
 		g = this.characterLayer.graphics;
 		var mX = mouseX;
@@ -209,7 +264,7 @@ class MiniMap extends Sprite {
 
 				mmx = this.mapMatrix.a * go.mapX + this.mapMatrix.c * go.mapY + this.mapMatrix.tx;
 				mmy = this.mapMatrix.b * go.mapX + this.mapMatrix.d * go.mapY + this.mapMatrix.ty;
-				if (PointUtil.distanceSquaredXY(mmx, mmy, 0, 0) > 75 * 75)
+				if (mmx <= -this.mapWidth / 2 || mmx >= this.mapWidth / 2 || mmy <= -this.mapHeight / 2 || mmy >= this.mapHeight / 2)
 					continue;
 
 				g.beginFill(fillColor);
@@ -224,14 +279,10 @@ class MiniMap extends Sprite {
 
 				mmx = this.mapMatrix.a * player.mapX + this.mapMatrix.c * player.mapY + this.mapMatrix.tx;
 				mmy = this.mapMatrix.b * player.mapX + this.mapMatrix.d * player.mapY + this.mapMatrix.ty;
-				if (PointUtil.distanceSquaredXY(mmx, mmy, 0, 0) > 75 * 75) {
-					var angle: Float = Math.atan2(mmy, mmx);
-					var cosAngle: Float = MathUtil.cos(angle),
-						sinAngle: Float = MathUtil.sin(angle);
-					var scaledWh: Float = Math.ceil(75 * 0.7); // Why man
-
-					mmx = cosAngle * scaledWh - sinAngle * scaledWh;
-					mmy = sinAngle * scaledWh + cosAngle * scaledWh;
+				if (mmx <= -this.mapWidth / 2 || mmx >= this.mapWidth / 2 || mmy <= -this.mapHeight / 2 || mmy >= this.mapHeight / 2) {
+					lineSegmentIntersectXY(this.windowRect, 0, 0, mmx, mmy, this.tempPoint);
+					mmx = this.tempPoint.x;
+					mmy = this.tempPoint.y;
 				}
 
 				if (this.isMouseOver && (this.menu == null || this.menu.parent == null)) {
@@ -281,21 +332,24 @@ class MiniMap extends Sprite {
 		this.zoomIndex = this.zoomButtons.setZoomLevel(this.zoomIndex + 1);
 	}
 
-	private function createButton(buttonType: String) {
-		if (contains(this.button))
-			removeChild(this.button);
+	private function createButton() {
+		if (contains(this.optionsButton))
+			removeChild(this.optionsButton);
 
-		if (buttonType == HUB_BUTTON) {
-			this.button = new IconButton(AssetLibrary.getImageFromSet("misc16", 31), "Hub", "escapeToHub");
-			this.button.addEventListener(MouseEvent.CLICK, this.onHubClick);
-		} else if (buttonType == OPTIONS_BUTTON) {
-			this.button = new IconButton(AssetLibrary.getImageFromSet("misc16", 15), "Options", "options");
-			this.button.addEventListener(MouseEvent.CLICK, this.onOptionsClick);
-		}
+		if (contains(this.hubButton))
+			removeChild(this.hubButton);
 
-		this.button.x = 66;
-		this.button.y = 53;
-		addChild(this.button);
+		this.hubButton = new IconButton(AssetLibrary.getImageFromSet("misc16", 31), "Hub", "escapeToHub");
+		this.hubButton.addEventListener(MouseEvent.CLICK, this.onHubClick);
+		this.hubButton.x = -22;
+		this.hubButton.y = 100;
+		addChild(this.hubButton);
+
+		this.optionsButton = new IconButton(AssetLibrary.getImageFromSet("misc16", 15), "Options", "options");
+		this.optionsButton.addEventListener(MouseEvent.CLICK, this.onOptionsClick);
+		this.optionsButton.x = 24;
+		this.optionsButton.y = 100;
+		addChild(this.optionsButton);
 	}
 
 	private function makeViewModel() {
@@ -318,30 +372,20 @@ class MiniMap extends Sprite {
 	private function makeVisualLayers() {
 		this.blueArrow = AssetLibrary.getImageFromSet("misc", 26).clone();
 		this.blueArrow.colorTransform(this.blueArrow.rect, new ColorTransform(0, 0, 1));
-		graphics.clear();
-
-		graphics.lineStyle(3, 0x666666);
-		graphics.beginFill(0x1B1B1B);
-		graphics.drawCircle(0, 0, 85);
-		graphics.endFill();
-
-		graphics.lineStyle(2, 0x666666);
-		graphics.beginFill(0x1B1B1B);
-		graphics.drawCircle(-70, 60, 15);
-		graphics.endFill();
-		graphics.lineStyle(2, 0x666666);
-		graphics.beginFill(0x1B1B1B);
-		graphics.drawCircle(70, 60, 15);
-		graphics.endFill();
-
+		
 		this.groundLayer = new Shape();
 		addChild(this.groundLayer);
 		this.characterLayer = new Shape();
 		addChild(this.characterLayer);
 
+		this.decor = new Bitmap(Assets.getBitmapData("assets/ui/minimap.png"));
+		this.decor.x = -188 / 2;
+		this.decor.y = -188 / 2;
+		addChild(this.decor);
+
 		this.zoomButtons = new MiniMapZoomButtons();
-		this.zoomButtons.x = -78;
-		this.zoomButtons.y = 42;
+		this.zoomButtons.x = 68;
+		this.zoomButtons.y = -87;
 		this.zoomButtons.zoom.on(this.onZoomChanged);
 		this.zoomButtons.setZoomLevels(this.zoomLevels.length);
 		addChild(this.zoomButtons);

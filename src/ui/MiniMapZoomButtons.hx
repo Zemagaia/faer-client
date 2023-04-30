@@ -1,4 +1,4 @@
-package minimap;
+package ui;
 
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
@@ -56,26 +56,22 @@ class MiniMapZoomButtons extends Sprite {
 	}
 
 	private function makeZoomOut() {
-		var data: BitmapData = AssetLibrary.getImageFromSet("misc", 26);
+		var data: BitmapData = AssetLibrary.getImageFromSet("misc16", 0x42);
 		var bitmap: Bitmap = new Bitmap(data);
-		bitmap.scaleX = 2;
-		bitmap.scaleY = 2;
 		this.zoomOut = new Sprite();
 		this.zoomOut.x = 0;
-		this.zoomOut.y = 4;
+		this.zoomOut.y = 20;
 		this.zoomOut.addChild(bitmap);
 		this.zoomOut.addEventListener(MouseEvent.CLICK, this.onZoomOut);
 		addChild(this.zoomOut);
 	}
 
 	private function makeZoomIn() {
-		var data: BitmapData = AssetLibrary.getImageFromSet("misc", 27);
+		var data: BitmapData = AssetLibrary.getImageFromSet("misc16", 0x41);
 		var bitmap: Bitmap = new Bitmap(data);
-		bitmap.scaleX = 2;
-		bitmap.scaleY = 2;
 		this.zoomIn = new Sprite();
 		this.zoomIn.x = 0;
-		this.zoomIn.y = 14;
+		this.zoomIn.y = 4;
 		this.zoomIn.addChild(bitmap);
 		this.zoomIn.addEventListener(MouseEvent.CLICK, this.onZoomIn);
 		addChild(this.zoomIn);

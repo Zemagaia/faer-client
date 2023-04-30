@@ -1,5 +1,7 @@
 package ui;
 
+import openfl.Assets;
+import openfl.display.Bitmap;
 import util.NativeTypes;
 import network.NetworkHandler;
 import lime.system.System;
@@ -20,10 +22,10 @@ import util.Settings;
 using StringTools;
 
 class TextBox extends Sprite {
-	private static inline final MAX_LINES = 7;
+	private static inline final MAX_LINES = 10;
 	private static inline final INDENT = 20;
 	private static inline final MIN_LINE_HEIGHT = 16;
-	private static inline final BLOCK_SPACING = 24;
+	private static inline final BLOCK_SPACING = 20;
 	public static var isInputtingText = false;
 	private static var lines = new Array<TextBoxLine>();
 
@@ -40,6 +42,7 @@ class TextBox extends Sprite {
 	private var currentTeller = 0;
 	private var timer: Timer;
 	private var selectedMessageIdx = -1;
+	private var decor: Bitmap;
 
 	public function new(gs: GameSprite, w: Int, h: Int) {
 		super();
@@ -49,8 +52,12 @@ class TextBox extends Sprite {
 		this.gs = gs;
 		this.w = w;
 		this.h = h;
+		this.decor = new Bitmap(Assets.getBitmapData("assets/ui/chat.png"));
+		this.decor.cacheAsBitmap = true;
+		this.decor.visible = false;
+		addChild(this.decor);
 		this.textSprite = new Sprite();
-		this.textSprite.x = 2;
+		this.textSprite.x = 5;
 		this.textSprite.filters = [new GlowFilter(0, 1, 3, 3, 2, 1)];
 		this.textSprite.mouseEnabled = false;
 		this.textSprite.mouseChildren = false;
@@ -64,13 +71,14 @@ class TextBox extends Sprite {
 		this.inputField.embedFonts = true;
 		this.inputField.defaultTextFormat = format;
 		this.inputField.type = TextFieldType.INPUT;
-		this.inputField.border = true;
-		this.inputField.borderColor = 0xFFFFFF;
+		this.inputField.border = false;
 		this.inputField.maxChars = 128;
 		this.inputField.filters = [new GlowFilter(0, 1, 3, 3, 2, 1)];
 		this.inputField.addEventListener(KeyboardEvent.KEY_UP, this.onInputFieldKeyUp);
-		this.inputField.width = this.w - 2;
+		this.inputField.width = this.w - 10;
 		this.inputField.height = 18;
+		this.inputField.x = 5;
+		this.inputField.y = -5;
 		addEventListener(Event.ADDED_TO_STAGE, this.onAddedToStage);
 		addEventListener(Event.REMOVED_FROM_STAGE, this.onRemovedFromStage);
 		this.inputField.addEventListener(MouseEvent.CLICK, onClick);
@@ -119,7 +127,7 @@ class TextBox extends Sprite {
 	}
 
 	private function addTextBlock(text: String) {
-		var textSpr = new SimpleText(18, 0xFFFFFF, false, 600);
+		var textSpr = new SimpleText(14, 0xFFFFFF, false, 395);
 		textSpr.wordWrap = true;
 		textSpr.setHtmlText(text);
 		textSpr.updateMetrics();
@@ -173,9 +181,9 @@ class TextBox extends Sprite {
 	}
 
 	private function selectInput() {
+		this.decor.visible = true;
+
 		this.inputField.type = TextFieldType.INPUT;
-		this.inputField.border = true;
-		this.inputField.borderColor = 0xFFFFFF;
 		TextBox.isInputtingText = true;
 		addChild(this.inputField);
 		if (stage != null)
@@ -189,6 +197,8 @@ class TextBox extends Sprite {
 		if (stage != null)
 			stage.focus = null;
 
+		this.decor.visible = false;
+
 		if (contains(this.inputField)) {
 			TextBox.isInputtingText = false;
 			removeChild(this.inputField);
@@ -199,7 +209,7 @@ class TextBox extends Sprite {
 
 	private function placeTextField() {
 		if (contains(this.inputField))
-			this.textSprite.y = this.h - 8 - this.inputField.height - this.textSpriteYPos;
+			this.textSprite.y = this.h - 20 - this.inputField.height - this.textSpriteYPos;
 		else
 			this.textSprite.y = this.h - 4 - this.textSpriteYPos;
 	}
@@ -210,7 +220,7 @@ class TextBox extends Sprite {
 
 	private function onAddedToStage(event: Event) {
 		stage.addEventListener(KeyboardEvent.KEY_UP, this.onKeyUp);
-		this.inputField.y = this.h - 20;
+		this.inputField.y = this.h - 25;
 		this.placeTextField();
 		this.timer.addEventListener(TimerEvent.TIMER, this.onTimer);
 		this.timer.start();

@@ -27,7 +27,6 @@ class IconButton extends Sprite {
 		this.origIconBitmapData = bitmapData;
 		this.iconBitmapData = TextureRedrawer.redraw(this.origIconBitmapData, Std.int(320 / this.origIconBitmapData.width), true, 0);
 		this.icon = new Bitmap(this.iconBitmapData);
-		this.icon.scaleX = this.icon.scaleY = 1.5;
 		this.icon.x = this.icon.y = -12;
 		addChild(this.icon);
 		this.hotkeyName = hotkeyName;
