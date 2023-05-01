@@ -24,7 +24,7 @@ class VialInventoryView extends Sprite {
 
 		this.rightSlot = new VialSlotView(RIGHT_BUTTON_CUTS, 1, false);
 		this.rightSlot.cacheAsBitmap = true;
-		this.rightSlot.x = this.leftSlot.buttonWidth + BUTTON_SPACE;
+		this.rightSlot.x = 42;
 		addChild(this.rightSlot);
 	}
 }

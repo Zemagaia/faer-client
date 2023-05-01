@@ -209,9 +209,7 @@ class InputHandler {
 		} else if (keyCode == Settings.toggleCentering) {
 			Settings.centerCamera = !Settings.centerCamera;
 			Settings.save();
-		} else if (keyCode == Settings.switchTabs)
-			Global.gameSprite.inventory.setSelectedTab(Global.gameSprite.inventory.currentTabIndex++ % Global.gameSprite.inventory.tabs.length);
-		else if (keyCode == Settings.interact) {
+		} else if (keyCode == Settings.interact) {
 			if (Global.currentInteractiveTarget > 0)
 				NetworkHandler.usePortal(Global.currentInteractiveTarget);
 		}

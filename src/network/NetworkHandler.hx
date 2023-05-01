@@ -2038,8 +2038,8 @@ class NetworkHandler {
 
 				var player = cast(go, Player);
 				player.hasBackpack = hasBackpack;
-				if (player == Global.gameSprite.map.player && player.hasBackpack)
-					Global.gameSprite.inventory.addBackpackTab(player);
+				//if (player == Global.gameSprite.map.player && player.hasBackpack)
+					//Global.gameSprite.inventory.addBackpackTab(player);
 			case DamageMultiplier:
 				var damageMult = data.readFloat();
 				if (go == null)

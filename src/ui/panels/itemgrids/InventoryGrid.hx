@@ -11,14 +11,14 @@ class InventoryGrid extends ItemGrid {
 	private var tiles: Array<InventoryTile>;
 	private var isBackpack = false;
 
-	public function new(gridOwner: GameObject, currentPlayer: Player, itemIndexOffset: Int = 0, isBackpack: Bool = false) {
+	public function new(gridOwner: GameObject, currentPlayer: Player, itemIndexOffset: Int = 0, isBackpack: Bool = false, disableBgDraw: Bool = false) {
 		var tile: InventoryTile = null;
-		super(gridOwner, currentPlayer, itemIndexOffset);
+		super(gridOwner, currentPlayer, itemIndexOffset, disableBgDraw);
 		this.tiles = new Array<InventoryTile>();
 		this.isBackpack = isBackpack;
 		for (i in 0...NUM_SLOTS) {
 			tile = new InventoryTile(i + indexOffset, this, interactive);
-			tile.addTileFloat(i + 1);
+			tile.addTileNumber(i + 1);
 			addToGrid(tile, 1, i);
 			this.tiles[i] = tile;
 		}

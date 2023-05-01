@@ -34,8 +34,8 @@ class InventoryTile extends InteractiveItemTile {
 		this.hotKeyBMP.visible = itemSprite.itemId <= 0;
 	}
 
-	public function addTileFloat(tileFloat: Int) {
-		this.hotKey = tileFloat;
+	public function addTileNumber(tileNumber: Int) {
+		this.hotKey = tileNumber;
 		this.buildHotKeyBMP();
 	}
 

@@ -1,5 +1,6 @@
 package ui.view;
 
+import openfl.display.Stage;
 import util.Utils;
 import network.NetworkHandler;
 import constants.ItemConstants;
@@ -34,19 +35,9 @@ class VialSlotView extends Sprite {
 	public var position = 0;
 	public var objectType = 0;
 
-	private var lightGrayFill: GraphicsSolidFill;
-	private var midGrayFill: GraphicsSolidFill;
-	private var darkGrayFill: GraphicsSolidFill;
-	private var outerPath: GraphicsPath;
-	private var innerPath: GraphicsPath;
-	private var useGraphicsData: Vector<IGraphicsData>;
-	private var buyOuterGraphicsData: Vector<IGraphicsData>;
-	private var buyInnerGraphicsData: Vector<IGraphicsData>;
 	private var text: SimpleText;
 	private var vialIconDraggableSprite: Sprite;
 	private var vialIcon: Bitmap;
-	private var bg: Sprite;
-	private var grayscaleMatrix: ColorMatrixFilter;
 	private var doubleClickTimer: Timer;
 	private var dragStart: Point;
 	private var pendingSecondClick = false;
@@ -56,33 +47,21 @@ class VialSlotView extends Sprite {
 	public function new(cuts: Array<Int>, position: Int, fillWhole: Bool) {
 		super();
 
-		this.lightGrayFill = new GraphicsSolidFill(0x545454, 1);
-		this.midGrayFill = new GraphicsSolidFill(4078909, 1);
-		this.darkGrayFill = new GraphicsSolidFill(2368034, 1);
-		this.outerPath = new GraphicsPath();
-		this.innerPath = new GraphicsPath();
-		this.useGraphicsData = new Vector<IGraphicsData>(0, false, [this.lightGrayFill, this.outerPath, GraphicsUtil.END_FILL]);
-		this.buyOuterGraphicsData = new Vector<IGraphicsData>(0, false, [this.midGrayFill, this.outerPath, GraphicsUtil.END_FILL]);
-		this.buyInnerGraphicsData = new Vector<IGraphicsData>(0, false, [this.darkGrayFill, this.innerPath, GraphicsUtil.END_FILL]);
 		mouseChildren = false;
 		this.position = position;
-		this.grayscaleMatrix = new ColorMatrixFilter(ColorUtils.greyscaleFilterMatrix);
 		var BUTTON_HEIGHT: Int = 24;
 		if (fillWhole)
 			buttonWidth = buttonWidth * 2 + 5;
 		this.text = new SimpleText(13, 0xFFFFFF, false, buttonWidth, BUTTON_HEIGHT);
 		this.text.filters = [new DropShadowFilter(0, 0, 0, 1, 4, 4, 2)];
-		this.text.y = 2;
-		this.bg = new Sprite();
-		this.bg.cacheAsBitmap = true;
-		GraphicsUtil.clearPath(this.outerPath);
-		GraphicsUtil.drawCutEdgeRect(0, 0, buttonWidth, BUTTON_HEIGHT, 4, cuts, this.outerPath);
-		var SMALL_SIZE: Int = 4;
-		GraphicsUtil.drawCutEdgeRect(2, 2, buttonWidth - SMALL_SIZE, BUTTON_HEIGHT - SMALL_SIZE, 4, cuts, this.innerPath);
-		this.bg.graphics.drawGraphicsData(this.buyOuterGraphicsData);
-		this.bg.graphics.drawGraphicsData(this.buyInnerGraphicsData);
-		addChild(this.bg);
+		this.text.x = 6;
+		this.text.y = 25;
 		addChild(this.text);
+		// for hit target
+		graphics.clear();
+		graphics.beginFill(0xFFFFFF, 0);
+		graphics.drawRect(0, 0, 40, 60);
+		graphics.endFill();
 		this.vialIconDraggableSprite = new Sprite();
 		this.vialIconDraggableSprite.cacheAsBitmap = true;
 		this.doubleClickTimer = new Timer(DOUBLE_CLICK_PAUSE, 1);
@@ -110,7 +89,6 @@ class VialSlotView extends Sprite {
 	}
 
 	public function setData(vials: Int, objectType: Int = -1) {
-		var iconX = 0;
 		var iconBD: BitmapData = null;
 		var vialIconBig: Bitmap = null;
 		if (objectType != -1) {
@@ -130,24 +108,12 @@ class VialSlotView extends Sprite {
 			vialIconBig.y -= 22;
 			this.vialIconDraggableSprite.addChild(vialIconBig);
 		}
+
 		showVials = vials > 0;
-		var CENTER_ICON_X: Int = Std.int(buttonWidth / 2 - 30);
-		if (showVials) {
-			this.text.text = vials + "/4";
-			iconX = CENTER_ICON_X;
-			this.bg.graphics.clear();
-			this.bg.graphics.drawGraphicsData(this.useGraphicsData);
-			this.text.x = buttonWidth / 2 - 4;
-		} else {
-			this.text.text = "0/4";
-			iconX = CENTER_ICON_X;
-			this.bg.graphics.clear();
-			this.bg.graphics.drawGraphicsData(this.buyOuterGraphicsData);
-			this.bg.graphics.drawGraphicsData(this.buyInnerGraphicsData);
-			this.text.x = buttonWidth / 2 - 4;
-		}
-		if (this.vialIcon != null)
-			this.vialIcon.x = iconX;
+		if (showVials)
+			this.text.text = Std.string(vials);
+		else
+			this.text.text = "0";
 	}
 
 	private function setPendingDoubleClick(isPending: Bool) {
@@ -229,7 +195,7 @@ class VialSlotView extends Sprite {
 		var tile: InteractiveItemTile = null;
 		var player = Global.gameSprite.map.player;
 		var target = this.vialIconDraggableSprite.dropTarget;
-		if (Std.isOfType(target, Map) || target == null)
+		if (target == null || Std.isOfType(target, Stage))
 			NetworkHandler.invDrop(player, VialModel.getVialSlot(this.objectType), this.objectType);
 		else if (Std.isOfType(target, InteractiveItemTile)) {
 			tile = cast(target, InteractiveItemTile);

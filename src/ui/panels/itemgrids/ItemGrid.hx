@@ -42,14 +42,16 @@ class ItemGrid extends Panel {
 	public var curPlayer: Player;
 	public var interactive = false;
 	public var indexOffset = 0;
+	public var disableBgDraw = false;
 
 	private var tooltip: EquipmentToolTip;
 
-	public function new(gridOwner: GameObject, currentPlayer: Player, itemIndexOffset: Int) {
+	public function new(gridOwner: GameObject, currentPlayer: Player, itemIndexOffset: Int, disableBgDraw = false) {
 		super(null);
 		this.owner = gridOwner;
 		this.curPlayer = currentPlayer;
 		this.indexOffset = itemIndexOffset;
+		this.disableBgDraw = disableBgDraw;
 		if (gridOwner == currentPlayer)
 			this.interactive = true;
 
@@ -187,7 +189,7 @@ class ItemGrid extends Panel {
 		var target = sourceTile.getDropTarget();
 		if (Std.isOfType(target, Stage))
 			this.dropItem(sourceTile);
-		else if (Std.isOfType(target, Inventory))
+		else if (Std.isOfType(target, VialSlotView))
 			this.addToVialStack(sourceTile);
 
 		sourceTile.resetItemPosition();
@@ -227,7 +229,8 @@ class ItemGrid extends Panel {
 	public function setItems(items: Array<Int32>, itemIndexOffset: Int32 = 0) {}
 
 	public function addToGrid(tile: ItemTile, numRows: Int, tileIndex: Int) {
-		tile.drawBackground(CutsByNum[numRows][tileIndex]);
+		if (!this.disableBgDraw)
+			tile.drawBackground(CutsByNum[numRows][tileIndex]);
 		tile.addEventListener(MouseEvent.ROLL_OVER, this.onTileHover);
 		tile.x = Std.int(tileIndex % rowLength) * (ItemTile.WIDTH + padding);
 		tile.y = Std.int(tileIndex / rowLength) * (ItemTile.HEIGHT + padding);

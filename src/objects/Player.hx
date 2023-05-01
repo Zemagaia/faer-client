@@ -224,33 +224,8 @@ class Player extends GameObject {
 			this.flashStartTime = this.flashColor = this.flashRepeats = this.flashPeriodMs = 0;
 			this.needsBlinkingClear = true;
 		}
-
-		super.draw(time);
-		this.drawName();
 	}*/
-	/*override private function getTexture(time: Int32) {
-		var image: MaskedImage;
-		var walkPer = 0;
-		var p = 0.0;
-		var action = AnimatedChar.STAND;
-		if (time < attackStart + this.attackPeriod) {
-			facing = attackAngle;
-			p = (time - attackStart) % this.attackPeriod / this.attackPeriod;
-			action = AnimatedChar.ATTACK;
-		} else if (moveVec.x != 0 || moveVec.y != 0) {
-			walkPer = Std.int(3.5 / this.getMoveSpeed());
-			if (moveVec.y != 0 || moveVec.x != 0)
-				facing = Math.atan2(moveVec.y, moveVec.x);
-			p = time % walkPer / walkPer;
-			action = AnimatedChar.WALK;
-		}
 
-		if (!this.isDefaultAnimatedChar)
-			this.makeSkinTexture();
-
-		image = animatedChar.imageFromFacing(facing, action, p);
-		return image.image;
-	}*/
 	public function getPortrait(sizeMult: Float32 = 1, animCharOverride: AnimatedChar = null) {
 		var image: MaskedImage = null;
 		var size = 0;

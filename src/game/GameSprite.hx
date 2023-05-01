@@ -67,7 +67,7 @@ class GameSprite extends Sprite {
 		NetworkHandler.reset(server, gameId, createCharacter, charId, fmMap);
 		this.inputHandler = new InputHandler(this);
 		this.textBox = new TextBox(this, 400, 250);
-		this.textBox.y = Math.max(0, Main.stageHeight - 250);
+		this.textBox.y = Math.max(0, Main.stageHeight - this.textBox.height);
 		addChild(this.textBox);
 		addEventListener(Event.ADDED_TO_STAGE, this.onAdded);
 	}
@@ -106,7 +106,7 @@ class GameSprite extends Sprite {
 		this.statsView.filters = [new DropShadowFilter()];
 		this.statsView.setBold(true);
 		this.statsView.updateMetrics();
-		this.statsView.x = 230;
+		this.statsView.x = 510;
 		this.statsView.y = 35;
 		addChild(this.statsView);
 	}
@@ -160,13 +160,13 @@ class GameSprite extends Sprite {
 		this.inventory = new Inventory();
 		this.inventory.cacheAsBitmap = true;
 		this.inventory.x = Main.stageWidth - 220;
-		this.inventory.y = Main.stageHeight - 220;
+		this.inventory.y = Main.stageHeight - 320;
 		addChild(this.inventory);
 
 		this.currencyDisplay = new CurrencyDisplay(CurrencyDisplay.LEFT_TO_RIGHT, this);
 		this.currencyDisplay.cacheAsBitmap = true;
-		this.currencyDisplay.x = 90;
-		this.currencyDisplay.y = 87;
+		this.currencyDisplay.x = 300;
+		this.currencyDisplay.y = 90;
 		addChild(this.currencyDisplay);
 
 		this.guildText = new GuildText("", -1);
@@ -206,14 +206,14 @@ class GameSprite extends Sprite {
 	private function onResize(_: Event) {
 		if (this.inventory != null) {
 			this.inventory.x = Main.stageWidth - 220;
-			this.inventory.y = Main.stageHeight - 220;
+			this.inventory.y = Main.stageHeight - 320;
 		}
 
 		if (this.miniMap != null)
 			this.miniMap.x = Main.stageWidth - 120;
 
 		if (this.textBox != null)
-			this.textBox.y = Math.max(0, Main.stageHeight - 600);
+			this.textBox.y = Math.max(0, Main.stageHeight - this.textBox.height);
 	}
 
 	private function onEnterFrame(event: Event) {

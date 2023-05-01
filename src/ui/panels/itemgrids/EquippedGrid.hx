@@ -10,9 +10,9 @@ class EquippedGrid extends ItemGrid {
 
 	private var tiles: Array<EquipmentTile>;
 
-	public function new(gridOwner: GameObject, invTypes: Array<Int32>, currentPlayer: Player, itemIndexOffset: Int = 0) {
+	public function new(gridOwner: GameObject, invTypes: Array<Int32>, currentPlayer: Player, itemIndexOffset: Int = 0, disableBgDraw: Bool = false) {
 		var tile: EquipmentTile = null;
-		super(gridOwner, currentPlayer, itemIndexOffset);
+		super(gridOwner, currentPlayer, itemIndexOffset, disableBgDraw);
 		this.tiles = new Array<EquipmentTile>();
 		for (i in 0...NUM_SLOTS) {
 			tile = new EquipmentTile(i, this, interactive);
