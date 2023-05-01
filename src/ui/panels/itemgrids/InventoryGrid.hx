@@ -18,7 +18,6 @@ class InventoryGrid extends ItemGrid {
 		this.isBackpack = isBackpack;
 		for (i in 0...NUM_SLOTS) {
 			tile = new InventoryTile(i + indexOffset, this, interactive);
-			tile.addTileNumber(i + 1);
 			addToGrid(tile, 1, i);
 			this.tiles[i] = tile;
 		}
@@ -26,7 +25,6 @@ class InventoryGrid extends ItemGrid {
 
 	override public function setItems(items: Array<Int32>, itemIndexOffset: Int32 = 0) {
 		var numItems = 0;
-		var i = 0;
 		if (items != null) {
 			numItems = items.length;
 			for (i in 0...NUM_SLOTS) {

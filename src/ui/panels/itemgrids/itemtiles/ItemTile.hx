@@ -1,5 +1,6 @@
 package ui.panels.itemgrids.itemtiles;
 
+import openfl.Assets;
 import constants.ItemConstants;
 import objects.ObjectLibrary;
 import objects.Player;
@@ -16,6 +17,8 @@ import util.GraphicsUtil;
 import util.Utils;
 import util.TextureRedrawer;
 
+using util.Utils.XmlUtil;
+
 class ItemTile extends Sprite {
 	public static inline var WIDTH: Int = 40;
 	public static inline var HEIGHT: Int = 40;
@@ -31,6 +34,11 @@ class ItemTile extends Sprite {
 		[new GraphicsSolidFill(0x545454, 1), new GraphicsPath(), GraphicsUtil.END_FILL]);
 	private var cuts: Array<Int>;
 
+	private var rareBackground: Bitmap;
+	private var epicBackground: Bitmap;
+	private var legendaryBackground: Bitmap;
+	private var mythicBackground: Bitmap;
+
 	public function new(id: Int, parentGrid: ItemGrid) {
 		super();
 
@@ -39,14 +47,52 @@ class ItemTile extends Sprite {
 		this.restrictionBitmap.y = HEIGHT - this.restrictionBitmap.height - 2;
 		this.restrictionBitmap.visible = false;
 
+		this.rareBackground = new Bitmap(Assets.getBitmapData("assets/ui/inventorySlotRare.png"));
+		this.rareBackground.visible = false;
+		addChild(this.rareBackground);
+
+		this.epicBackground = new Bitmap(Assets.getBitmapData("assets/ui/inventorySlotEpic.png"));
+		this.epicBackground.visible = false;
+		addChild(this.epicBackground);
+
+		this.legendaryBackground = new Bitmap(Assets.getBitmapData("assets/ui/inventorySlotLegendary.png"));
+		this.legendaryBackground.visible = false;
+		addChild(this.legendaryBackground);
+
+		this.mythicBackground = new Bitmap(Assets.getBitmapData("assets/ui/inventorySlotMythic.png"));
+		this.mythicBackground.visible = false;
+		addChild(this.mythicBackground);
+
 		this.tileId = id;
 		this.ownerGrid = parentGrid;
 		this.setItemSprite(new ItemTileSprite());
 	}
 
 	public function drawBackground(cuts: Array<Int>) {
+		var itemId = this.itemSprite != null ? this.itemSprite.itemId : -1;
+
+		if (cuts == null) {
+			this.rareBackground.visible = false;
+			this.epicBackground.visible = false;
+			this.legendaryBackground.visible = false;
+			this.mythicBackground.visible = false;
+
+			if (itemId != -1) {
+				switch (ObjectLibrary.xmlLibrary.get(itemId)?.element("Tier")) {
+					case "Rare": 
+						this.rareBackground.visible = true;
+					case "Epic":
+						this.epicBackground.visible = true;
+					case "Legendary":
+						this.legendaryBackground.visible = true;
+					case "Mythic":
+						this.mythicBackground.visible = true;
+				}
+			}
+			return;
+		}
+
 		this.cuts = cuts;
-		var itemId: Int = this.itemSprite != null ? this.itemSprite.itemId : -1;
 		var fill: GraphicsSolidFill = new GraphicsSolidFill(0x545454, 1);
 		if (itemId != -1) {
 			var xml = ObjectLibrary.xmlLibrary.get(itemId);
@@ -70,8 +116,7 @@ class ItemTile extends Sprite {
 			return false;
 
 		this.itemSprite.setType(itemId);
-		if (this.cuts != null)
-			this.drawBackground(this.cuts);
+		this.drawBackground(this.cuts);
 		this.updateUseability(this.ownerGrid.curPlayer);
 		return true;
 	}
@@ -81,8 +126,7 @@ class ItemTile extends Sprite {
 		this.itemSprite.x = WIDTH / 2;
 		this.itemSprite.y = HEIGHT / 2;
 
-		if (this.cuts != null)
-			this.drawBackground(this.cuts);
+		this.drawBackground(this.cuts);
 
 		addChild(this.itemSprite);
 		addChild(this.restrictionBitmap);

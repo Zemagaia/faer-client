@@ -229,8 +229,7 @@ class ItemGrid extends Panel {
 	public function setItems(items: Array<Int32>, itemIndexOffset: Int32 = 0) {}
 
 	public function addToGrid(tile: ItemTile, numRows: Int, tileIndex: Int) {
-		if (!this.disableBgDraw)
-			tile.drawBackground(CutsByNum[numRows][tileIndex]);
+		tile.drawBackground(this.disableBgDraw ? null : CutsByNum[numRows][tileIndex]);
 		tile.addEventListener(MouseEvent.ROLL_OVER, this.onTileHover);
 		tile.x = Std.int(tileIndex % rowLength) * (ItemTile.WIDTH + padding);
 		tile.y = Std.int(tileIndex / rowLength) * (ItemTile.HEIGHT + padding);

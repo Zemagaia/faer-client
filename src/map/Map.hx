@@ -2154,7 +2154,6 @@ class Map {
 				player.nameTex.applyFilter(player.nameTex, player.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
 			}
 			
-			trace(hBase, sink, sink-1, (sink-1)*hBase);
 			var textureData = TextureFactory.make(player.nameTex);
 			this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
 				sinX: 0, sinY: 0,

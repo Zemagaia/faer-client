@@ -230,7 +230,7 @@ class GameSprite extends Sprite {
 			var playerX = this.map.player.mapX;
 			var playerY = this.map.player.mapY;
 			for (go in this.map.gameObjects)
-				if (go?.props != null && go.objClass == "Portal" && (Math.abs(playerX - go.mapX) < 1 || Math.abs(playerY - go.mapY) < 1)) {
+				if (go?.props != null && (go.objClass == "Portal" || go.objClass == "Container") && (Math.abs(playerX - go.mapX) < 1 || Math.abs(playerY - go.mapY) < 1)) {
 					var dist = PointUtil.distanceXY(go.mapX, go.mapY, playerX, playerY);
 					if (dist < minDist) {
 						minDist = dist;

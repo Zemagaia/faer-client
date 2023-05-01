@@ -10,9 +10,9 @@ class ContainerGrid extends ItemGrid {
 
 	private var tiles: Array<InteractiveItemTile>;
 
-	public function new(gridOwner: GameObject, currentPlayer: Player) {
+	public function new(gridOwner: GameObject, currentPlayer: Player, disableBgDraw: Bool = false) {
 		var tile: InteractiveItemTile = null;
-		super(gridOwner, currentPlayer, 0);
+		super(gridOwner, currentPlayer, 0, disableBgDraw);
 		this.tiles = new Array<InteractiveItemTile>();
 		for (i in 0...NUM_SLOTS) {
 			tile = new InteractiveItemTile(i + indexOffset, this, interactive);
