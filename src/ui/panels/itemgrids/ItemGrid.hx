@@ -95,8 +95,8 @@ class ItemGrid extends Panel {
 		var equipCount = 0;
 		var openIndex = 0;
 		var isUntradable = ObjectLibrary.isUntradable(itemTile.itemSprite.itemId);
-		if (this.owner.objectId == this.curPlayer.objectId
-			|| this.owner.ownerId == this.curPlayer.accountId && !isUntradable) {
+		if (this.owner?.map != null && (this.owner.objectId == this.curPlayer.objectId
+			|| this.owner.ownerId == this.curPlayer.accountId) && !isUntradable) {
 			var go = this.owner.map.getGameObject(Global.currentInteractiveTarget);
 			if (go?.objClass == "Container") {
 				equipment = go.equipment;
@@ -178,7 +178,7 @@ class ItemGrid extends Panel {
 				sourceTile.setItem(ItemConstants.NO_ITEM);
 				sourceTile.updateUseability(this.curPlayer);
 			}
-		} else if (Std.isOfType(target, Stage))
+		} else if (target == null || Std.isOfType(target, Stage))
 			this.dropItem(sourceTile);
 
 		sourceTile.resetItemPosition();
@@ -187,7 +187,7 @@ class ItemGrid extends Panel {
 	private function onVialMove(e: ItemTileEvent) {
 		var sourceTile: InteractiveItemTile = e.tile;
 		var target = sourceTile.getDropTarget();
-		if (Std.isOfType(target, Stage))
+		if (target == null || Std.isOfType(target, Stage))
 			this.dropItem(sourceTile);
 		else if (Std.isOfType(target, VialSlotView))
 			this.addToVialStack(sourceTile);

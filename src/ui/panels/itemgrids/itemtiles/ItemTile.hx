@@ -72,6 +72,12 @@ class ItemTile extends Sprite {
 		var itemId = this.itemSprite != null ? this.itemSprite.itemId : -1;
 
 		if (cuts == null) {
+			// for hit test
+			graphics.clear();
+			graphics.beginFill(0, 0);
+			graphics.drawRect(0, 0, 40, 40);
+			graphics.endFill();
+
 			this.rareBackground.visible = false;
 			this.epicBackground.visible = false;
 			this.legendaryBackground.visible = false;

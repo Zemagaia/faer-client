@@ -23,34 +23,60 @@ class CharacterDetailsView extends Sprite {
 	private var scale = 0.0;
 	private var lastSkin: AnimatedChar;
 
+	private var lastHp = 0;
+	private var lastMaxHp = 0;
+	private var lastBoostHp = 0;
+	private var lastHpMax = 0;
+
+	private var lastMp = 0;
+	private var lastMaxMp = 0;
+	private var lastBoostMp = 0;
+	private var lastMpMax = 0;
+
 	public function new(scale: Float = 1) {
 		super();
 
 		this.decor = new Bitmap(Assets.getBitmapData("assets/ui/playerInterfaceDecor.png"));
 		this.decor.scaleX = this.decor.scaleY = 2 * scale;
 		this.decor.cacheAsBitmap = true;
+		addChild(this.decor);
 
 		this.hpBar = new Bitmap(Assets.getBitmapData("assets/ui/playerInterfaceHealthBar.png"));
 		this.hpBar.scaleX = this.hpBar.scaleY = 2 * scale;
 		this.hpBar.cacheAsBitmap = true;
+		this.hpBar.x = 106 * scale;
+		this.hpBar.y = 8 * scale;
+		addChild(this.hpBar);
 
-		this.hpBarText = new SimpleText(Std.int(15 * scale), 0xB3B3B3, false, 360);
+		this.hpBarText = new SimpleText(Std.int(15 * scale), 0xB3B3B3, false, Std.int(360 * scale));
 		this.hpBarText.setAlignment(TextFormatAlign.CENTER);
 		this.hpBarText.setBold(true);
 		this.hpBarText.filters = [new DropShadowFilter(0, 0, 0)];
+		this.hpBarText.x = 106;
+		this.hpBarText.y = 8 * scale;
+		addChild(this.hpBarText);
 
 		this.mpBar = new Bitmap(Assets.getBitmapData("assets/ui/playerInterfaceManaBar.png"));
 		this.mpBar.scaleX = this.mpBar.scaleY = 2 * scale;
 		this.mpBar.cacheAsBitmap = true;
+		this.mpBar.x = 106 * scale;
+		this.mpBar.y = 38 * scale;
+		addChild(this.mpBar);
 
-		this.mpBarText = new SimpleText(Std.int(15 * scale), 0xB3B3B3, false, 360);
+		this.mpBarText = new SimpleText(Std.int(15 * scale), 0xB3B3B3, false, Std.int(360 * scale));
 		this.mpBarText.setAlignment(TextFormatAlign.CENTER);
 		this.mpBarText.setBold(true);
 		this.mpBarText.filters = [new DropShadowFilter(0, 0, 0)];
+		this.mpBarText.x = 106;
+		this.mpBarText.y = 38 * scale;
+		addChild(this.mpBarText);
 
 		this.xpBar = new Bitmap(Assets.getBitmapData("assets/ui/playerInterfaceXPBar.png"));
 		this.xpBar.scaleX = this.xpBar.scaleY = 2 * scale;
 		this.xpBar.cacheAsBitmap = true;
+		this.xpBar.x = 106 * scale;
+		this.xpBar.y = 68 * scale;
+		addChild(this.xpBar);
 
 		this.portrait = new Bitmap(null);
 		this.portrait.cacheAsBitmap = true;
@@ -61,49 +87,17 @@ class CharacterDetailsView extends Sprite {
 	}
 
 	public function init(player: Player) {
-		addChild(this.decor);
-
-		this.hpBar.x = 106 * this.scale;
-		this.hpBar.y = 8 * this.scale;
-		addChild(this.hpBar);
-
-		this.hpBarText.x = 106 * this.scale;
-		this.hpBarText.y = 8 * this.scale;
-		addChild(this.hpBarText);
-
-		this.mpBar.x = 106 * this.scale;
-		this.mpBar.y = 38 * this.scale;
-		addChild(this.mpBar);
-
-		this.mpBarText.x = 106 * this.scale;
-		this.mpBarText.y = 38 * this.scale;
-		addChild(this.mpBarText);
-
-		this.xpBar.x = 106 * this.scale;
-		this.xpBar.y = 68 * this.scale;
-		addChild(this.xpBar);
-
-		/*var hasMp: Bool = player.maxMP > 0;
-
-		this.hpBar = new StatusBar(Std.int(135 * this.scale), Std.int((hasMp ? 20 : 40) * this.scale), 0xE03434, 0x545454, this.scale);
-		this.hpBar.cacheAsBitmap = true;
-		this.hpBar.x = 70 * this.scale;
-		this.hpBar.y = 24 * this.scale;
-		addChild(this.hpBar);
-
-		if (hasMp) {
-			this.mpBar = new StatusBar(Std.int(125 * this.scale), Std.int(20 * this.scale), 0x6084E0, 0x545454, this.scale, 4);
-			this.mpBar.cacheAsBitmap = true;
-			this.mpBar.x = 65 * this.scale;
-			this.mpBar.y = 44 * this.scale;
-			addChild(this.mpBar);
-		}*/
+		if (contains(this.portrait))
+			removeChild(this.portrait);
 
 		this.portrait.bitmapData = player.getPortrait(2 * this.scale);
 		this.portrait.x = (100 * this.scale - this.portrait.width) / 2;
 		this.portrait.y = (90 * this.scale - this.portrait.height) / 2;
 		addChild(this.portrait);
 		this.lastSkin = player.skin;
+
+		if (contains(this.nameText))
+			removeChild(this.nameText);
 
 		this.nameText.setBold(true);
 		this.nameText.filters = [new DropShadowFilter(0, 0, 0)];
@@ -115,31 +109,34 @@ class CharacterDetailsView extends Sprite {
 	}
 
 	public function draw(player: Player) {
-		/*if (player.skin != this.lastSkin) {
-			if (contains(this.portrait))
-				removeChild(this.portrait);
-			this.portrait.bitmapData = player.getPortrait(2 * this.scale, player.skin);
-			this.portrait.x = (80 * this.scale - this.portrait.width) / 2;
-			this.portrait.y = (80 * this.scale - this.portrait.height) / 2;
-			addChild(this.portrait);
-			this.lastSkin = player.skin;
-		}*/
+		var partialHpCheck = player.hp != this.lastHp || player.maxHP != this.lastMaxHp;
+		if (partialHpCheck || player.maxHPBoost != this.lastBoostHp || player.maxHPMax != this.lastHpMax) {
+			if (partialHpCheck)
+				this.hpBar.scaleX = 2 * this.scale * (player.hp / player.maxHP);
 
-		this.hpBar.scaleX = 2 * this.scale * (player.hp / player.maxHP);
-		this.mpBar.scaleX = 2 * this.scale * (player.mp / player.maxMP);
-		this.hpBarText.setText('${player.hp}/${player.maxHP} ${player.maxHPBoost > 0 ? '(+${player.maxHPBoost})' : ''}');
-		this.hpBarText.setColor(player.maxHP - player.maxHPBoost >= player.maxHPMax ? 0xFCDF00 : (player.maxHPBoost > 0 ? 0x5EB531 : 0xB3B3B3));
-		this.hpBarText.updateMetrics();
-		this.mpBarText.setText('${player.mp}/${player.maxMP} ${player.maxMPBoost > 0 ? '(+${player.maxMPBoost})' : ''}');
-		this.mpBarText.setColor(player.maxMP - player.maxMPBoost >= player.maxMPMax ? 0xFCDF00 : (player.maxMPBoost > 0 ? 0x5EB531 : 0xB3B3B3));
-		this.mpBarText.updateMetrics();
+			this.hpBarText.setText('${player.hp}/${player.maxHP} ${player.maxHPBoost > 0 ? '(+${player.maxHPBoost})' : ''}');
+			this.hpBarText.setColor(player.maxHP - player.maxHPBoost >= player.maxHPMax ? 0xFCDF00 : (player.maxHPBoost > 0 ? 0x5EB531 : 0xB3B3B3));
+			this.hpBarText.updateMetrics();
 
-		/*this.hpBar.draw(player.hp, player.maxHP, player.maxHPBoost, player.maxHPMax);
-		if (player.maxMP > 0)
-			this.mpBar.draw(Std.int(player.mp), player.maxMP, player.maxMPBoost, player.maxMPMax);*/
-	}
+			this.lastHp = player.hp;
+			this.lastMaxHp = player.maxHP;
+			this.lastBoostHp = player.maxHPBoost;
+			this.lastHpMax = player.maxHPMax;
+		}
 
-	public function setName(name: String) {
-		this.nameText.text = name;
+		var partialMpCheck = player.mp != this.lastMp || player.maxMP != this.lastMaxMp;
+		if (partialMpCheck || player.maxMPBoost != this.lastBoostMp || player.maxMPMax != this.lastMpMax) {
+			if (partialMpCheck)
+				this.mpBar.scaleX = 2 * this.scale * (player.mp / player.maxMP);
+
+			this.mpBarText.setText('${player.mp}/${player.maxMP} ${player.maxMPBoost > 0 ? '(+${player.maxMPBoost})' : ''}');
+			this.mpBarText.setColor(player.maxMP - player.maxMPBoost >= player.maxMPMax ? 0xFCDF00 : (player.maxMPBoost > 0 ? 0x5EB531 : 0xB3B3B3));
+			this.mpBarText.updateMetrics();
+
+			this.lastMp = player.mp;
+			this.lastMaxMp = player.maxMP;
+			this.lastBoostMp = player.maxMPBoost;
+			this.lastMpMax = player.maxMPMax;
+		}	
 	}
 }

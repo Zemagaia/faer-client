@@ -15,7 +15,7 @@ class ContainerGrid extends ItemGrid {
 		super(gridOwner, currentPlayer, 0, disableBgDraw);
 		this.tiles = new Array<InteractiveItemTile>();
 		for (i in 0...NUM_SLOTS) {
-			tile = new InteractiveItemTile(i + indexOffset, this, interactive);
+			tile = new InteractiveItemTile(i + indexOffset, this, true);
 			addToGrid(tile, 2, i);
 			this.tiles[i] = tile;
 		}

@@ -41,6 +41,7 @@ class Inventory extends Sprite {
 		addChild(this.containerDecor);
 
 		this.containerName = new SimpleText(14, 0xB3B3B3, 85);
+		this.containerName.cacheAsBitmap = true;
 		this.containerName.x = this.containerDecor.x + 51;
 		this.containerName.y = 264;
 		this.containerName.setBold(true);
@@ -67,8 +68,8 @@ class Inventory extends Sprite {
 	public function init(player: Player) {
 		this.equippedGrid = new EquippedGrid(player, player.slotTypes, player, 0, true);
 		this.equippedGrid.cacheAsBitmap = true;
-		this.equippedGrid.x = 5;
-		this.equippedGrid.y = 8;
+		this.equippedGrid.x = 9;
+		this.equippedGrid.y = 9;
 		addChild(this.equippedGrid);
 
 		this.invGrid = new InventoryGrid(player, player, 4, false, true);
@@ -77,13 +78,14 @@ class Inventory extends Sprite {
 		this.invGrid.y = 69;
 		addChild(this.invGrid);
 
-		this.bpGrid = new InventoryGrid(player, player, 12, false, true);
+		this.bpGrid = new InventoryGrid(player, player, 12, true, true);
 		this.bpGrid.cacheAsBitmap = true;
 		this.bpGrid.x = 9;
 		this.bpGrid.y = 157;
 		addChild(this.bpGrid);
 
 		this.vialView = new VialInventoryView(false);
+		this.vialView.cacheAsBitmap = true;
 		this.vialView.x = 61;
 		this.vialView.y = 260;
 		addChild(this.vialView);
@@ -98,19 +100,22 @@ class Inventory extends Sprite {
 			if (go.objClass == "Container") {
 				if (this.containerGrid == null) {
 					this.containerGrid = new ContainerGrid(go, player, true);
+					this.containerGrid.cacheAsBitmap = true;
 					this.containerGrid.x = this.containerDecor.x + 9;
 					this.containerGrid.y = this.containerDecor.y + 9;
 					addChild(this.containerGrid);
+
+					this.containerName.visible = this.containerDecor.visible = this.containerBitmapLeft.visible = this.containerBitmapRight.visible = true;
+
+					this.containerName.setText(go.props.displayId);
+					this.containerName.updateMetrics();
+
+					var textureData = ObjectLibrary.typeToTextureData.get(go.objectType);
+					var tex = TextureRedrawer.redraw(textureData.texture, Std.int(16 / (textureData.texture.width / 16)), false, 0);
+					this.containerBitmapLeft.bitmapData = this.containerBitmapRight.bitmapData = tex;
 				}
 
-				this.containerName.visible = this.containerDecor.visible = this.containerBitmapLeft.visible = this.containerBitmapRight.visible = true;
-
-				this.containerName.setText(go.props.displayId);
-				this.containerName.updateMetrics();
-				
-				var textureData = ObjectLibrary.typeToTextureData.get(go.objectType);
-				var tex = TextureRedrawer.redraw(textureData.texture, Std.int(16 / (textureData.texture.width / 16)), false, 0);
-				this.containerBitmapLeft.bitmapData = this.containerBitmapRight.bitmapData = tex;
+				this.containerGrid.draw();				
 			} else {
 				this.containerName.visible = this.containerDecor.visible = this.containerBitmapLeft.visible = this.containerBitmapRight.visible = false;
 				if (this.containerGrid != null && contains(this.containerGrid)) {
