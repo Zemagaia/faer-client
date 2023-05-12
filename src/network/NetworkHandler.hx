@@ -38,72 +38,71 @@ import util.Settings;
 
 using util.Utils.ArrayUtils;
 
-enum abstract PacketType(Int8) from Int8 to Int8 {
-	final CreateSuccess = 1;
-	final Create = 2;
-	final PlayerShoot = 3;
-	final Move = 4;
-	final PlayerText = 5;
-	final Text = 6;
-	final ServerPlayerShoot = 7;
-	final Damage = 8;
-	final Update = 9;
-	final UpdateAck = 10;
-	final Notification = 11;
-	final NewTick = 12;
-	final InvSwap = 13;
-	final UseItem = 14;
-	final ShowEffect = 15;
-	final Hello = 16;
-	final Goto = 17;
-	final InvDrop = 18;
-	final InvResult = 19;
-	final Ping = 21;
-	final Pong = 22;
-	final MapInfo = 23;
-	final Load = 24;
-	final Teleport = 27;
-	final UsePortal = 28;
-	final Death = 29;
-	final Buy = 30;
-	final BuyResult = 31;
-	final Aoe = 32;
-	final GroundDamage = 33;
-	final PlayerHit = 34;
-	final EnemyHit = 35;
-	final AoeAck = 36;
-	final ShootAck = 37;
-	final OtherHit = 38;
-	final SquareHit = 39;
-	final GotoAck = 40;
-	final EditAccountList = 41;
-	final AccountList = 42;
-	final QuestObjId = 43;
-	final ChooseName = 44;
-	final CreateGuild = 46;
-	final GuildResult = 47;
-	final GuildRemove = 48;
-	final GuildInvite = 49;
-	final AllyShoot = 50;
-	final EnemyShoot = 51;
-	final RequestTrade = 52;
-	final TradeRequested = 53;
-	final TradeStart = 54;
-	final ChangeTrade = 55;
-	final TradeChanged = 56;
-	final AcceptTrade = 57;
-	final CancelTrade = 58;
-	final TradeDone = 59;
-	final TradeAccepted = 60;
-	final Escape = 63;
-	final InvitedToGuild = 65;
-	final JoinGuild = 66;
-	final ChangeGuildRank = 67;
-	final PlaySound = 68;
-	final Reskin = 70;
-	final ReskinVault = 71;
-	final Failure = 72;
-	final MapHello = 73;
+enum abstract C2SPacketId(Int8) from Int8 to Int8 {
+	final PlayerShoot = 0;
+    final Move = 1;
+    final PlayerText = 2;
+    final UpdateAck = 3;
+    final InvSwap = 4;
+    final UseItem = 5;
+    final Hello = 6;
+    final InvDrop = 7;
+    final Pong = 8;
+    final Teleport = 9;
+    final UsePortal = 10;
+    final Buy = 11;
+    final GroundDamage = 12;
+    final PlayerHit = 13;
+    final EnemyHit = 14;
+    final AoeAck = 15;
+    final ShootAck = 16;
+    final OtherHit = 17;
+    final SquareHit = 18;
+    final GotoAck = 19;
+    final EditAccountList = 20;
+    final CreateGuild = 21;
+    final GuildRemove = 22;
+    final GuildInvite = 23;
+    final RequestTrade = 24;
+    final ChangeTrade = 25;
+    final AcceptTrade = 26;
+    final CancelTrade = 27;
+    final Escape = 28;
+    final JoinGuild = 29;
+    final ChangeGuildRank = 30;
+    final Reskin = 31;
+    final MapHello = 32;
+}
+
+enum abstract S2CPacketId(Int8) from Int8 to Int8 {
+	final CreateSuccess = 0;
+    final Text = 1;
+    final ServerPlayerShoot = 2;
+    final Damage = 3;
+    final Update = 4;
+    final Notification = 5;
+    final NewTick = 6;
+    final ShowEffect = 7;
+    final Goto = 8;
+    final InvResult = 9;
+    final Ping = 10;
+    final MapInfo = 11;
+    final Death = 12;
+    final BuyResult = 13;
+    final Aoe = 14;
+    final AccountList = 15;
+    final QuestObjId = 16;
+    final GuildResult = 17;
+    final AllyShoot = 18;
+    final EnemyShoot = 19;
+    final TradeRequested = 20;
+    final TradeStart = 21;
+    final TradeChanged = 22;
+    final TradeDone = 23;
+    final TradeAccepted = 24;
+    final InvitedToGuild = 25;
+    final PlaySound = 26;
+    final Failure = 27;
 }
 
 enum abstract BuyResultType(Int8) from Int8 to Int8 {
@@ -307,7 +306,7 @@ class NetworkHandler {
 				outgoingData.writeShort(0); // todo skin
 			}
 
-			sendPacket(PacketType.Hello);
+			sendPacket(C2SPacketId.Hello);
 
 			#if log_packets
 			trace(Global.gameSprite.lastUpdate,
@@ -330,7 +329,7 @@ class NetworkHandler {
 			outgoingData.writeShort(fmMap.length);
 			outgoingData.writeBytes(fmMap);
 
-			sendPacket(PacketType.MapHello);
+			sendPacket(C2SPacketId.MapHello);
 
 			#if log_packets
 			trace(Global.gameSprite.lastUpdate,
@@ -377,13 +376,13 @@ class NetworkHandler {
 
 				readLen = 65535;
 
-				var packetId = data.readUnsignedByte();
+				var packetId: S2CPacketId = data.readUnsignedByte();
 				#if log_packets
 				trace('Receiving $packetId, left to read: ${socket.bytesAvailable}');
 				#end
 
 				switch (packetId) {
-					case PacketType.AllyShoot:
+					case AllyShoot:
 						var bulletId = data.readByte();
 						var ownerId = data.readInt();
 						var containerType = data.readUnsignedShort();
@@ -397,7 +396,7 @@ class NetworkHandler {
 						proj.reset(containerType, 0, ownerId, bulletId, angle, Global.gameSprite.lastFixedUpdate);
 						Global.gameSprite.map.addProjectile(proj, owner.mapX, owner.mapY);
 						owner.setAttack(containerType, angle);
-					case PacketType.AccountList:
+					case AccountList:
 						var listId = data.readInt();
 						var ids = new Array<Int>();
 						var num: Int = data.readShort();
@@ -412,7 +411,7 @@ class NetworkHandler {
 							Global.gameSprite.map.party.setStars(ids);
 						if (listId == 1)
 							Global.gameSprite.map.party.setIgnores(ids); */
-					case PacketType.Aoe:
+					case Aoe:
 						var x = data.readFloat();
 						var y = data.readFloat();
 						var radius = data.readFloat();
@@ -465,7 +464,7 @@ class NetworkHandler {
 						}
 
 						aoeAck(Global.gameSprite.lastFixedUpdate, Global.gameSprite.map.player.mapX, Global.gameSprite.map.player.mapY);
-					case PacketType.BuyResult:
+					case BuyResult:
 						var result: BuyResultType = data.readInt();
 						var resultStr = data.readUTF();
 
@@ -479,7 +478,7 @@ class NetworkHandler {
 							default:
 								Global.gameSprite.textBox.addText(resultStr, result == Success ? 0x0000FF : 0xFF0000);
 						}
-					case PacketType.CreateSuccess:
+					case CreateSuccess:
 						playerId = data.readInt();
 						charId = data.readInt();
 
@@ -489,7 +488,7 @@ class NetworkHandler {
 
 						Global.gameSprite.initialize();
 						createCharacter = false;
-					case PacketType.Damage:
+					case Damage:
 						var targetId = data.readInt();
 						var effects = new Array<Int32>();
 						var effBitMask = data.readUnsignedInt();
@@ -530,7 +529,7 @@ class NetworkHandler {
 						var go = map.getGameObject(targetId);
 						if (go != null)
 							go.damage(-1, damageAmount, effects, kill, proj);
-					case PacketType.Death:
+					case Death:
 						// todo...
 						var accountId = data.readInt();
 						var charId = data.readInt();
@@ -541,7 +540,7 @@ class NetworkHandler {
 						#end
 
 						disconnect();
-					case PacketType.EnemyShoot:
+					case EnemyShoot:
 						var bulletId = data.readUnsignedByte();
 						var ownerId = data.readInt();
 						var bulletType = data.readUnsignedByte();
@@ -596,7 +595,7 @@ class NetworkHandler {
 
 						shootAck(Global.gameSprite.lastFixedUpdate);
 						owner.setAttack(owner.objectType, angle + angleInc * ((numShots - 1) / 2));
-					case PacketType.Failure:
+					case Failure:
 						var errorId: FailureType = data.readInt();
 						var errorDescription = data.readUTF();
 
@@ -639,7 +638,7 @@ class NetworkHandler {
 								});
 								Global.layers.dialogs.openDialog(dialog);
 						}
-					case PacketType.Goto:
+					case Goto:
 						var objId = data.readInt();
 						var x = data.readFloat();
 						var y = data.readFloat();
@@ -655,7 +654,7 @@ class NetworkHandler {
 						player.onGoto(x, y, Global.gameSprite.lastFixedUpdate);
 
 						gotoAck(Global.gameSprite.lastFixedUpdate);
-					case PacketType.GuildResult:
+					case GuildResult:
 						var success = data.readBoolean();
 						var errorText = data.readUTF();
 
@@ -665,7 +664,7 @@ class NetworkHandler {
 
 						Global.gameSprite.textBox.addText(errorText, 0xFF0000);
 						Global.gameSprite.dispatchEvent(new GuildResultEvent(success, errorText));
-					case PacketType.InvitedToGuild:
+					case InvitedToGuild:
 						var name = data.readUTF();
 						var guildName = data.readUTF();
 
@@ -677,7 +676,7 @@ class NetworkHandler {
 						Global.gameSprite.textBox.addText("You have been invited by " + name + " to join the guild " + guildName
 							+ ".\n  If you wish to join type \"/join " + guildName + "\"",
 							0x0000FF);
-					case PacketType.InvResult:
+					case InvResult:
 						var result = data.readInt();
 
 						#if log_packets
@@ -688,7 +687,7 @@ class NetworkHandler {
 							SoundEffectLibrary.play("error");
 							// Global.gameSprite.interactPanel.redraw();
 						}
-					case PacketType.MapInfo:
+					case MapInfo:
 						var width = data.readInt();
 						var height = data.readInt();
 						var name = data.readUTF();
@@ -719,7 +718,7 @@ class NetworkHandler {
 							+ ", showDisplays="
 							+ showDisplays);
 						#end
-					case PacketType.NewTick:
+					case NewTick:
 						if (Global.gameSprite == null)
 							return;
 
@@ -797,7 +796,7 @@ class NetworkHandler {
 						move(tickId, player);
 
 						lastTickId = tickId;
-					case PacketType.Notification:
+					case Notification:
 						var objectId = data.readInt();
 						var text = data.readUTF();
 						var color = data.readUnsignedInt();
@@ -816,7 +815,7 @@ class NetworkHandler {
 									Global.gameSprite.map.quest.completed();
 							}
 						}
-					case PacketType.Ping:
+					case Ping:
 						var serial = data.readInt();
 
 						#if log_packets
@@ -824,7 +823,7 @@ class NetworkHandler {
 						#end
 
 						pong(serial, System.getTimer());
-					case PacketType.PlaySound:
+					case PlaySound:
 						var ownerId = data.readInt();
 						var soundId = data.readUnsignedByte();
 						#if log_packets
@@ -834,7 +833,7 @@ class NetworkHandler {
 						var obj = Global.gameSprite.map.getGameObject(ownerId);
 						if (obj != null)
 							obj.playSound(soundId);
-					case PacketType.QuestObjId:
+					case QuestObjId:
 						var objId = data.readInt();
 
 						#if log_packets
@@ -842,7 +841,7 @@ class NetworkHandler {
 						#end
 
 						Global.gameSprite.map.quest.setObject(objId);
-					case PacketType.ServerPlayerShoot:
+					case ServerPlayerShoot:
 						var bulletId = data.readUnsignedByte();
 						var ownerId = data.readInt();
 						var containerType = data.readShort();
@@ -883,7 +882,7 @@ class NetworkHandler {
 						Global.gameSprite.map.addProjectile(proj, startX, startY);
 						if (needsAck)
 							shootAck(Global.gameSprite.lastFixedUpdate);
-					case PacketType.ShowEffect:
+					case ShowEffect:
 						var effectType: ShowEffectType = data.readUnsignedByte();
 						var targetObjectId = data.readInt();
 						var x1 = data.readFloat();
@@ -963,7 +962,7 @@ class NetworkHandler {
 							trace("ERROR: Unknown effect type: " + effectType);
 					}*/
 
-					case PacketType.Text:
+					case Text:
 						var name = data.readUTF();
 						var objectId = data.readInt();
 						var bubbleTime = data.readUnsignedByte();
@@ -1021,7 +1020,7 @@ class NetworkHandler {
 						}
 
 						Global.gameSprite.textBox.addTextFull(name, recipient, text, nameColor, textColor);
-					case PacketType.TradeAccepted:
+					case TradeAccepted:
 						var myOffer = new Array<Bool>();
 						var num = data.readShort();
 						for (i in 0...num)
@@ -1038,7 +1037,7 @@ class NetworkHandler {
 
 					// todo trade
 					// Global.gameSprite.hudView.tradeAccepted(tradeAccepted);
-					case PacketType.TradeChanged:
+					case TradeChanged:
 						var offer = new Array<Bool>();
 						var num = data.readShort();
 						for (i in 0...num)
@@ -1050,7 +1049,7 @@ class NetworkHandler {
 
 					// todo trade
 					// Global.gameSprite.hudView.tradeChanged(tradeChanged);
-					case PacketType.TradeDone:
+					case TradeDone:
 						var code = data.readInt();
 						var description = data.readUTF();
 
@@ -1061,7 +1060,7 @@ class NetworkHandler {
 						// todo trade
 						// Global.gameSprite.hudView.tradeDone();
 						Global.gameSprite.textBox.addText(description, 0x0000FF);
-					case PacketType.TradeRequested:
+					case TradeRequested:
 						var name = data.readUTF();
 
 						#if log_packets
@@ -1070,7 +1069,7 @@ class NetworkHandler {
 
 						// Global.gameSprite.interactPanel.setOverride(new TradeRequestPanel(Global.gameSprite, name));
 						Global.gameSprite.textBox.addText(name + " wants to " + "trade with you.  Type \"/trade " + name + "\" to trade.", 0x0000FF);
-					case PacketType.TradeStart:
+					case TradeStart:
 						var myItems = new Array<TradeItem>();
 						for (i in 0...data.readShort())
 							myItems.push({
@@ -1096,7 +1095,7 @@ class NetworkHandler {
 
 					// todo trade
 					// Global.gameSprite.hudView.startTrade(Global.gameSprite_, tradeStart);
-					case PacketType.Update:
+					case Update:
 						for (i in 0...data.readShort()) {
 							var x = data.readShort();
 							var y = data.readShort();
@@ -1158,7 +1157,7 @@ class NetworkHandler {
 	}
 
 	private static function updateAck() {
-		sendPacket(PacketType.UpdateAck);
+		sendPacket(C2SPacketId.UpdateAck);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "UpdateAck");
@@ -1174,7 +1173,7 @@ class NetworkHandler {
 
 	private static function gotoAck(time: Int) {
 		outgoingData.writeInt(time);
-		sendPacket(PacketType.GotoAck);
+		sendPacket(C2SPacketId.GotoAck);
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "GotoAck: time=" + time);
 		#end
@@ -1188,29 +1187,10 @@ class NetworkHandler {
 	private static function pong(serial: Int, time: Int) {
 		outgoingData.writeInt(serial);
 		outgoingData.writeInt(time);
-		sendPacket(PacketType.Pong);
+		sendPacket(C2SPacketId.Pong);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "Pong: serial=" + serial + ", time=" + time);
-		#end
-	}
-
-	private static function create(classType: Int, skinType: Int) {
-		outgoingData.writeShort(classType);
-		outgoingData.writeShort(skinType);
-		sendPacket(PacketType.Create);
-
-		#if log_packets
-		trace(Global.gameSprite.lastUpdate, "Create: classType=" + classType + ", skinType=" + skinType);
-		#end
-	}
-
-	private static function load(charId: Int) {
-		outgoingData.writeInt(charId);
-		sendPacket(PacketType.Load);
-
-		#if log_packets
-		trace(Global.gameSprite.lastUpdate, "Load: charId=" + charId);
 		#end
 	}
 
@@ -1221,7 +1201,7 @@ class NetworkHandler {
 		outgoingData.writeFloat(proj.mapX);
 		outgoingData.writeFloat(proj.mapY);
 		outgoingData.writeFloat(proj.angle);
-		sendPacket(PacketType.PlayerShoot);
+		sendPacket(C2SPacketId.PlayerShoot);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate,
@@ -1243,7 +1223,7 @@ class NetworkHandler {
 	public static function playerHit(bulletId: Int, objectId: Int) {
 		outgoingData.writeByte(bulletId);
 		outgoingData.writeInt(objectId);
-		sendPacket(PacketType.PlayerHit);
+		sendPacket(C2SPacketId.PlayerHit);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "PlayerHit: bulletId=" + bulletId + ", objectId=" + objectId);
@@ -1255,7 +1235,7 @@ class NetworkHandler {
 		outgoingData.writeByte(bulletId);
 		outgoingData.writeInt(targetId);
 		// outgoingData.writeBoolean(kill);
-		sendPacket(PacketType.EnemyHit);
+		sendPacket(C2SPacketId.EnemyHit);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "EnemyHit: time="
@@ -1274,21 +1254,21 @@ class NetworkHandler {
 			outgoingData.writeByte(bulletId);
 			outgoingData.writeInt(objectId);
 			outgoingData.writeInt(targetId);
-			sendPacket(PacketType.OtherHit); */
+			sendPacket(C2SPacketId.OtherHit); */
 	}
 
 	public static function squareHit(time: Int, bulletId: Int, objectId: Int) {
 		/*outgoingData.writeInt(time);
 			outgoingData.writeByte(bulletId);
 			outgoingData.writeInt(objectId);
-			sendPacket(PacketType.SquareHit); */
+			sendPacket(C2SPacketId.SquareHit); */
 	}
 
 	public static function groundDamage(time: Int, x: Float, y: Float) {
 		outgoingData.writeInt(time);
 		outgoingData.writeFloat(x);
 		outgoingData.writeFloat(y);
-		sendPacket(PacketType.GroundDamage);
+		sendPacket(C2SPacketId.GroundDamage);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "GroundDamage: time=" + time + ", x=" + x + ", y=" + y);
@@ -1297,7 +1277,7 @@ class NetworkHandler {
 
 	public static function playerText(textStr: String) {
 		outgoingData.writeUTF(textStr);
-		sendPacket(PacketType.PlayerText);
+		sendPacket(C2SPacketId.PlayerText);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "PlayerText: text=" + textStr);
@@ -1312,7 +1292,7 @@ class NetworkHandler {
 		outgoingData.writeByte(slotId1);
 		outgoingData.writeInt(targetObj.objectId);
 		outgoingData.writeByte(slotId2);
-		sendPacket(PacketType.InvSwap);
+		sendPacket(C2SPacketId.InvSwap);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate,
@@ -1343,7 +1323,7 @@ class NetworkHandler {
 		outgoingData.writeByte(slotId1);
 		outgoingData.writeInt(targetObj.objectId);
 		outgoingData.writeByte(slotId2);
-		sendPacket(PacketType.InvSwap);
+		sendPacket(C2SPacketId.InvSwap);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate,
@@ -1371,7 +1351,7 @@ class NetworkHandler {
 		outgoingData.writeInt(object.objectId);
 		outgoingData.writeByte(slotId);
 		outgoingData.writeShort(objectType);
-		sendPacket(PacketType.InvDrop);
+		sendPacket(C2SPacketId.InvDrop);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "InvDrop: objId=" + object.objectId + ", slotId=" + slotId + ", objType=" + objectType);
@@ -1389,7 +1369,7 @@ class NetworkHandler {
 		outgoingData.writeFloat(posX);
 		outgoingData.writeFloat(posY);
 		outgoingData.writeByte(useType);
-		sendPacket(PacketType.UseItem);
+		sendPacket(C2SPacketId.UseItem);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate,
@@ -1481,7 +1461,7 @@ class NetworkHandler {
 
 	public static function teleport(objectId: Int) {
 		outgoingData.writeInt(objectId);
-		sendPacket(PacketType.Teleport);
+		sendPacket(C2SPacketId.Teleport);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "Teleport: objId=" + objectId);
@@ -1496,7 +1476,7 @@ class NetworkHandler {
 		}
 
 		outgoingData.writeInt(objectId);
-		sendPacket(PacketType.UsePortal);
+		sendPacket(C2SPacketId.UsePortal);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "UsePortal: objId=" + objectId);
@@ -1505,7 +1485,7 @@ class NetworkHandler {
 
 	public static function buy(objectId: Int) {
 		outgoingData.writeInt(objectId);
-		sendPacket(PacketType.Buy);
+		sendPacket(C2SPacketId.Buy);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "Buy: objId=" + objectId);
@@ -1516,25 +1496,16 @@ class NetworkHandler {
 		outgoingData.writeInt(accountListId);
 		outgoingData.writeBoolean(add);
 		outgoingData.writeInt(objectId);
-		sendPacket(PacketType.EditAccountList);
+		sendPacket(C2SPacketId.EditAccountList);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "EditAccountList: listId=" + accountListId + ", add=" + add + ", objId=" + objectId);
 		#end
 	}
 
-	public static function chooseName(name: String) {
-		outgoingData.writeUTF(name);
-		sendPacket(PacketType.ChooseName);
-
-		#if log_packets
-		trace(Global.gameSprite.lastUpdate, "ChooseName: name=" + name);
-		#end
-	}
-
 	public static function createGuild(name: String) {
 		outgoingData.writeUTF(name);
-		sendPacket(PacketType.CreateGuild);
+		sendPacket(C2SPacketId.CreateGuild);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "CreateGuild: name=" + name);
@@ -1543,7 +1514,7 @@ class NetworkHandler {
 
 	public static function guildRemove(name: String) {
 		outgoingData.writeUTF(name);
-		sendPacket(PacketType.GuildRemove);
+		sendPacket(C2SPacketId.GuildRemove);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "GuildRemove: name=" + name);
@@ -1552,7 +1523,7 @@ class NetworkHandler {
 
 	public static function guildInvite(name: String) {
 		outgoingData.writeUTF(name);
-		sendPacket(PacketType.GuildInvite);
+		sendPacket(C2SPacketId.GuildInvite);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "GuildInvite: name=" + name);
@@ -1561,7 +1532,7 @@ class NetworkHandler {
 
 	public static function requestTrade(name: String) {
 		outgoingData.writeUTF(name);
-		sendPacket(PacketType.RequestTrade);
+		sendPacket(C2SPacketId.RequestTrade);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "RequestTrade: name=" + name);
@@ -1572,7 +1543,7 @@ class NetworkHandler {
 		outgoingData.writeShort(offer.length);
 		for (i in 0...offer.length)
 			outgoingData.writeBoolean(offer[i]);
-		sendPacket(PacketType.ChangeTrade);
+		sendPacket(C2SPacketId.ChangeTrade);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "ChangeTrade: offers=" + offer);
@@ -1586,7 +1557,7 @@ class NetworkHandler {
 		outgoingData.writeShort(yourOffer.length);
 		for (i in 0...yourOffer.length)
 			outgoingData.writeBoolean(yourOffer[i]);
-		sendPacket(PacketType.AcceptTrade);
+		sendPacket(C2SPacketId.AcceptTrade);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "AcceptTrade: myOffers=" + myOffer + ", yourOffers=" + yourOffer);
@@ -1594,7 +1565,7 @@ class NetworkHandler {
 	}
 
 	public static function cancelTrade() {
-		sendPacket(PacketType.CancelTrade);
+		sendPacket(C2SPacketId.CancelTrade);
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "CancelTrade");
 		#end
@@ -1617,7 +1588,7 @@ class NetworkHandler {
 			Global.gameSprite.disconnect();
 		}
 
-		sendPacket(PacketType.Escape);
+		sendPacket(C2SPacketId.Escape);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "Escape");
@@ -1626,7 +1597,7 @@ class NetworkHandler {
 
 	public static function joinGuild(guildName: String) {
 		outgoingData.writeUTF(guildName);
-		sendPacket(PacketType.JoinGuild);
+		sendPacket(C2SPacketId.JoinGuild);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "JoinGuild: guildName=" + guildName);
@@ -1636,25 +1607,16 @@ class NetworkHandler {
 	public static function changeGuildRank(name: String, rank: Int) {
 		outgoingData.writeUTF(name);
 		outgoingData.writeInt(rank);
-		sendPacket(PacketType.ChangeGuildRank);
+		sendPacket(C2SPacketId.ChangeGuildRank);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "ChangeGuildRank: name=" + name + ", rank=" + rank);
 		#end
 	}
 
-	public static function onReskinVault(objType: Int) {
-		outgoingData.writeInt(objType);
-		sendPacket(PacketType.ReskinVault);
-
-		#if log_packets
-		trace(Global.gameSprite.lastUpdate, "ReskinVault: objType=" + objType);
-		#end
-	}
-
 	public static function reskin(skinId: Int, player: Player = null) {
 		outgoingData.writeInt(skinId);
-		sendPacket(PacketType.Reskin);
+		sendPacket(C2SPacketId.Reskin);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "Reskin: skinId=" + skinId);
@@ -1709,7 +1671,7 @@ class NetworkHandler {
 			outgoingData.writeShort(0);
 
 		Global.gameSprite.moveRecords.clear(Global.gameSprite.lastFixedUpdate);
-		sendPacket(PacketType.Move);
+		sendPacket(C2SPacketId.Move);
 
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate,
