@@ -550,12 +550,9 @@ class NetworkHandler {
 						var damage = data.readShort();
 						var magicDamage = data.readShort();
 						var trueDamage = data.readShort();
-						var numShots = 1;
-						var angleInc = 0.0;
-						if (socket.bytesAvailable > 0) {
-							numShots = data.readUnsignedByte();
-							angleInc = data.readFloat();
-						}
+						var numShots = data.readUnsignedByte();
+						var angleInc = data.readFloat();
+						
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate,
