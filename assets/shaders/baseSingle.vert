@@ -1,13 +1,13 @@
-#version 460
+#version 400
 
 precision lowp float;
 
 layout (location = 0) in vec4 vertUV;
 
-layout (location = 0) out vec2 uv;
+out vec2 uv;
 
-layout (location = 0) uniform vec4 vertScale;
-layout (location = 1) uniform vec2 vertPos;
+uniform vec4 vertScale;
+uniform vec2 vertPos;
 
 void main() {
     gl_Position = vec4(-(vertUV.x * vertScale.x + vertUV.y * vertScale.y) + vertPos.x,

@@ -1,4 +1,4 @@
-#version 460
+#version 400
 
 precision lowp float;
 

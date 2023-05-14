@@ -1,21 +1,21 @@
-#version 460
+#version 400
 
 precision lowp float;
 
-layout (location = 0) in vec2 baseUV;
-layout (location = 1) in vec2 uv;
-layout (location = 2) in vec2 leftBlendUV;
-layout (location = 3) in vec2 topBlendUV;
-layout (location = 4) in vec2 rightBlendUV;
-layout (location = 5) in vec2 bottomBlendUV;
+in vec2 baseUV;
+in vec2 uv;
+in vec2 leftBlendUV;
+in vec2 topBlendUV;
+in vec2 rightBlendUV;
+in vec2 bottomBlendUV;
 
 layout (location = 0) out vec4 resultColor;
 
-layout (location = 0) uniform vec2 leftMaskUV;
-layout (location = 1) uniform vec2 topMaskUV;
-layout (location = 2) uniform vec2 rightMaskUV;
-layout (location = 3) uniform vec2 bottomMaskUV;
-layout (location = 4) uniform sampler2D sampler;
+uniform vec2 leftMaskUV;
+uniform vec2 topMaskUV;
+uniform vec2 rightMaskUV;
+uniform vec2 bottomMaskUV;
+uniform sampler2D sampler;
 
 void main() {
     vec4 result = texture(sampler, uv + baseUV);

@@ -1,4 +1,4 @@
-#version 460
+#version 400
 
 precision lowp float;
 
@@ -12,7 +12,7 @@ in BatchData {
 
 layout (location = 0) out vec4 resultColor;
 
-layout (location = 0) uniform sampler2D sampler;
+uniform sampler2D sampler;
 
 void main() {
     if (data.barThresh != -1 && data.barThresh < data.uv.x)
