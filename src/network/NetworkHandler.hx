@@ -723,6 +723,7 @@ class NetworkHandler {
 						var tickTime = Std.int(1000 / data.readUnsignedByte());
 						var len = data.readShort();
 						for (i in 0...len) {
+							var classType = data.readUnsignedByte();
 							var objId = data.readInt();
 							var x = data.readFloat();
 							var y = data.readFloat();
@@ -781,7 +782,7 @@ class NetworkHandler {
 							if (cont)
 								continue;
 
-							trace('Could not find NewTick GameObject: objId=$objId, x=$x, y=$y');
+							trace('Could not find NewTick GameObject: class=$classType objId=$objId, x=$x, y=$y');
 							for (j in 0...data.readShort())
 								parseStat(null, data.readUnsignedByte(), data);
 						}
@@ -1101,6 +1102,9 @@ class NetworkHandler {
 							Global.gameSprite.miniMap.setGroundTile(x, y, tileType);
 						}
 
+						for (i in 0...data.readShort())
+							Global.gameSprite.map.removeObj(data.readInt());
+
 						for (i in 0...data.readShort()) {
 							var objType = data.readUnsignedShort();
 							var objId = data.readInt();
@@ -1134,9 +1138,6 @@ class NetworkHandler {
 							if (go.props.staticObj && go.props.occupySquare && !go.props.noMiniMap)
 								Global.gameSprite.miniMap.setGameObjectTile(Std.int(go.mapX), Std.int(go.mapY), go);
 						}
-
-						for (i in 0...data.readShort())
-							Global.gameSprite.map.removeObj(data.readInt());
 
 						updateAck();
 
