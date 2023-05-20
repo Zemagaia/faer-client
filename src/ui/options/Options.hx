@@ -147,6 +147,7 @@ class Options extends Sprite {
 		this.addOption(new KeyMapper("perfStats", "Toggle Performance Stats", "This key will toggle a display of fps and memory usage"));
 		this.addOption(new KeyMapper("toggleCentering", "Toggle Centering", "This key will toggle the position between centered and offset"));
 		this.addOption(new KeyMapper("interact", "Interact", "This key will allow you to interact with world objects"));
+		this.addOption(new KeyMapper("walk", "Walk", "This key will allow you to move slowly"));
 	}
 
 	private function addHotKeysOptions() {

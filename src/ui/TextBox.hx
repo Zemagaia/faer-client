@@ -282,7 +282,7 @@ class TextBox extends Sprite {
 	}
 
 	private function onInputFieldKeyUp(event: KeyboardEvent) {
-		if (event.keyCode == KeyCode.Enter) {
+		if (event.keyCode == Settings.chat) {
 			if (this.inputField.text.length != 0) {
 				if (this.gs.map.player != null)
 					NetworkHandler.playerText(this.inputField.text);
