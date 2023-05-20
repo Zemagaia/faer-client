@@ -217,5 +217,7 @@ class Settings {
 		textBubbles = true;
 		selectedCursor = 3;
 		glowType = GlowType.None;
+
+		Main.refreshCursor();
 	}
 }
