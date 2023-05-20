@@ -97,11 +97,7 @@ class Map {
 	public var showDisplays = false;
 	public var squares: Vector<Square>;
 	public var gameObjectsLen: Int32 = 0;
-	public var playersLen: Int32 = 0;
-	public var projectilesLen: Int32 = 0;
 	public var gameObjects: Array<GameObject>;
-	public var players: Array<Player>;
-	public var projectiles: Array<Projectile>;
 	public var rdSingle: Array<RenderDataSingle>;
 	public var player: Player = null;
 	public var quest: Quest = null;
@@ -156,8 +152,6 @@ class Map {
 
 	public function new() {
 		this.gameObjects = [];
-		this.players = [];
-		this.projectiles = [];
 		this.rdSingle = [];
 		this.quest = new Quest(this);
 		this.visSquares = new Vector<Square>(MAX_VISIBLE_SQUARES);
@@ -310,13 +304,6 @@ class Map {
 				obj.dispose();
 		this.gameObjects = null;
 
-		if (this.players != null)
-			for (obj in this.players)
-				obj.dispose();
-		this.players = null;
-
-		this.projectiles = null;
-
 		this.player = null;
 		this.quest = null;
 		TextureFactory.disposeTextures();
@@ -334,51 +321,11 @@ class Map {
 		
 		i = 0;
 
-		var playerRemove = new Array<Player>();
-		while (i < this.playersLen) {
-			var player = this.players.unsafeGet(i);
-			if (!player.update(time, dt))
-				playerRemove.push(player);
-			i++;
-		}
-
-		i = 0;
-
-		var projRemove = new Array<Projectile>();
-		while (i < this.projectilesLen) {
-			var proj = this.projectiles.unsafeGet(i);
-			if (!proj.update(time, dt))
-				projRemove.push(proj);
-			i++;
-		}
-
-		i = 0;
-
 		while (i < goRemove.length) {
 			var go = goRemove[i];
 			go.removeFromMap();
 			this.gameObjects.remove(go);
 			this.gameObjectsLen--;
-			i++;
-		}
-
-		i = 0;
-
-		while (i < playerRemove.length) {
-			var player = playerRemove[i];
-			player.removeFromMap();
-			this.players.remove(player);
-			this.playersLen--;
-			i++;
-		}
-
-		i = 0;
-
-		while (i < projRemove.length) {
-			var proj = projRemove[i];
-			proj.removeFromMap();
-			this.projectiles.remove(proj);
-			this.projectilesLen--;
 			i++;
 		}
 	}
@@ -488,25 +435,6 @@ class Map {
 		this.gameObjectsLen++;
 	}
 
-	@:nonVirtual public function addPlayer(player: Player, posX: Float32, posY: Float32) {
-		player.mapX = posX;
-		player.mapY = posY;
-		player.addTo(this, player.mapX, player.mapY);
-		this.players.push(player);
-		this.playersLen++;
-	}
-
-	@:nonVirtual public function addProjectile(proj: Projectile, posX: Float32, posY: Float32) {
-		proj.mapX = posX;
-		proj.mapY = posY;
-
-		if (!proj.addTo(this, proj.mapX, proj.mapY))
-			return;
-
-		this.projectiles.push(proj);
-		this.projectilesLen++;
-	}
-
 	@:nonVirtual public function removeObj(objectId: Int32) {
 		var i = 0;
 		while (i < this.gameObjectsLen) {
@@ -515,32 +443,6 @@ class Map {
 				go.removeFromMap();
 				this.gameObjects.splice(i, 1);
 				this.gameObjectsLen--;
-				return;
-			}
-			i++;
-		}
-		
-		i = 0;
-
-		while (i < this.playersLen) {
-			var player = this.players.unsafeGet(i);
-			if (player.objectId == objectId) {
-				player.removeFromMap();
-				this.players.splice(i, 1);
-				this.playersLen--;
-				return;
-			}
-			i++;
-		}
-
-		i = 0;
-
-		while (i < this.projectilesLen) {
-			var proj = this.projectiles.unsafeGet(i);
-			if (proj.objectId == objectId) {
-				proj.removeFromMap();
-				this.projectiles.splice(i, 1);
-				this.projectilesLen--;
 				return;
 			}
 			i++;
@@ -559,30 +461,6 @@ class Map {
 		return null;
 	}
 
-	@:nonVirtual public function getPlayer(objectId: Int32) {
-		var i = 0;
-		while (i < this.playersLen) {
-			var player = this.players.unsafeGet(i);
-			if (player.objectId == objectId)
-				return player;
-			i++;
-		}
-
-		return null;
-	}
-
-	@:nonVirtual public function getProjectile(objectId: Int32) {
-		var i = 0;
-		while (i < this.projectilesLen) {
-			var proj = this.projectiles.unsafeGet(i);
-			if (proj.objectId == objectId)
-				return proj;
-			i++;
-		}
-
-		return null;
-	}
-
 	@:nonVirtual public function removeGameObject(objectId: Int32) {
 		var i = 0;
 		while (i < this.gameObjectsLen) {
@@ -591,34 +469,6 @@ class Map {
 				go.removeFromMap();
 				this.gameObjects.splice(i, 1);
 				this.gameObjectsLen--;
-				return;
-			}
-			i++;
-		}
-	}
-
-	@:nonVirtual public function removePlayer(objectId: Int32) {
-		var i = 0;
-		while (i < this.playersLen) {
-			var player = this.players.unsafeGet(i);
-			if (player.objectId == objectId) {
-				player.removeFromMap();
-				this.players.splice(i, 1);
-				this.playersLen--;
-				return;
-			}
-			i++;
-		}
-	}
-
-	@:nonVirtual public function removeProjectile(objectId: Int32) {
-		var i = 0;
-		while (i < this.projectilesLen) {
-			var proj = this.projectiles.unsafeGet(i);
-			if (proj.objectId == objectId) {
-				proj.removeFromMap();
-				this.projectiles.splice(i, 1);
-				this.projectilesLen--;
 				return;
 			}
 			i++;
@@ -1107,7 +957,6 @@ class Map {
 
 	@:nonVirtual private final #if !tracing inline #end function drawGameObject(time: Int32, obj: GameObject) {
 		var screenX = obj.screenX = obj.mapX * Camera.cos + obj.mapY * Camera.sin + Camera.csX;
-		obj.screenYNoZ = obj.mapX * -Camera.sin + obj.mapY * Camera.cos + Camera.csY;
 		var screenY = obj.screenYNoZ + obj.mapZ * -Camera.PX_PER_TILE;
 
 		var texW = obj.width * Main.ATLAS_WIDTH,
@@ -1376,7 +1225,8 @@ class Map {
 			if (obj.hp >= 0 && obj.hp < obj.maxHP) {
 				var scaledBarW: Float32 = hpBarW / Main.ATLAS_WIDTH;
 				var scaledBarH: Float32 = hpBarH / Main.ATLAS_HEIGHT;
-				var barThreshU: Float32 = hpBarU + scaledBarW * (obj.hp / obj.maxHP);
+				var barThreshU: Float32 = hpBarU + scaledBarW;
+				barThreshU *= (obj.hp / obj.maxHP) * (1 - 4/24) + (obj.hp / obj.maxHP) * (2/24); // account for decor
 				w = hpBarW * RenderUtils.clipSpaceScaleX;
 				h = hpBarH * RenderUtils.clipSpaceScaleY;
 				yBase = (screenY + yPos - (hpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
@@ -1647,7 +1497,6 @@ class Map {
 
 	@:nonVirtual private final #if !tracing inline #end function drawPlayer(time: Int32, player: Player) {
 		var screenX = player.screenX = player.mapX * Camera.cos + player.mapY * Camera.sin + Camera.csX;
-		player.screenYNoZ = player.mapX * -Camera.sin + player.mapY * Camera.cos + Camera.csY;
 		var screenY = player.screenYNoZ + player.mapZ * -Camera.PX_PER_TILE;
 
 		var texW = player.width * Main.ATLAS_WIDTH,
@@ -1794,7 +1643,8 @@ class Map {
 			if (player.hp >= 0 && player.hp < player.maxHP) {
 				var scaledBarW: Float32 = hpBarW / Main.ATLAS_WIDTH;
 				var scaledBarH: Float32 = hpBarH / Main.ATLAS_HEIGHT;
-				var barThreshU: Float32 = hpBarU + scaledBarW * (player.hp / player.maxHP);
+				var barThreshU: Float32 = hpBarU + scaledBarW;
+				barThreshU *= (player.hp / player.maxHP) * (1 - 4/24) + (player.hp / player.maxHP) * (2/24); // account for decor
 				w = hpBarW * RenderUtils.clipSpaceScaleX;
 				h = hpBarH * RenderUtils.clipSpaceScaleY;
 				yBase = (screenY + yPos - (hpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
@@ -1925,7 +1775,8 @@ class Map {
 			if (player.mp >= 0 && player.mp < player.maxMP) {
 				var scaledBarW: Float32 = mpBarW / Main.ATLAS_WIDTH;
 				var scaledBarH: Float32 = mpBarH / Main.ATLAS_HEIGHT;
-				var barThreshU: Float32 = mpBarU + scaledBarW * (player.mp / player.maxMP);
+				var barThreshU: Float32 = mpBarU + scaledBarW;
+				barThreshU *= (player.mp / player.maxMP) * (1 - 4/24) + (player.mp / player.maxMP) * (2/24); // account for decor
 				w = mpBarW * RenderUtils.clipSpaceScaleX;
 				h = mpBarH * RenderUtils.clipSpaceScaleY;
 				yBase = (screenY + yPos - (mpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
@@ -2319,11 +2170,9 @@ class Map {
 		GL.activeTexture(GL.TEXTURE0);
 		GL.bindTexture(GL.TEXTURE_2D, Main.atlas.texture);
 
-		var totalObjsLen = this.gameObjectsLen + this.playersLen + this.projectilesLen;
-
 		// this will break at 13k+ objects because of stack size... todo break into multiple batches
-		var vSize = Std.int(Math.max(this.visSquareLen * 56, totalObjsLen * 40));
-		var iSize = Std.int(Math.max(this.visSquareLen * 6, totalObjsLen * 6));
+		var vSize = Std.int(Math.max(this.visSquareLen * 56, this.gameObjectsLen * 40));
+		var iSize = Std.int(Math.max(this.visSquareLen * 6, this.gameObjectsLen * 6));
 		untyped __cpp__('float _f32Arr_[{0}]', vSize);
 		untyped __cpp__('int _i32Arr_[{0}]', iSize);
 
@@ -2366,7 +2215,7 @@ class Map {
 			GL.bufferSubData(GL.ELEMENT_ARRAY_BUFFER, 0, this.iIdx * 4, getI32Pointer());
 		GL.drawElements(GL.TRIANGLES, this.iIdx, GL.UNSIGNED_INT, 0);
 
-		if (totalObjsLen == 0) {
+		if (this.gameObjectsLen == 0) {
 			this.c3d.present();
 			return;
 		}
@@ -2376,31 +2225,29 @@ class Map {
 		var i = 0;
 		while (i < this.gameObjectsLen) {
 			var obj = this.gameObjects.unsafeGet(i);
+			obj.screenYNoZ = obj.mapX * -Camera.sin + obj.mapY * Camera.cos + Camera.csY;
+			i++;
+		}
+
+		i = 0;
+
+		this.gameObjects.sort((a: GameObject, b: GameObject) -> Std.int(a.screenYNoZ - b.screenYNoZ));
+
+		while (i < this.gameObjectsLen) {
+			var obj = this.gameObjects.unsafeGet(i);
 			if (obj.curSquare?.lastVisible >= time) {
-				if (obj.objClass == "Wall")
-					drawWall(time, obj);
-				else 
-					drawGameObject(time, obj);
+				switch (obj.objClass) {
+					case "Wall":
+						drawWall(time, obj);
+					case "Player":
+						drawPlayer(time, cast(obj, Player));
+					case "Projectile":
+						drawProjectile(time, cast(obj, Projectile));
+					default:
+						drawGameObject(time, obj);
+				}
 			}
 				
-			i++;
-		}
-
-		i = 0;
-
-		while (i < this.playersLen) {
-			var player = this.players.unsafeGet(i);
-			if (player.curSquare?.lastVisible >= time)
-				drawPlayer(time, player);
-			i++;
-		}
-
-		i = 0;
-
-		while (i < this.projectilesLen) {
-			var proj = this.projectiles.unsafeGet(i);
-			if (proj.curSquare?.lastVisible >= time)
-				drawProjectile(time, proj);
 			i++;
 		}
 
@@ -2537,9 +2384,6 @@ class Map {
 			i++;
 		}
 
-		// GL.bindFramebuffer(GL.FRAMEBUFFER, this.frontBuffer);
 		this.c3d.present();
-
-		//this.mapOverlay.draw(time);
 	}
 }

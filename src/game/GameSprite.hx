@@ -130,14 +130,6 @@ class GameSprite extends Sprite {
 			this.map.gameObjects.resize(0);
 			this.map.gameObjectsLen = 0;
 
-			for (player in this.map.players)
-				player.dispose();
-			this.map.players.resize(0);
-			this.map.playersLen = 0;
-
-			this.map.projectiles.resize(0);
-			this.map.projectilesLen = 0;
-
 			this.map.speechBalloons.clear();
 			this.map.statusTexts.resize(0);
 			this.connect();

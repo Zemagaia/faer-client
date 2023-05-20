@@ -16,25 +16,14 @@ import util.PointUtil;
 
 using util.Utils.ArrayUtils;
 
-class Projectile {
+class Projectile extends GameObject {
 	private static var objBullIdToObjId: IntMap<Int> = new IntMap<Int>();
 	private static var nextFakeObjectId = 0;
 
-	public var map: Map;
-	public var curSquare: Square;
-	public var objectId: Int32 = 0;
-	public var mapX: Float32 = 0.0;
-	public var mapY: Float32 = 0.0;
-	public var screenX: Float32 = 0.0;
-	public var screenY: Float32 = 0.0;
-	public var screenYNoZ: Float32 = 0.0;
-	public var sortVal: Int16 = 0;
-	public var props: ObjectProperties;
 	public var containerProps: ObjectProperties;
 	public var projProps: ProjectileProperties;
 	public var texture: BitmapData;
 	public var bulletId = 0;
-	public var ownerId = 0;
 	public var containerType = 0;
 	public var bulletType = 0;
 	public var damagesEnemies = false;
@@ -55,14 +44,8 @@ class Projectile {
 	public var phase = 0.0;
 	public var colors: Array<Int32>;
 	public var multiHitDict: IntMap<Bool>;
-	public var uValue: Float32 = 0.0;
-	public var vValue: Float32 = 0.0;
-	public var width: Float32 = 0.0;
-	public var height: Float32 = 0.0;
 
 	private var staticPoint: Point;
-
-	public var size: Float32 = 1.0;
 
 	public static inline function findObjId(ownerId: Int32, bulletId: Int32) {
 		return objBullIdToObjId.get(bulletId << 24 | ownerId);
@@ -83,22 +66,18 @@ class Projectile {
 	}
 
 	public function new() {
+		super(null, "Projectile");
 		this.staticPoint = new Point();
 	}
 
-	public function addTo(map: Map, x: Float32, y: Float32) {
+	override public function addTo(map: Map, x: Float32, y: Float32) {
 		this.startX = x;
 		this.startY = y;
-		this.map = map;
-		this.curSquare = this.map.lookupSquare(Std.int(x), Std.int(y));
-		this.mapX = x;
-		this.mapY = y;
-		return true;
+		return super.addTo(map, x, y);
 	}
 
-	public function removeFromMap() {
-		this.map = null;
-		this.curSquare = null;
+	override public function removeFromMap() {
+		super.removeFromMap();
 		removeObjId(this.ownerId, this.bulletId);
 		Global.projPool.release(this);
 		if (this.multiHitDict != null) {
@@ -107,7 +86,7 @@ class Projectile {
 		}
 	}
 
-	public function update(time: Int32, dt: Int16) {
+	override public function update(time: Int32, dt: Int16) {
 		var player: Player = null;
 		var isPlayer = false;
 		var isTargetAnEnemy = false;
@@ -223,7 +202,7 @@ class Projectile {
 		this.trueDamage = trueDmg;
 	}
 
-	public function moveTo(x: Float32, y: Float32) {
+	public override function moveTo(x: Float32, y: Float32) {
 		mapX = x;
 		mapY = y;
 		curSquare = map.lookupSquare(Std.int(x), Std.int(y));
@@ -237,8 +216,7 @@ class Projectile {
 
 		var i = 0;
 		if (damagesEnemies) {
-			var enLen = map.gameObjects.length;
-			while (i < enLen) {
+			while (i < map.gameObjectsLen) {
 				var go = map.gameObjects.unsafeGet(i);
 				if (!go.props.isEnemy) {
 					i++;
@@ -253,9 +231,13 @@ class Projectile {
 				i++;
 			}
 		} else if (damagesPlayers) {
-			var playersLen = map.players.length;
-			while (i < playersLen) {
-				var player = map.players.unsafeGet(i);
+			while (i < map.gameObjectsLen) {
+				var go = map.gameObjects.unsafeGet(i);
+				if (!go.props.isPlayer) {
+					i++;
+					continue;
+				}
+				var player: Player = cast go;
 				distSqr = PointUtil.distanceSquaredXY(player.mapX, player.mapY, pX, pY);
 				if (distSqr < 0.25 && (!this.projProps.multiHit || !(this.multiHitDict.exists(player.objectId)))) {
 					if (player.objectId == map.player.objectId)

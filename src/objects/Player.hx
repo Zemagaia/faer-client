@@ -26,7 +26,6 @@ import util.TextureRedrawer;
 
 using util.Utils;
 
-@:unreflective
 class Player extends GameObject {
 	public static inline var MS_BETWEEN_TELEPORT: Int32 = 10000;
 	private static inline var MOVE_THRESHOLD: Float32 = 0.4;
@@ -255,9 +254,9 @@ class Player extends GameObject {
 		this.guildName = guildName;
 		var myPlayer = map?.player;
 		if (myPlayer == this)
-			for (player in map.players) {
-				if (player != null && player != this)
-					player.setGuildName(player.guildName);
+			for (go in map.gameObjects) {
+				if (go != null && go.props.isPlayer && go != this)
+					cast(go, Player).setGuildName(cast(go, Player).guildName);
 			}
 		else {
 			isFellowGuild = myPlayer != null && myPlayer.guildName != null && myPlayer.guildName != "" && myPlayer.guildName == this.guildName;
@@ -608,7 +607,7 @@ class Player extends GameObject {
 			if (i == 0 && proj.sound != null)
 				SoundEffectLibrary.play(proj.sound, 0.75, false);
 
-			map.addProjectile(proj, mapX + MathUtil.cos(attackAngle) * 0.25, mapY + MathUtil.sin(attackAngle) * 0.25);
+			map.addGameObject(cast proj, mapX + MathUtil.cos(attackAngle) * 0.25, mapY + MathUtil.sin(attackAngle) * 0.25);
 			NetworkHandler.playerShoot(time, proj);
 			angle += arcGap;
 		}

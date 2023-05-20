@@ -388,13 +388,13 @@ class NetworkHandler {
 						var containerType = data.readUnsignedShort();
 						var angle = data.readFloat();
 
-						var owner = Global.gameSprite.map.getPlayer(ownerId);
+						var owner = Global.gameSprite.map.getGameObject(ownerId);
 						if (owner == null || owner.dead)
 							return;
 
 						var proj = Global.projPool.get();
 						proj.reset(containerType, 0, ownerId, bulletId, angle, Global.gameSprite.lastFixedUpdate);
-						Global.gameSprite.map.addProjectile(proj, owner.mapX, owner.mapY);
+						Global.gameSprite.map.addGameObject(cast proj, owner.mapX, owner.mapY);
 						owner.setAttack(containerType, angle);
 					case AccountList:
 						var listId = data.readInt();
@@ -521,9 +521,9 @@ class NetworkHandler {
 						var proj: Projectile = null;
 						if (objectId >= 0 && bulletId > 0) {
 							var projId = Projectile.findObjId(objectId, bulletId);
-							proj = map.getProjectile(projId);
+							proj = cast map.getGameObject(projId);
 							if (proj != null && !proj.projProps.multiHit)
-								map.removeProjectile(projId);
+								map.removeGameObject(projId);
 						}
 
 						var go = map.getGameObject(targetId);
@@ -587,7 +587,7 @@ class NetworkHandler {
 							angle += angleInc * i;
 							proj.reset(owner.objectType, bulletType, ownerId, (bulletId + i) % 256, angle, Global.gameSprite.lastFixedUpdate);
 							proj.setDamages(damage, magicDamage, trueDamage);
-							Global.gameSprite.map.addProjectile(proj, startX, startY);
+							Global.gameSprite.map.addGameObject(cast proj, startX, startY);
 						}
 
 						shootAck(Global.gameSprite.lastFixedUpdate);
@@ -644,7 +644,7 @@ class NetworkHandler {
 						trace(Global.gameSprite.lastUpdate, "Goto: objId=" + objId + ", x=" + x + ", y=" + y);
 						#end
 
-						var player = Global.gameSprite.map.getPlayer(objId);
+						var player = Global.gameSprite.map.getGameObject(objId);
 						if (player == null)
 							return;
 
@@ -723,66 +723,27 @@ class NetworkHandler {
 						var tickTime = Std.int(1000 / data.readUnsignedByte());
 						var len = data.readShort();
 						for (i in 0...len) {
-							var classType = data.readUnsignedByte();
 							var objId = data.readInt();
 							var x = data.readFloat();
 							var y = data.readFloat();
 
 							var map = Global.gameSprite.map;
-							var cont = false;
-							var i = 0;
-							while (i < map.gameObjectsLen) {
-								var go = map.gameObjects.unsafeGet(i);
-								if (go.objectId == objId) {
-									if (tickTime != 0)
-										go.onTickPos(x, y, tickTime, tickId);
-									for (j in 0...data.readShort())
-										parseStat(go, data.readUnsignedByte(), data);
-									cont = true;
-									break;
-								}
-								i++;
-							}
+							var go = map.getGameObject(objId);
+							if (go != null) {
+								if (tickTime != 0 && objId != playerId)
+									go.onTickPos(x, y, tickTime, tickId);
+								for (j in 0...data.readShort())
+									parseStat(go, data.readUnsignedByte(), data);
 
-							if (cont)
+								#if log_packets
+								trace(Global.gameSprite.lastUpdate, "NewTick");
+								#end
+								move(tickId, player);
+								lastTickId = tickId;
 								continue;
-
-							i = 0;
-
-							while (i < map.playersLen) {
-								var player = map.players.unsafeGet(i);
-								if (player.objectId == objId) {
-									var self = objId == playerId;
-									if (tickTime != 0 && !self)
-										player.onTickPos(x, y, tickTime, tickId);
-									for (j in 0...data.readShort())
-										parseStat(player, data.readUnsignedByte(), data);
-									cont = true;
-									break;
-								}
-								i++;
 							}
-
-							if (cont)
-								continue;
-
-							i = 0;
-
-							while (i < map.projectilesLen) {
-								var proj = map.projectiles.unsafeGet(i);
-								if (proj.objectId == objId) {
-									for (j in 0...data.readShort())
-										parseStat(null, data.readUnsignedByte(), data);
-									cont = true;
-									break;
-								}
-								i++;
-							}
-
-							if (cont)
-								continue;
-
-							trace('Could not find NewTick GameObject: class=$classType objId=$objId, x=$x, y=$y');
+							
+							trace('Could not find NewTick GameObject: objId=$objId, x=$x, y=$y');
 							for (j in 0...data.readShort())
 								parseStat(null, data.readUnsignedByte(), data);
 						}
@@ -806,7 +767,7 @@ class NetworkHandler {
 						if (go != null)
 							Global.gameSprite.map.addStatusText(new CharacterStatusText(go, text, color, 2000));
 						else {
-							var p = Global.gameSprite.map.getPlayer(objectId);
+							var p = Global.gameSprite.map.getGameObject(objectId);
 							if (p != null) {
 								Global.gameSprite.map.addStatusText(new CharacterStatusText(p, text, color, 2000));
 								if (p == player && text == "Quest Complete!")
@@ -877,7 +838,7 @@ class NetworkHandler {
 						var proj: Projectile = Global.projPool.get();
 						proj.reset(containerType, 0, ownerId, bulletId, angle, Global.gameSprite.lastFixedUpdate);
 						proj.setDamages(damage, 0, 0);
-						Global.gameSprite.map.addProjectile(proj, startX, startY);
+						Global.gameSprite.map.addGameObject(cast proj, startX, startY);
 						if (needsAck)
 							shootAck(Global.gameSprite.lastFixedUpdate);
 					case ShowEffect:
@@ -996,7 +957,7 @@ class NetworkHandler {
 							if (go != null)
 								Global.gameSprite.map.addSpeechBalloon(new SpeechBalloon(go, text, SpeechBalloon.ENEMY_BUBBLE, bubbleTime));
 							else {
-								var player = Global.gameSprite.map.getPlayer(objectId);
+								var player = Global.gameSprite.map.getGameObject(objectId);
 								if (player != null) {
 									var sbType = SpeechBalloon.DEFAULT_BUBBLE;
 									if (recipient != "")
@@ -1123,9 +1084,8 @@ class NetworkHandler {
 								continue;
 							}
 
-							var isPlayer = go.props.isPlayer;
-							isPlayer ? map.addPlayer(cast(go, Player), x, y) : map.addGameObject(go, x, y);
-							if (isPlayer) {
+							map.addGameObject(go, x, y);
+							if (go.props.isPlayer) {
 								var newPlayer = cast(go, Player);
 								setPlayerSkinTemplate(newPlayer, 0);
 								if (newPlayer.objectId == playerId) {
@@ -1650,7 +1610,7 @@ class NetworkHandler {
 		var lastMove = Global.gameSprite.moveRecords.lastClearTime;
 		if (lastMove >= 0 && Global.gameSprite.lastFixedUpdate - lastMove > 125) {
 			len = Std.int(Math.min(10, Global.gameSprite.moveRecords.recordIdx));
-			var actualLen = 0;
+			var actualLen: UInt16 = 0;
 			for (i in 0...len)
 				if (Global.gameSprite.moveRecords.records[i].time < Global.gameSprite.lastFixedUpdate - 25)
 					actualLen++;

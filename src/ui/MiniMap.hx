@@ -254,7 +254,32 @@ class MiniMap extends Sprite {
 		var mY = mouseY;
 		this.players.splice(this.players.length, 0);
 		for (go in this.map.gameObjects) {
-			if (!go.props.noMiniMap) {
+			if (go.props.isPlayer) {
+				var player: Player = cast go;
+				if (player != focus) {
+					fillColor = player.isFellowGuild ? 0x00FF00 : 0xFFFF00;
+
+					mmx = this.mapMatrix.a * player.mapX + this.mapMatrix.c * player.mapY + this.mapMatrix.tx;
+					mmy = this.mapMatrix.b * player.mapX + this.mapMatrix.d * player.mapY + this.mapMatrix.ty;
+					if (mmx <= -this.mapWidth / 2 || mmx >= this.mapWidth / 2 || mmy <= -this.mapHeight / 2 || mmy >= this.mapHeight / 2) {
+						lineSegmentIntersectXY(this.windowRect, 0, 0, mmx, mmy, this.tempPoint);
+						mmx = this.tempPoint.x;
+						mmy = this.tempPoint.y;
+					}
+
+					if (this.isMouseOver && (this.menu == null || this.menu.parent == null)) {
+						dx = mX - mmx;
+						dy = mY - mmy;
+						distSq = dx * dx + dy * dy;
+						if (distSq < MOUSE_DIST_SQ)
+							this.players.push(player);
+					}
+
+					g.beginFill(fillColor);
+					g.drawRect(mmx - 2, mmy - 2, 4, 4);
+					g.endFill();
+				}
+			} else if (!go.props.noMiniMap) {
 				if (go.objClass == "Portal")
 					fillColor = 0x0000FF;
 				else if (go.props.isEnemy)
@@ -266,32 +291,6 @@ class MiniMap extends Sprite {
 				mmy = this.mapMatrix.b * go.mapX + this.mapMatrix.d * go.mapY + this.mapMatrix.ty;
 				if (mmx <= -this.mapWidth / 2 || mmx >= this.mapWidth / 2 || mmy <= -this.mapHeight / 2 || mmy >= this.mapHeight / 2)
 					continue;
-
-				g.beginFill(fillColor);
-				g.drawRect(mmx - 2, mmy - 2, 4, 4);
-				g.endFill();
-			}
-		}
-
-		for (player in this.map.players) {
-			if (player != focus) {
-				fillColor = player.isFellowGuild ? 0x00FF00 : 0xFFFF00;
-
-				mmx = this.mapMatrix.a * player.mapX + this.mapMatrix.c * player.mapY + this.mapMatrix.tx;
-				mmy = this.mapMatrix.b * player.mapX + this.mapMatrix.d * player.mapY + this.mapMatrix.ty;
-				if (mmx <= -this.mapWidth / 2 || mmx >= this.mapWidth / 2 || mmy <= -this.mapHeight / 2 || mmy >= this.mapHeight / 2) {
-					lineSegmentIntersectXY(this.windowRect, 0, 0, mmx, mmy, this.tempPoint);
-					mmx = this.tempPoint.x;
-					mmy = this.tempPoint.y;
-				}
-
-				if (this.isMouseOver && (this.menu == null || this.menu.parent == null)) {
-					dx = mX - mmx;
-					dy = mY - mmy;
-					distSq = dx * dx + dy * dy;
-					if (distSq < MOUSE_DIST_SQ)
-						this.players.push(player);
-				}
 
 				g.beginFill(fillColor);
 				g.drawRect(mmx - 2, mmy - 2, 4, 4);

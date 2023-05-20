@@ -30,7 +30,6 @@ import util.TextureRedrawer;
 
 using util.Utils;
 
-@:unreflective
 class GameObject {
 	public static inline var ZERO_LIMIT: Float32 = 0.00001;
 	public static inline var NEGATIVE_ZERO_LIMIT: Float32 = -ZERO_LIMIT;
