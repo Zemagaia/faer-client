@@ -224,7 +224,7 @@ class Projectile extends GameObject {
 				}
 
 				distSqr = PointUtil.distanceSquaredXY(go.mapX, go.mapY, pX, pY);
-				if (distSqr < 0.25 && distSqr < minDistSqr && (!this.projProps.multiHit || !(this.multiHitDict.exists(go.objectId)))) {
+				if (distSqr < 0.33 && distSqr < minDistSqr && (!this.projProps.multiHit || !(this.multiHitDict.exists(go.objectId)))) {
 					minDistSqr = distSqr;
 					target = go;
 				}
@@ -239,7 +239,7 @@ class Projectile extends GameObject {
 				}
 				var player: Player = cast go;
 				distSqr = PointUtil.distanceSquaredXY(player.mapX, player.mapY, pX, pY);
-				if (distSqr < 0.25 && (!this.projProps.multiHit || !(this.multiHitDict.exists(player.objectId)))) {
+				if (distSqr < 0.33 && (!this.projProps.multiHit || !(this.multiHitDict.exists(player.objectId)))) {
 					if (player.objectId == map.player.objectId)
 						return player;
 
