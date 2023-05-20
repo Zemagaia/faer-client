@@ -954,27 +954,27 @@ class NetworkHandler {
 
 						if (objectId != -1) {
 							var go = Global.gameSprite.map.getGameObject(objectId);
-							if (go != null)
-								Global.gameSprite.map.addSpeechBalloon(new SpeechBalloon(go, text, SpeechBalloon.ENEMY_BUBBLE, bubbleTime));
-							else {
-								var player = Global.gameSprite.map.getGameObject(objectId);
-								if (player != null) {
-									var sbType = SpeechBalloon.DEFAULT_BUBBLE;
-									if (recipient != "")
-										sbType = SpeechBalloon.MESSAGE_BUBBLE;
-
-									switch (nameColor) {
-										case 0xF2CA46:
-											sbType = SpeechBalloon.ADMIN_BUBBLE;
-										// todo
-										case 0x000000:
-											sbType = SpeechBalloon.GUILD_BUBBLE;
-										case 0x000001:
-											sbType = SpeechBalloon.PARTY_BUBBLE;
-									}
-
-									Global.gameSprite.map.addSpeechBalloon(new SpeechBalloon(player, text, sbType, bubbleTime));
+							if (go != null) {
+								if (go.props.isEnemy) {
+									Global.gameSprite.map.addSpeechBalloon(new SpeechBalloon(go, text, SpeechBalloon.ENEMY_BUBBLE, bubbleTime));
+									return;
 								}
+
+								var sbType = SpeechBalloon.DEFAULT_BUBBLE;
+								if (recipient != "")
+									sbType = SpeechBalloon.MESSAGE_BUBBLE;
+
+								switch (nameColor) {
+									case 0xF2CA46:
+										sbType = SpeechBalloon.ADMIN_BUBBLE;
+									// todo
+									case 0x000000:
+										sbType = SpeechBalloon.GUILD_BUBBLE;
+									case 0x000001:
+										sbType = SpeechBalloon.PARTY_BUBBLE;
+								}
+
+								Global.gameSprite.map.addSpeechBalloon(new SpeechBalloon(go, text, sbType, bubbleTime));
 							}
 						}
 
