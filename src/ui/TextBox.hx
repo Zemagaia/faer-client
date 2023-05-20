@@ -185,7 +185,8 @@ class TextBox extends Sprite {
 
 		this.inputField.type = TextFieldType.INPUT;
 		TextBox.isInputtingText = true;
-		addChild(this.inputField);
+		if (!contains(this.inputField))
+			addChild(this.inputField);
 		if (stage != null)
 			stage.focus = this.inputField;
 

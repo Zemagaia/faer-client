@@ -174,8 +174,18 @@ class GameObject {
 		this.randomTextureData = textureData.randomTextureData;
 		if (ObjectLibrary.typeToTopTextureData.exists(this.objectType)) {
 			var topTextureData = ObjectLibrary.typeToTopTextureData.get(this.objectType);
-			this.topUValue = topTextureData.uValue;
-			this.topVValue = topTextureData.vValue;
+			var topRandTexData = topTextureData.randomTextureData;
+			if (topRandTexData != null) {
+				var randTex = topRandTexData[
+					Math.floor(Math.random() * this.randomTextureData.length)
+				];
+				this.topUValue = randTex.uValue;
+				this.topVValue = randTex.vValue;
+			} else {
+				this.topUValue = topTextureData.uValue;
+				this.topVValue = topTextureData.vValue;
+			}
+			
 		}
 
 		this.sizeMult = this.width == 0 ? 1 : this.width * (Main.ATLAS_WIDTH / 8);
