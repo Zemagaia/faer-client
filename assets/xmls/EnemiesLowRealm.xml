@@ -505,7 +505,8 @@
             <Index>8</Index>
         </AnimatedTexture>
         <Health>45000</Health>
-        <Defense>35</Defense>
+        <Defense>30</Defense>
+        <Resistance>30</Resistance>
         <Projectile id="0">
             <ObjectId>Slime Blast</ObjectId>
             <Damage>90</Damage>
@@ -740,6 +741,53 @@
             <LifetimeMS>1000</LifetimeMS>
         </Projectile>
         <Size>90</Size>
+        <Enemy/>
+    </Object>
+    <Object type="0x0756" id="Slime Piece">
+        <Class>Character</Class>
+        <AnimatedTexture>
+            <Sheet>lowrealm16</Sheet>
+            <Index>8</Index>
+        </AnimatedTexture>
+        <Health>9000</Health>
+        <Defense>20</Defense>
+        <Resistance>15</Resistance>
+        <Projectile id="0">
+            <ObjectId>Slime Blast</ObjectId>
+            <Damage>50</Damage>
+            <Speed>100</Speed>
+            <Size>100</Size>
+            <LifetimeMS>950</LifetimeMS>
+        </Projectile>
+        <Size>90</Size>
+        <Enemy/>
+    </Object>
+    <Object type="0x0757" id="Giant Slime Clone">
+        <DisplayId>Giant Slime</DisplayId>
+        <Class>Character</Class>
+        <AnimatedTexture>
+            <Sheet>lowrealm16</Sheet>
+            <Index>8</Index>
+        </AnimatedTexture>
+        <Health>45000</Health>
+        <Defense>30</Defense>
+        <Resistance>30</Resistance>
+        <Projectile id="0">
+            <ObjectId>Slime Blast</ObjectId>
+            <Damage>90</Damage>
+            <Speed>85</Speed>
+            <Size>130</Size>
+            <LifetimeMS>1800</LifetimeMS>
+            <ConditionEffect duration="3">Slowed</ConditionEffect>
+        </Projectile>
+        <Projectile id="1">
+            <ObjectId>Slime Wave</ObjectId>
+            <Damage>75</Damage>
+            <Speed>110</Speed>
+            <Size>110</Size>
+            <LifetimeMS>1800</LifetimeMS>
+        </Projectile>
+        <Size>170</Size>
         <Enemy/>
     </Object>
 </Objects>
