@@ -385,7 +385,7 @@
             <Index>0x2f</Index>
         </Texture>
         <BlendPriority>-1</BlendPriority>
-    </Ground>
+    </Ground> 
     <Ground type="0x4b" id="Slime Goo">
         <Texture>
             <Sheet>ground</Sheet>
@@ -820,5 +820,68 @@
         </RandomTexture>
         <BlendPriority>4</BlendPriority>
     </Ground>
+    <Ground type="0x7e" id="Slimy Brick Green TL">
+        <Texture>
+            <Sheet>ground</Sheet>
+            <Index>0xc2</Index>
+        </Texture>
+        <BlendPriority>-1</BlendPriority>
+    </Ground>
+    <Ground type="0x7f" id="Slimy Brick Green TM">
+        <Texture>
+            <Sheet>ground</Sheet>
+            <Index>0xc3</Index>
+        </Texture>
+        <BlendPriority>-1</BlendPriority>
+    </Ground>
+    <Ground type="0x80" id="Slimy Brick Green TR">
+        <Texture>
+            <Sheet>ground</Sheet>
+            <Index>0xc4</Index>
+        </Texture>
+        <BlendPriority>-1</BlendPriority>
+    </Ground>
+    <Ground type="0x81" id="Slimy Brick Green ML">
+        <Texture>
+            <Sheet>ground</Sheet>
+            <Index>0xc5</Index>
+        </Texture>
+        <BlendPriority>-1</BlendPriority>
+    </Ground>
+    <Ground type="0x82" id="Slimy Brick Green MM">
+        <Texture>
+            <Sheet>ground</Sheet>
+            <Index>0xc6</Index>
+        </Texture>
+        <BlendPriority>-1</BlendPriority>
+    </Ground>
+    <Ground type="0x83" id="Slimy Brick Green MR">
+        <Texture>
+            <Sheet>ground</Sheet>
+            <Index>0xc7</Index>
+        </Texture>
+        <BlendPriority>-1</BlendPriority>
+    </Ground>
+    <Ground type="0x84" id="Slimy Brick Green BL">
+        <Texture>
+            <Sheet>ground</Sheet>
+            <Index>0xc8</Index>
+        </Texture>
+        <BlendPriority>-1</BlendPriority>
+    </Ground>
+    <Ground type="0x85" id="Slimy Brick Green BM">
+        <Texture>
+            <Sheet>ground</Sheet>
+            <Index>0xc9</Index>
+        </Texture>
+        <BlendPriority>-1</BlendPriority>
+    </Ground>
+    <Ground type="0x86" id="Slimy Brick Green BR">
+        <Texture>
+            <Sheet>ground</Sheet>
+            <Index>0xca</Index>
+        </Texture>
+        <BlendPriority>-1</BlendPriority>
+    </Ground> 
 
 </GroundTypes>
