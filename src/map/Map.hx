@@ -1,5 +1,6 @@
 package map;
 
+import lime.graphics.opengl.GLUniformLocation;
 import objects.animation.Animations;
 import engine.GLTextureData;
 import util.Utils.KeyCodeUtil;
@@ -88,6 +89,11 @@ class Map {
 	public static var rightMaskV: Float32 = 0.0;
 	public static var bottomMaskU: Float32 = 0.0;
 	public static var bottomMaskV: Float32 = 0.0;
+
+	public static var leftMaskUniformLoc: GLUniformLocation;
+	public static var topMaskUniformLoc: GLUniformLocation;
+	public static var rightMaskUniformLoc: GLUniformLocation;
+	public static var bottomMaskUniformLoc: GLUniformLocation;
 
 	public var mapWidth: UInt16 = 0;
 	public var mapHeight: UInt16 = 0;
@@ -238,6 +244,11 @@ class Map {
 		this.veryHighGlowProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/base.vert"), Assets.getText("assets/shaders/baseVHighGlow.frag"));
 		this.singleProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/baseSingle.vert"), Assets.getText("assets/shaders/baseSingle.frag"));
 		this.groundProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/ground.vert"), Assets.getText("assets/shaders/ground.frag"));
+
+		leftMaskUniformLoc = GL.getUniformLocation(this.groundProgram, "leftBlendUV");
+		topMaskUniformLoc = GL.getUniformLocation(this.groundProgram, "topBlendUV");
+		rightMaskUniformLoc = GL.getUniformLocation(this.groundProgram, "rightBlendUV");
+		bottomMaskUniformLoc = GL.getUniformLocation(this.groundProgram, "bottomBlendUV");
 
 		this.singleVBO = RenderUtils.createVertexBuffer(new Float32Array([
 			 0.5, -0.5, 0, 0,
@@ -2180,10 +2191,10 @@ class Map {
 		drawSquares(time);
 
 		GL.useProgram(this.groundProgram);
-		GL.uniform2f(cast 0, leftMaskU, leftMaskV);
-		GL.uniform2f(cast 1, topMaskU, topMaskV);
-		GL.uniform2f(cast 2, rightMaskU, rightMaskV);
-		GL.uniform2f(cast 3, bottomMaskU, bottomMaskV);
+		GL.uniform2f(leftMaskUniformLoc, leftMaskU, leftMaskV);
+		GL.uniform2f(topMaskUniformLoc, topMaskU, topMaskV);
+		GL.uniform2f(rightMaskUniformLoc, rightMaskU, rightMaskV);
+		GL.uniform2f(bottomMaskUniformLoc, bottomMaskU, bottomMaskV);
 		GL.bindVertexArray(this.groundVAO);
 
 		GL.bindBuffer(GL.ARRAY_BUFFER, this.groundVBO);
