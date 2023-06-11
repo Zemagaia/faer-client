@@ -245,10 +245,10 @@ class Map {
 		this.singleProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/baseSingle.vert"), Assets.getText("assets/shaders/baseSingle.frag"));
 		this.groundProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/ground.vert"), Assets.getText("assets/shaders/ground.frag"));
 
-		leftMaskUniformLoc = GL.getUniformLocation(this.groundProgram, "leftBlendUV");
-		topMaskUniformLoc = GL.getUniformLocation(this.groundProgram, "topBlendUV");
-		rightMaskUniformLoc = GL.getUniformLocation(this.groundProgram, "rightBlendUV");
-		bottomMaskUniformLoc = GL.getUniformLocation(this.groundProgram, "bottomBlendUV");
+		leftMaskUniformLoc = GL.getUniformLocation(this.groundProgram, "leftMaskUV");
+		topMaskUniformLoc = GL.getUniformLocation(this.groundProgram, "topMaskUV");
+		rightMaskUniformLoc = GL.getUniformLocation(this.groundProgram, "rightMaskUV");
+		bottomMaskUniformLoc = GL.getUniformLocation(this.groundProgram, "bottomMaskUV");
 
 		this.singleVBO = RenderUtils.createVertexBuffer(new Float32Array([
 			 0.5, -0.5, 0, 0,

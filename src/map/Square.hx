@@ -31,7 +31,7 @@ class Square {
 	public var x: UInt16 = 0;
 	public var y: UInt16 = 0;
 
-	public function new (x: Float32, y: Float32) {
+	public function new(x: Float32, y: Float32) {
 		this.x = Std.int(x);
 		this.y = Std.int(y);
 		this.middleX = x;
