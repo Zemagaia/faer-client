@@ -90,6 +90,10 @@ class Map {
 	public static var bottomMaskU: Float32 = 0.0;
 	public static var bottomMaskV: Float32 = 0.0;
 
+	public static var vertScaleUniformLoc: GLUniformLocation;
+	public static var vertPosUniformLoc: GLUniformLocation;
+	public static var texelSizeUniformLoc: GLUniformLocation;
+	public static var alphaMultUniformLoc: GLUniformLocation;
 	public static var leftMaskUniformLoc: GLUniformLocation;
 	public static var topMaskUniformLoc: GLUniformLocation;
 	public static var rightMaskUniformLoc: GLUniformLocation;
@@ -244,6 +248,11 @@ class Map {
 		this.veryHighGlowProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/base.vert"), Assets.getText("assets/shaders/baseVHighGlow.frag"));
 		this.singleProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/baseSingle.vert"), Assets.getText("assets/shaders/baseSingle.frag"));
 		this.groundProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/ground.vert"), Assets.getText("assets/shaders/ground.frag"));
+
+		vertScaleUniformLoc = GL.getUniformLocation(this.singleProgram, "vertScale");
+		vertPosUniformLoc = GL.getUniformLocation(this.singleProgram, "vertPos");
+		texelSizeUniformLoc = GL.getUniformLocation(this.singleProgram, "texelSize");
+		alphaMultUniformLoc = GL.getUniformLocation(this.singleProgram, "alphaMult");
 
 		leftMaskUniformLoc = GL.getUniformLocation(this.groundProgram, "leftMaskUV");
 		topMaskUniformLoc = GL.getUniformLocation(this.groundProgram, "topMaskUV");
@@ -2173,7 +2182,6 @@ class Map {
 		this.c3d.clear();
 		this.rdSingle.resize(0);
 
-		//GL.disable(GL.BLEND);
 		GL.disable(GL.DEPTH_TEST);
 		GL.disable(GL.SCISSOR_TEST);
 		GL.disable(GL.STENCIL_TEST);
@@ -2386,10 +2394,10 @@ class Map {
 
 		while (i < rdsLen) {
 			var rd = this.rdSingle[i];
-			GL.uniform4f(cast 0, rd.cosX, rd.sinX, rd.sinY, rd.cosY);
-			GL.uniform2f(cast 1, rd.x, rd.y);
-			GL.uniform2f(cast 2, rd.texelW, rd.texelH);
-			GL.uniform1f(cast 3, rd.alpha);
+			GL.uniform4f(vertScaleUniformLoc, rd.cosX, rd.sinX, rd.sinY, rd.cosY);
+			GL.uniform2f(vertPosUniformLoc, rd.x, rd.y);
+			GL.uniform2f(texelSizeUniformLoc, rd.texelW, rd.texelH);
+			GL.uniform1f(alphaMultUniformLoc, rd.alpha);
 			GL.bindTexture(GL.TEXTURE_2D, rd.texture);
 			GL.drawElements(GL.TRIANGLES, 6, GL.UNSIGNED_SHORT, 0);
 			i++;
