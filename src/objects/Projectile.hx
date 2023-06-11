@@ -45,7 +45,8 @@ class Projectile extends GameObject {
 	public var colors: Array<Int32>;
 	public var multiHitDict: IntMap<Bool>;
 
-	private var staticPoint: Point;
+	private var currentX = -1.0;
+	private var currentY = -1.0;
 
 	public static inline function findObjId(ownerId: Int32, bulletId: Int32) {
 		return objBullIdToObjId.get(bulletId << 24 | ownerId);
@@ -67,12 +68,11 @@ class Projectile extends GameObject {
 
 	public function new() {
 		super(null, "Projectile");
-		this.staticPoint = new Point();
 	}
 
 	override public function addTo(map: Map, x: Float32, y: Float32) {
-		this.startX = x;
-		this.startY = y;
+		this.startX = this.currentX = x;
+		this.startY = this.currentY = y;
 		return super.addTo(map, x, y);
 	}
 
@@ -96,8 +96,8 @@ class Projectile extends GameObject {
 		if (elapsed > this.projProps.lifetime)
 			return false;
 
-		var p = this.positionAt(elapsed);
-		if (!this.moveTo(p.x, p.y) || curSquare != null && curSquare.tileType == 255) {
+		this.updatePosition(elapsed);
+		if (!this.moveTo(this.currentX, this.currentY) || curSquare != null && curSquare.tileType == 0xFF) {
 			if (this.damagesPlayers)
 				NetworkHandler.squareHit(time, this.bulletId, this.ownerId);
 			// else if (curSquare != null && curSquare.obj != null)
@@ -117,7 +117,7 @@ class Projectile extends GameObject {
 			return false;
 		}
 
-		var target = cast(this.getHit(p.x, p.y), GameObject);
+		var target = cast(this.getHit(), GameObject);
 		if (target != null) {
 			player = map.player;
 			isPlayer = player != null;
@@ -209,7 +209,7 @@ class Projectile extends GameObject {
 		return curSquare != null;
 	}
 
-	public function getHit(pX: Float32, pY: Float32): GameObject {
+	public function getHit(): GameObject {
 		var distSqr = 0.0;
 		var minDistSqr = MathUtil.FLOAT_MAX;
 		var target: GameObject = null;
@@ -223,7 +223,7 @@ class Projectile extends GameObject {
 					continue;
 				}
 
-				distSqr = PointUtil.distanceSquaredXY(go.mapX, go.mapY, pX, pY);
+				distSqr = PointUtil.distanceSquaredXY(go.mapX, go.mapY, this.currentX, this.currentY);
 				if (distSqr < 0.33 && distSqr < minDistSqr && (!this.projProps.multiHit || !(this.multiHitDict.exists(go.objectId)))) {
 					minDistSqr = distSqr;
 					target = go;
@@ -238,7 +238,7 @@ class Projectile extends GameObject {
 					continue;
 				}
 				var player: Player = cast go;
-				distSqr = PointUtil.distanceSquaredXY(player.mapX, player.mapY, pX, pY);
+				distSqr = PointUtil.distanceSquaredXY(player.mapX, player.mapY, this.currentX, this.currentY);
 				if (distSqr < 0.33 && (!this.projProps.multiHit || !(this.multiHitDict.exists(player.objectId)))) {
 					if (player.objectId == map.player.objectId)
 						return player;
@@ -255,7 +255,12 @@ class Projectile extends GameObject {
 		return target;
 	}
 
-	private function positionAt(elapsed: Int32) {
+	private function updatePosition(elapsed: Int32) {
+		// a little horrible but necessary for parity with server, it needs to predict off of time instead of constant updates
+		// also need to be careful with threading
+		this.currentX = this.startX;
+		this.currentY = this.startY;
+
 		var periodFactor = 0.0;
 		var amplitudeFactor = 0.0;
 		var theta = 0.0;
@@ -264,7 +269,6 @@ class Projectile extends GameObject {
 		var y = 0.0;
 		var halfway = 0.0;
 		var deflection = 0.0;
-		var p = new Point(this.startX, this.startY);
 		var dist = 0.0, baseSpeed = this.projProps.speed;
 		if (this.projProps.acceleration == 0 || elapsed < this.projProps.accelerationDelay)
 			dist = elapsed * baseSpeed;
@@ -290,14 +294,14 @@ class Projectile extends GameObject {
 			periodFactor = 6 * MathUtil.PI;
 			amplitudeFactor = MathUtil.PI / 64;
 			theta = this.angle + amplitudeFactor * MathUtil.sin(this.phase + periodFactor * elapsed / 1000);
-			p.x += dist * MathUtil.cos(theta);
-			p.y += dist * MathUtil.sin(theta);
+			this.currentX += dist * MathUtil.cos(theta);
+			this.currentY += dist * MathUtil.sin(theta);
 		} else if (this.projProps.parametric) {
 			t = elapsed / this.projProps.lifetime * 2 * MathUtil.PI;
 			x = MathUtil.sin(t) * this.bIdMod2Flip;
 			y = MathUtil.sin(2 * t) * this.bIdMod4Flip;
-			p.x += (x * this.cosAngle - y * this.sinAngle) * this.projProps.magnitude;
-			p.y += (x * this.sinAngle + y * this.cosAngle) * this.projProps.magnitude;
+			this.currentX += (x * this.cosAngle - y * this.sinAngle) * this.projProps.magnitude;
+			this.currentY += (x * this.sinAngle + y * this.cosAngle) * this.projProps.magnitude;
 		} else {
 			if (this.projProps.boomerang) {
 				// todo: make the halfway actually halfway for accel projs
@@ -305,25 +309,22 @@ class Projectile extends GameObject {
 				if (dist > halfway)
 					dist = halfway - (dist - halfway);
 			}
-			p.x += dist * this.cosAngle;
-			p.y += dist * this.sinAngle;
+			this.currentX += dist * this.cosAngle;
+			this.currentY += dist * this.sinAngle;
 			if (this.projProps.amplitude != 0) {
 				deflection = this.projProps.amplitude * MathUtil.sin(this.phase
 					+ elapsed / this.projProps.lifetime * this.projProps.frequency * 2 * MathUtil.PI);
-				p.x += deflection * MathUtil.cos(this.angle + MathUtil.PI / 2);
-				p.y += deflection * MathUtil.sin(this.angle + MathUtil.PI / 2);
+				this.currentX += deflection * MathUtil.cos(this.angle + MathUtil.PI / 2);
+				this.currentY += deflection * MathUtil.sin(this.angle + MathUtil.PI / 2);
 			}
 		}
-
-		return p;
 	}
 
 	public function getDirectionAngle(time: Int32) {
-		var elapsed = time - this.startTime;
-		var futurePos = this.positionAt(elapsed + 16);
+		this.updatePosition(time - this.startTime + 16);
 
-		var xDelta = futurePos.x - mapX;
-		var yDelta = futurePos.y - mapY;
+		var xDelta = this.currentX - this.mapX;
+		var yDelta = this.currentY - this.mapY;
 		if (xDelta == 0 && yDelta == 0)
 			return this.prevDirAngle;
 

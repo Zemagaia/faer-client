@@ -111,6 +111,7 @@ class Map {
 	public var squares: Vector<Square>;
 	public var gameObjectsLen: Int32 = 0;
 	public var gameObjects: Array<GameObject>;
+	private var goRemove: Array<GameObject>;
 	public var rdSingle: Array<RenderDataSingle>;
 	public var player: Player = null;
 	public var quest: Quest = null;
@@ -165,6 +166,7 @@ class Map {
 
 	public function new() {
 		this.gameObjects = [];
+		this.goRemove = [];
 		this.rdSingle = [];
 		this.quest = new Quest(this);
 		this.visSquares = new Vector<Square>(MAX_VISIBLE_SQUARES);
@@ -325,11 +327,13 @@ class Map {
 
 	@:nonVirtual public function dispose() {
 		this.squares = null;
+		this.visSquares = null;
 
 		if (this.gameObjects != null)
 			for (obj in this.gameObjects)
 				obj.dispose();
 		this.gameObjects = null;
+		this.goRemove = null;
 
 		this.player = null;
 		this.quest = null;
@@ -338,18 +342,18 @@ class Map {
 
 	@:nonVirtual public function update(time: Int32, dt: Int16) {
 		var i = 0;
-		var goRemove = new Array<GameObject>();
+		this.goRemove.resize(0);
 		while (i < this.gameObjectsLen) {
 			var go = this.gameObjects.unsafeGet(i);
 			if (!go.update(time, dt))
-				goRemove.push(go);
+				this.goRemove.push(go);
 			i++;
 		}
 		
 		i = 0;
 
-		while (i < goRemove.length) {
-			var go = goRemove[i];
+		while (i < this.goRemove.length) {
+			var go = this.goRemove[i];
 			go.removeFromMap();
 			this.gameObjects.remove(go);
 			this.gameObjectsLen--;
