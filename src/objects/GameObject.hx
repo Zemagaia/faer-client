@@ -177,7 +177,7 @@ class GameObject {
 			var topRandTexData = topTextureData.randomTextureData;
 			if (topRandTexData != null) {
 				var randTex = topRandTexData[
-					Math.floor(Math.random() * this.randomTextureData.length)
+					Math.floor(Math.random() * topRandTexData.length)
 				];
 				this.topUValue = randTex.uValue;
 				this.topVValue = randTex.vValue;

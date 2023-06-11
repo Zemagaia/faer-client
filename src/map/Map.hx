@@ -90,6 +90,9 @@ class Map {
 	public static var bottomMaskU: Float32 = 0.0;
 	public static var bottomMaskV: Float32 = 0.0;
 
+	public static var wallBackfaceU: Float32 = 0.0;
+	public static var wallBackfaceV: Float32 = 0.0;
+
 	public static var vertScaleUniformLoc: GLUniformLocation;
 	public static var vertPosUniformLoc: GLUniformLocation;
 	public static var texelSizeUniformLoc: GLUniformLocation;
@@ -194,6 +197,10 @@ class Map {
 		this.enemyBalloonTex = AssetLibrary.getImageFromSet("speechBalloons", 0x3);
 		this.partyBalloonTex = AssetLibrary.getImageFromSet("speechBalloons", 0x4);
 		this.adminBalloonTex = AssetLibrary.getImageFromSet("speechBalloons", 0x5);
+
+		var wallBackfaceRect = AssetLibrary.getRectFromSet("wallBackface", 0);
+		wallBackfaceU = (wallBackfaceRect.x + Main.PADDING) / Main.ATLAS_WIDTH;
+		wallBackfaceV = (wallBackfaceRect.y + Main.PADDING) / Main.ATLAS_HEIGHT;
 
 		var leftMaskRect = AssetLibrary.getRectFromSet("ground", 0x6b);
 		leftMaskU = (leftMaskRect.x + Main.PADDING) / Main.ATLAS_WIDTH;
@@ -657,14 +664,27 @@ class Map {
 		var xScaledSin = Camera.xScaledSin;
 		var yScaledSin = Camera.yScaledSin;
 
+		final floorX = Math.floor(objX);
+		final floorY = Math.floor(objY);
+
 		var boundAngle = MathUtil.halfBound(Camera.angleRad);
 		if (boundAngle >= MathUtil.PI_DIV_2 && boundAngle <= MathUtil.PI || boundAngle >= -MathUtil.PI && boundAngle <= -MathUtil.PI_DIV_2) {
-			var topSquare = this.squares[(Math.floor(objY) - 1) * this.mapWidth + Math.floor(objX)];
-			if (topSquare != null && (topSquare.obj == null || topSquare.obj.objClass != "Wall")) {
+			var topSquare = validPos(floorX, floorY - 1) ? this.squares[(floorY - 1) * this.mapWidth + floorX] : null;
+			var topSqNull = topSquare == null;
+			if (topSqNull|| topSquare.obj == null || topSquare.obj.objClass != "Wall") {
+				var uValue: Float32 = 0.0, vValue: Float32 = 0.0;
+				if (topSqNull) {
+					uValue = wallBackfaceU;
+					vValue = wallBackfaceV;
+				} else {
+					uValue = obj.uValue;
+					vValue = obj.vValue;
+				}
+
 				setF32ValueAt(this.vIdx, -xScaledCos + xScaledSin + xBaseTop - xScaledSin * 2);
 				setF32ValueAt(this.vIdx + 1, yScaledSin + yScaledCos + yBaseTop - yScaledCos * 2);
-				setF32ValueAt(this.vIdx + 2, obj.uValue);
-				setF32ValueAt(this.vIdx + 3, obj.vValue);
+				setF32ValueAt(this.vIdx + 2, uValue);
+				setF32ValueAt(this.vIdx + 3, vValue);
 
 				setF32ValueAt(this.vIdx + 4, 0);
 				setF32ValueAt(this.vIdx + 5, 0);
@@ -675,8 +695,8 @@ class Map {
 
 				setF32ValueAt(this.vIdx + 10, xScaledCos + xScaledSin + xBaseTop - xScaledSin * 2);
 				setF32ValueAt(this.vIdx + 11, -yScaledSin + yScaledCos + yBaseTop - yScaledCos * 2);
-				setF32ValueAt(this.vIdx + 12, obj.uValue + size);
-				setF32ValueAt(this.vIdx + 13, obj.vValue);
+				setF32ValueAt(this.vIdx + 12, uValue + size);
+				setF32ValueAt(this.vIdx + 13, vValue);
 
 				setF32ValueAt(this.vIdx + 14, 0);
 				setF32ValueAt(this.vIdx + 15, 0);
@@ -687,8 +707,8 @@ class Map {
 
 				setF32ValueAt(this.vIdx + 20, -xScaledCos + xScaledSin + xBase - xScaledSin * 2);
 				setF32ValueAt(this.vIdx + 21, yScaledSin + yScaledCos + yBase - yScaledCos * 2);
-				setF32ValueAt(this.vIdx + 22, obj.uValue);
-				setF32ValueAt(this.vIdx + 23, obj.vValue + size);
+				setF32ValueAt(this.vIdx + 22, uValue);
+				setF32ValueAt(this.vIdx + 23, vValue + size);
 
 				setF32ValueAt(this.vIdx + 24, 0);
 				setF32ValueAt(this.vIdx + 25, 0);
@@ -699,8 +719,8 @@ class Map {
 
 				setF32ValueAt(this.vIdx + 30, xScaledCos + xScaledSin + xBase - xScaledSin * 2);
 				setF32ValueAt(this.vIdx + 31, -yScaledSin + yScaledCos + yBase - yScaledCos * 2);
-				setF32ValueAt(this.vIdx + 32, obj.uValue + size);
-				setF32ValueAt(this.vIdx + 33, obj.vValue + size);
+				setF32ValueAt(this.vIdx + 32, uValue + size);
+				setF32ValueAt(this.vIdx + 33, vValue + size);
 
 				setF32ValueAt(this.vIdx + 34, 0);
 				setF32ValueAt(this.vIdx + 35, 0);
@@ -723,12 +743,22 @@ class Map {
 		}
 		
 		if (boundAngle <= MathUtil.PI_DIV_2 && boundAngle >= -MathUtil.PI_DIV_2) {
-			var bottomSquare = this.squares[(Math.floor(objY) + 1) * this.mapWidth + Math.floor(objX)];
-			if (bottomSquare != null && (bottomSquare.obj == null || bottomSquare.obj.objClass != "Wall")) { 
+			var bottomSquare = validPos(floorX, floorY + 1) ? this.squares[(floorY + 1) * this.mapWidth + floorX] : null;
+			var bottomSqNull = bottomSquare == null;
+			if (bottomSqNull || bottomSquare.obj == null || bottomSquare.obj.objClass != "Wall") {
+				var uValue: Float32 = 0.0, vValue: Float32 = 0.0;
+				if (bottomSqNull) {
+					uValue = wallBackfaceU;
+					vValue = wallBackfaceV;
+				} else {
+					uValue = obj.uValue;
+					vValue = obj.vValue;
+				}
+
 				setF32ValueAt(this.vIdx, -xScaledCos + xScaledSin + xBaseTop);
 				setF32ValueAt(this.vIdx + 1, yScaledSin + yScaledCos + yBaseTop);
-				setF32ValueAt(this.vIdx + 2, obj.uValue);
-				setF32ValueAt(this.vIdx + 3, obj.vValue);
+				setF32ValueAt(this.vIdx + 2, uValue);
+				setF32ValueAt(this.vIdx + 3, vValue);
 
 				setF32ValueAt(this.vIdx + 4, 0);
 				setF32ValueAt(this.vIdx + 5, 0);
@@ -739,8 +769,8 @@ class Map {
 
 				setF32ValueAt(this.vIdx + 10, xScaledCos + xScaledSin + xBaseTop);
 				setF32ValueAt(this.vIdx + 11, -yScaledSin + yScaledCos + yBaseTop);
-				setF32ValueAt(this.vIdx + 12, obj.uValue + size);
-				setF32ValueAt(this.vIdx + 13, obj.vValue);
+				setF32ValueAt(this.vIdx + 12, uValue + size);
+				setF32ValueAt(this.vIdx + 13, vValue);
 
 				setF32ValueAt(this.vIdx + 14, 0);
 				setF32ValueAt(this.vIdx + 15, 0);
@@ -751,8 +781,8 @@ class Map {
 
 				setF32ValueAt(this.vIdx + 20, -xScaledCos + xScaledSin + xBase);
 				setF32ValueAt(this.vIdx + 21, yScaledSin + yScaledCos + yBase);
-				setF32ValueAt(this.vIdx + 22, obj.uValue);
-				setF32ValueAt(this.vIdx + 23, obj.vValue + size);
+				setF32ValueAt(this.vIdx + 22, uValue);
+				setF32ValueAt(this.vIdx + 23, vValue + size);
 
 				setF32ValueAt(this.vIdx + 24, 0);
 				setF32ValueAt(this.vIdx + 25, 0);
@@ -763,8 +793,8 @@ class Map {
 
 				setF32ValueAt(this.vIdx + 30, xScaledCos + xScaledSin + xBase);
 				setF32ValueAt(this.vIdx + 31, -yScaledSin + yScaledCos + yBase);
-				setF32ValueAt(this.vIdx + 32, obj.uValue + size);
-				setF32ValueAt(this.vIdx + 33, obj.vValue + size);
+				setF32ValueAt(this.vIdx + 32, uValue + size);
+				setF32ValueAt(this.vIdx + 33, vValue + size);
 
 				setF32ValueAt(this.vIdx + 34, 0);
 				setF32ValueAt(this.vIdx + 35, 0);
@@ -788,12 +818,22 @@ class Map {
 		
 
 		if (boundAngle >= 0 && boundAngle <= MathUtil.PI) {
-			var leftSquare = this.squares[Math.floor(objY) * this.mapWidth + Math.floor(objX) - 1];
-			if (leftSquare != null && (leftSquare.obj == null || leftSquare.obj.objClass != "Wall")) { 
+			var leftSquare = validPos(floorX - 1, floorY) ? this.squares[floorY * this.mapWidth + floorX - 1] : null;
+			var leftSqNull = leftSquare == null;
+			if (leftSqNull || leftSquare.obj == null || leftSquare.obj.objClass != "Wall") {
+				var uValue: Float32 = 0.0, vValue: Float32 = 0.0;
+				if (leftSqNull) {
+					uValue = wallBackfaceU;
+					vValue = wallBackfaceV;
+				} else {
+					uValue = obj.uValue;
+					vValue = obj.vValue;
+				}
+
 				setF32ValueAt(this.vIdx, -xScaledCos - xScaledSin + xBaseTop);
 				setF32ValueAt(this.vIdx + 1, yScaledSin - yScaledCos + yBaseTop);
-				setF32ValueAt(this.vIdx + 2, obj.uValue);
-				setF32ValueAt(this.vIdx + 3, obj.vValue);
+				setF32ValueAt(this.vIdx + 2, uValue);
+				setF32ValueAt(this.vIdx + 3, vValue);
 
 				setF32ValueAt(this.vIdx + 4, 0);
 				setF32ValueAt(this.vIdx + 5, 0);
@@ -804,8 +844,8 @@ class Map {
 
 				setF32ValueAt(this.vIdx + 10, -xScaledCos + xScaledSin + xBaseTop);
 				setF32ValueAt(this.vIdx + 11, yScaledSin + yScaledCos + yBaseTop);
-				setF32ValueAt(this.vIdx + 12, obj.uValue + size);
-				setF32ValueAt(this.vIdx + 13, obj.vValue);
+				setF32ValueAt(this.vIdx + 12, uValue + size);
+				setF32ValueAt(this.vIdx + 13, vValue);
 
 				setF32ValueAt(this.vIdx + 14, 0);
 				setF32ValueAt(this.vIdx + 15, 0);
@@ -816,8 +856,8 @@ class Map {
 
 				setF32ValueAt(this.vIdx + 20, -xScaledCos + xScaledSin + xBase - xScaledSin * 2);
 				setF32ValueAt(this.vIdx + 21, yScaledSin + yScaledCos + yBase - yScaledCos * 2);
-				setF32ValueAt(this.vIdx + 22, obj.uValue);
-				setF32ValueAt(this.vIdx + 23, obj.vValue + size);
+				setF32ValueAt(this.vIdx + 22, uValue);
+				setF32ValueAt(this.vIdx + 23, vValue + size);
 
 				setF32ValueAt(this.vIdx + 24, 0);
 				setF32ValueAt(this.vIdx + 25, 0);
@@ -828,8 +868,8 @@ class Map {
 
 				setF32ValueAt(this.vIdx + 30, -xScaledCos + xScaledSin + xBase);
 				setF32ValueAt(this.vIdx + 31, yScaledSin + yScaledCos + yBase);
-				setF32ValueAt(this.vIdx + 32, obj.uValue + size);
-				setF32ValueAt(this.vIdx + 33, obj.vValue + size);
+				setF32ValueAt(this.vIdx + 32, uValue + size);
+				setF32ValueAt(this.vIdx + 33, vValue + size);
 
 				setF32ValueAt(this.vIdx + 34, 0);
 				setF32ValueAt(this.vIdx + 35, 0);
@@ -852,12 +892,22 @@ class Map {
 		}
 		
 		if (boundAngle <= 0 && boundAngle >= -MathUtil.PI) {
-			var rightSquare = this.squares[Math.floor(objY) * this.mapWidth + Math.floor(objX) + 1];
-			if (rightSquare != null && (rightSquare.obj == null || rightSquare.obj.objClass != "Wall")) { 
+			var rightSquare = validPos(floorX + 1, floorY) ? this.squares[floorY * this.mapWidth + floorX + 1] : null;
+			var rightSqNull = rightSquare == null;
+			if (rightSqNull || rightSquare.obj == null || rightSquare.obj.objClass != "Wall") {
+				var uValue: Float32 = 0.0, vValue: Float32 = 0.0;
+				if (rightSqNull) {
+					uValue = wallBackfaceU;
+					vValue = wallBackfaceV;
+				} else {
+					uValue = obj.uValue;
+					vValue = obj.vValue;
+				}
+
 				setF32ValueAt(this.vIdx, xScaledCos - xScaledSin + xBaseTop);
 				setF32ValueAt(this.vIdx + 1, -yScaledSin - yScaledCos + yBaseTop);
-				setF32ValueAt(this.vIdx + 2, obj.uValue);
-				setF32ValueAt(this.vIdx + 3, obj.vValue);
+				setF32ValueAt(this.vIdx + 2, uValue);
+				setF32ValueAt(this.vIdx + 3, vValue);
 
 				setF32ValueAt(this.vIdx + 4, 0);
 				setF32ValueAt(this.vIdx + 5, 0);
@@ -868,8 +918,8 @@ class Map {
 
 				setF32ValueAt(this.vIdx + 10, xScaledCos + xScaledSin + xBaseTop);
 				setF32ValueAt(this.vIdx + 11, -yScaledSin + yScaledCos + yBaseTop);
-				setF32ValueAt(this.vIdx + 12, obj.uValue + size);
-				setF32ValueAt(this.vIdx + 13, obj.vValue);
+				setF32ValueAt(this.vIdx + 12, uValue + size);
+				setF32ValueAt(this.vIdx + 13, vValue);
 
 				setF32ValueAt(this.vIdx + 14, 0);
 				setF32ValueAt(this.vIdx + 15, 0);
@@ -880,8 +930,8 @@ class Map {
 
 				setF32ValueAt(this.vIdx + 20, xScaledCos + xScaledSin + xBase - xScaledSin * 2);
 				setF32ValueAt(this.vIdx + 21, -yScaledSin + yScaledCos + yBase - yScaledCos * 2);
-				setF32ValueAt(this.vIdx + 22, obj.uValue);
-				setF32ValueAt(this.vIdx + 23, obj.vValue + size);
+				setF32ValueAt(this.vIdx + 22, uValue);
+				setF32ValueAt(this.vIdx + 23, vValue + size);
 
 				setF32ValueAt(this.vIdx + 24, 0);
 				setF32ValueAt(this.vIdx + 25, 0);
@@ -892,8 +942,8 @@ class Map {
 
 				setF32ValueAt(this.vIdx + 30, xScaledCos + xScaledSin + xBase);
 				setF32ValueAt(this.vIdx + 31, -yScaledSin + yScaledCos + yBase);
-				setF32ValueAt(this.vIdx + 32, obj.uValue + size);
-				setF32ValueAt(this.vIdx + 33, obj.vValue + size);
+				setF32ValueAt(this.vIdx + 32, uValue + size);
+				setF32ValueAt(this.vIdx + 33, vValue + size);
 
 				setF32ValueAt(this.vIdx + 34, 0);
 				setF32ValueAt(this.vIdx + 35, 0);

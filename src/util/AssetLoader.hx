@@ -19,6 +19,7 @@ class AssetLoader {
 
 	public static function load() {
 		AssetLibrary.addImageSet("invisible", new BitmapData(8, 8, true, 0), 8, 8);
+		AssetLibrary.addImageSet("wallBackface", new BitmapData(8, 8, false, 0), 8, 8);
 
 		// all ui currently. not part of the sprite batcher
 		AssetLibrary.addImageSet("keyIndicators", Assets.getBitmapData("assets/sheets/KeyIndicators.png"), 100, 100, true);
