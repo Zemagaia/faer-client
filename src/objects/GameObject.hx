@@ -1,5 +1,6 @@
 package objects;
 
+import objects.particles.RingEffect;
 import openfl.display.Bitmap;
 import network.NetworkHandler;
 import util.Utils;
@@ -27,6 +28,8 @@ import util.MaskedImage;
 import util.Utils;
 import util.NativeTypes;
 import util.TextureRedrawer;
+import objects.particles.HitEffect;
+import objects.particles.ExplosionEffect;
 
 using util.Utils;
 
@@ -84,6 +87,7 @@ class GameObject {
 	public var flashRepeats: Float32 = 0.0;
 	public var flashColor: Float32 = 0.0;
 	public var glowColor: Float32 = 0.0;
+	public var outlineSize: Float32 = 2.0;
 	public var nameText: SimpleText = null;
 	public var nameTex: BitmapData = null;
 	public var enterTex: BitmapData = null;
@@ -115,7 +119,7 @@ class GameObject {
 	public var dh: Float32 = 0.0;
 
 	private var mapColor: UInt32 = 0;
-	private var bloodColors: Array<UInt32> = null;
+	private var bloodColors: Array<Int32> = null;
 
 	public static function physicalDamage(dmg: Int, def: Int, cond: Int) {
 		if ((cond & ConditionEffect.INVULNERABLE_BIT) != 0)
@@ -228,14 +232,14 @@ class GameObject {
 		this.posAtTick.y = this.tickPosition.y = y;
 		this.moveTo(x, y);
 
-		/*var effLen = this.props != null && this.props.showEffects != null ? this.props.showEffects.length : 0;
+		var effLen = this.props != null && this.props.showEffects != null ? this.props.showEffects.length : 0;
 			for (i in 0...effLen) {
 				var eff = this.props.showEffects[i];
 				switch (eff.effType) {
 					case "Ring":
-						this.map.addObj(new RingEffect(this, eff.radius, eff.color, eff.cooldown), this.mapX, this.mapY);
+						this.map.addGameObject(new RingEffect(this, eff.radius, eff.color, eff.cooldown), this.mapX, this.mapY);
 				}
-		}*/
+		}
 
 		if (this.props.floating)
 			this.floatTimeOffset = Std.int(Math.random() * this.props.floatTime);
@@ -459,12 +463,12 @@ class GameObject {
 			}
 		}
 
-		/*if (this.dead)
-				map.addObj(new ExplosionEffect(this.bloodColors, this.size, 30), mapX, mapY);
-			else if (proj != null)
-				map.addObj(new HitEffect(this.bloodColors, this.size, 10, proj.angle, proj.projProps.realSpeed), mapX, mapY);
-			else
-				map.addObj(new ExplosionEffect(this.bloodColors,, this.size, 10), mapX, mapY); */
+		if (this.dead)
+			map.addGameObject(new ExplosionEffect(this.bloodColors, this.size * 0.2, 30), mapX, mapY);
+		else if (proj != null)
+			map.addGameObject(new HitEffect(this.bloodColors, this.size * 0.2, 10, proj.angle, proj.projProps.realSpeed), mapX, mapY);
+		else
+			map.addGameObject(new ExplosionEffect(this.bloodColors, this.size * 0.2, 10), mapX, mapY);
 
 		if (damageAmount > 0)
 			map.addStatusText(new CharacterStatusText(this, "-" + damageAmount, textColor, 750));

@@ -5,8 +5,8 @@ import util.NativeTypes;
 class BloodComposition {
 	private static var imageDict: Map<BitmapData, Array<Int32>> = new Map<BitmapData, Array<Int32>>();
 
-	public static function getBloodComposition(id: Int, image: BitmapData, bloodProb: Float, bloodColor: Int) {
-		var comp = new Array<UInt32>();
+	public static function getBloodComposition(id: Int32, image: BitmapData, bloodProb: Float32, bloodColor: Int32) {
+		var comp = new Array<Int32>();
 		if (image == null)
 			return comp;
 		
@@ -32,7 +32,7 @@ class BloodComposition {
 	}
 
 	private static function buildColors(image: BitmapData) {
-		var color = 0;
+		var color: Int32 = 0;
 		var colors = new Array<Int32>();
 		for (x in 0...image.width)
 			for (y in 0...image.height) {

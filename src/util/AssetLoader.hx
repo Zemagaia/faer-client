@@ -30,6 +30,7 @@ class AssetLoader {
 		AssetLibrary.addImageSet("speechBalloons", Assets.getBitmapData("assets/sheets/SpeechBalloons.png"), 32, 24, true);
 		
 		AssetLibrary.addImageSet("errorTexture", Assets.getBitmapData("assets/sheets/ErrorTexture.png"), 8, 8, true);
+		AssetLibrary.addImageSet("particles", Assets.getBitmapData("assets/sheets/Particles.png"), 8, 8);
 		AssetLibrary.addImageSet("bars", Assets.getBitmapData("assets/sheets/Bars.png"), 24, 8);
 		AssetLibrary.addImageSet("ground", Assets.getBitmapData("assets/sheets/Ground.png"), 8, 8);
 		AssetLibrary.addImageSet("conditions", Assets.getBitmapData("assets/sheets/Conditions.png"), 16, 16);

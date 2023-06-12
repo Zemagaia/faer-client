@@ -1,14 +1,10 @@
 package objects;
 
-import map.Square;
 import network.NetworkHandler;
-import map.Camera;
-import util.Utils;
-import engine.TextureFactory;
 import haxe.ds.IntMap;
 import map.Map;
 import openfl.display.BitmapData;
-import openfl.geom.Point;
+import objects.particles.HitEffect;
 import util.BloodComposition;
 import util.Utils;
 import util.NativeTypes;
@@ -22,7 +18,6 @@ class Projectile extends GameObject {
 
 	public var containerProps: ObjectProperties;
 	public var projProps: ProjectileProperties;
-	public var texture: BitmapData;
 	public var bulletId = 0;
 	public var containerType = 0;
 	public var bulletType = 0;
@@ -100,8 +95,8 @@ class Projectile extends GameObject {
 		if (!this.moveTo(this.currentX, this.currentY) || curSquare != null && curSquare.tileType == 0xFF) {
 			if (this.damagesPlayers)
 				NetworkHandler.squareHit(time, this.bulletId, this.ownerId);
-			// else if (curSquare != null && curSquare.obj != null)
-			// map.addObj(new HitEffect(this.colors, 100, 3, this.angle, this.projProps.speed), p.x, p.y);
+			else if (curSquare != null && curSquare.obj != null)
+				map.addGameObject(new HitEffect(this.colors, 0.33, 3, this.angle, this.projProps.speed), this.currentX, this.currentY);
 
 			return false;
 		}
@@ -111,8 +106,8 @@ class Projectile extends GameObject {
 			&& (curSquare.obj.props.enemyOccupySquare || curSquare.obj.props.occupySquare)) {
 			if (this.damagesPlayers)
 				NetworkHandler.otherHit(time, this.bulletId, this.ownerId, curSquare.obj.objectId);
-			// else
-			// map.addObj(new HitEffect(this.colors, 100, 3, this.angle, this.projProps.speed), p.x, p.y);
+			else
+				map.addGameObject(new HitEffect(this.colors, 0.33, 3, this.angle, this.projProps.speed), this.currentX, this.currentY);
 
 			return false;
 		}
@@ -179,12 +174,11 @@ class Projectile extends GameObject {
 		this.projProps = this.containerProps.projectiles.get(bulletType);
 		this.props = ObjectLibrary.getPropsFromId(this.projProps.objectId);
 		var textureData: TextureData = ObjectLibrary.typeToTextureData.get(this.props.objType);
-		this.texture = textureData.getTexture(objectId);
 		this.uValue = textureData.uValue;
 		this.vValue = textureData.vValue;
 		this.width = textureData.width;
 		this.height = textureData.height;
-		this.colors = BloodComposition.getColors(this.texture);
+		this.colors = BloodComposition.getColors(textureData.getTexture());
 		this.damagesPlayers = this.containerProps.isEnemy;
 		this.damagesEnemies = !this.damagesPlayers;
 		this.sound = this.containerProps.oldSound;

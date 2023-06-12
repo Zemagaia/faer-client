@@ -1,8 +1,9 @@
 package network;
 
-import haxe.io.Bytes;
+import objects.particles.AOEEffect;
+import objects.particles.ThrowEffect;
+import objects.particles.RingEffect;
 import haxe.Exception;
-import haxe.ValueException;
 import map.Camera;
 import account.Account;
 import lime.system.System;
@@ -30,8 +31,6 @@ import openfl.utils.ByteArray;
 import servers.Server;
 import sound.SoundEffectLibrary;
 import ui.dialogs.Dialog;
-import ui.panels.GuildInvitePanel;
-import ui.panels.TradeRequestPanel;
 import util.NativeTypes;
 import util.Settings;
 
@@ -212,6 +211,13 @@ enum abstract StatType(Int) from Int to Int {
 	final IntelligenceBoost = 86;
 	final PiercingBoost = 87;
 	final TenacityBoost = 88;
+}
+
+@:structInit class TradeItem {
+	public var item = 0;
+	public var slotType = 0;
+	public var tradeable = false;
+	public var included = false;
 }
 
 class NetworkHandler {
@@ -447,9 +453,8 @@ class NetworkHandler {
 							return;
 						}
 
-						/*var e = new AOEEffect(x, y, radius, color);
-							Global.gameSprite.map.addObj(e, x, y); */
-						var hit: Bool = Global.gameSprite.map.player.distTo(x, y) <= radius;
+						Global.gameSprite.map.addGameObject(new AOEEffect(x, y, radius, color), x, y);
+						var hit = Global.gameSprite.map.player.distTo(x, y) <= radius;
 						if (hit) {
 							d = Std.int(GameObject.physicalDamage(damage, Global.gameSprite.map.player.defense,
 								Global.gameSprite.map.player.condition) * Global.gameSprite.map.player.hitMult);
@@ -868,57 +873,48 @@ class NetworkHandler {
 						#end
 
 						var map = Global.gameSprite.map;
-					/*switch (effectType) {
-						case Heal:
-							var go = cast(map.objects.get(targetObjectId), GameObject);
-							if (go == null)
-								return;
-							map.addObj(new HealEffect(go, color), go.mapX, go.mapY);
-						case Teleport:
-							map.addObj(new TeleportEffect(), x1, y1);
-						case Stream:
-							map.addObj(new StreamEffect(x1, y1, x2, y2, color), x1, y2);
-						case Throw:
-							var go = cast(map.objects.get(targetObjectId), GameObject);
-							var startX = go != null ? go.mapX : x2;
-							var startY = go != null ? go.mapY : y2;
-							map.addObj(new ThrowEffect(startX, startY, x1, y1, color), startX, startY);
-						case Nova:
-							var go = cast(map.objects.get(targetObjectId), GameObject);
-							if (go == null)
-								return;
-							map.addObj(new NovaEffect(go, x1, color), go.mapX, go.mapY);
-						case Burst:
-							var go = cast(map.objects.get(targetObjectId), GameObject);
-							if (go == null)
-								return;
-							map.addObj(new BurstEffect(go, x1, y1, x2, y2, color), x1, y1);
-						case Flow:
-							var go = cast(map.objects.get(targetObjectId), GameObject);
-							if (go == null)
-								return;
-							map.addObj(new FlowEffect(x1, y1, go, color), x1, y1);
-						case Ring:
-							var go = cast(map.objects.get(targetObjectId), GameObject);
-							if (go == null)
-								return;
-							map.addObj(new RingEffect(go, x1, color), go.mapX, go.mapY);
-						case Jitter:
-							Camera.startJitter();
-						case Flash:
-							var go = cast(map.objects.get(targetObjectId), GameObject);
-							if (go == null)
-								return;
+						switch (effectType) {
+							/*case Teleport:
+								map.addGameObject(new TeleportEffect(), x1, y1);
+							case Stream:
+								map.addGameObject(new StreamEffect(x1, y1, x2, y2, color), x1, y2);*/
+							case Throw:
+								var go = map.getGameObject(targetObjectId);
+								var startX = go != null ? go.mapX : x2;
+								var startY = go != null ? go.mapY : y2;
+								map.addGameObject(new ThrowEffect(startX, startY, x1, y1, color), startX, startY);
+							/*case Nova:
+								var go = map.getGameObject(targetObjectId);
+								if (go == null)
+									return;
 
-							go.flashStartTime = System.getTimer();
-							go.flashColor = color;
-							go.flashPeriodMs = Std.int(x1 * 1000);
-							go.flashRepeats = Std.int(y1);
-						case ThrowProjectile:
-							map.addObj(new ThrowProjectileEffect(color, x2, y2, x1, y1), x1, y1);
-						default:
-							trace("ERROR: Unknown effect type: " + effectType);
-					}*/
+								map.addGameObject(new NovaEffect(go, x1, color), go.mapX, go.mapY);
+							case Flow:
+								var go = map.getGameObject(targetObjectId);
+								if (go == null)
+									return;
+
+								map.addGameObject(new FlowEffect(x1, y1, go, color), x1, y1);*/
+							case Ring:
+								var go = map.getGameObject(targetObjectId);
+								if (go == null)
+									return;
+								
+								map.addGameObject(new RingEffect(go, x1, color, 0), go.mapX, go.mapY);
+							case Jitter:
+								Camera.startJitter();
+							case Flash:
+								var go = map.getGameObject(targetObjectId);
+								if (go == null)
+									return;
+
+								go.flashStartTime = System.getTimer();
+								go.flashColor = color;
+								go.flashPeriodMs = Std.int(x1 * 1000);
+								go.flashRepeats = Std.int(y1);
+							default:
+								trace("ERROR: Unknown effect type: " + effectType);
+						}
 
 					case Text:
 						var name = data.readUTF();

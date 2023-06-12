@@ -819,7 +819,6 @@ class Map {
 				this.i++;
 			}
 		}
-		
 
 		if (boundAngle >= 0 && boundAngle <= MathUtil.PI) {
 			var leftSquare = validPos(floorX - 1, floorY) ? this.squares[floorY * this.mapWidth + floorX - 1] : null;
@@ -2172,6 +2171,108 @@ class Map {
 		this.i++;
 	}
 
+	@:nonVirtual private final #if !tracing inline #end function drawParticle(time: Int32, obj: GameObject) {
+		var screenX = obj.screenX = obj.mapX * Camera.cos + obj.mapY * Camera.sin + Camera.csX;
+		var screenY = obj.screenYNoZ + obj.mapZ * -Camera.PX_PER_TILE;
+
+		var texW = obj.width * Main.ATLAS_WIDTH,
+			texH = obj.height * Main.ATLAS_HEIGHT;
+
+		var size = Camera.SIZE_MULT * obj.size;
+		var hBase = obj.hBase = size * texH;
+		var rect: Rect = null;
+		if (obj.animations != null)
+			rect = obj.animations.getTexture(time);
+
+		if (rect != null) {
+			obj.uValue = rect.x / Main.ATLAS_WIDTH;
+			obj.vValue = rect.y / Main.ATLAS_WIDTH;
+			texW = rect.width;
+			obj.width = texW / Main.ATLAS_WIDTH;
+			texH = rect.height;
+			obj.height = texH / Main.ATLAS_HEIGHT;
+		}
+
+		var sink: Float32 = 1.0;
+		if (obj.curSquare != null && !(obj.flying || obj.curSquare.obj != null && obj.curSquare.obj.props.protectFromSink))
+			sink += obj.curSquare.sink + obj.sinkLevel;
+
+		var flashStrength: Float32 = 0.0;
+		if (obj.flashPeriodMs > 0) {
+			if (obj.flashRepeats != -1 && time > obj.flashStartTime + obj.flashPeriodMs * obj.flashRepeats)
+				obj.flashRepeats = obj.flashStartTime = obj.flashPeriodMs = obj.flashColor = 0;
+			else
+				flashStrength = MathUtil.sin((time - obj.flashStartTime) % obj.flashPeriodMs / obj.flashPeriodMs * MathUtil.PI) * 0.5;
+		} else if (obj.flashRepeats == -1)
+			flashStrength = 1; // more hackyness
+
+		var w = size * texW * RenderUtils.clipSpaceScaleX * 0.5;
+		var h = hBase * RenderUtils.clipSpaceScaleY * 0.5 / sink;
+		var yBase = (screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+		var xBase = screenX * RenderUtils.clipSpaceScaleX;
+		var texelW: Float32 = obj.outlineSize / Main.ATLAS_WIDTH / size;
+		var texelH: Float32 = obj.outlineSize / Main.ATLAS_HEIGHT / size;
+
+		setF32ValueAt(this.vIdx, -w + xBase);
+		setF32ValueAt(this.vIdx + 1, -h + yBase);
+		setF32ValueAt(this.vIdx + 2, obj.uValue);
+		setF32ValueAt(this.vIdx + 3, obj.vValue);
+
+		setF32ValueAt(this.vIdx + 4, texelW);
+		setF32ValueAt(this.vIdx + 5, texelH);
+		setF32ValueAt(this.vIdx + 6, obj.glowColor);
+		setF32ValueAt(this.vIdx + 7, obj.flashColor);
+		setF32ValueAt(this.vIdx + 8, flashStrength);
+		setF32ValueAt(this.vIdx + 9, -1);
+
+		setF32ValueAt(this.vIdx + 10, w + xBase);
+		setF32ValueAt(this.vIdx + 11, -h + yBase);
+		setF32ValueAt(this.vIdx + 12, obj.uValue + obj.width);
+		setF32ValueAt(this.vIdx + 13, obj.vValue);
+
+		setF32ValueAt(this.vIdx + 14, texelW);
+		setF32ValueAt(this.vIdx + 15, texelH);
+		setF32ValueAt(this.vIdx + 16, obj.glowColor);
+		setF32ValueAt(this.vIdx + 17, obj.flashColor);
+		setF32ValueAt(this.vIdx + 18, flashStrength);
+		setF32ValueAt(this.vIdx + 19, -1);
+
+		setF32ValueAt(this.vIdx + 20, -w + xBase);
+		setF32ValueAt(this.vIdx + 21, h + yBase);
+		setF32ValueAt(this.vIdx + 22, obj.uValue);
+		setF32ValueAt(this.vIdx + 23, obj.vValue + obj.height / sink);
+
+		setF32ValueAt(this.vIdx + 24, texelW);
+		setF32ValueAt(this.vIdx + 25, texelH);
+		setF32ValueAt(this.vIdx + 26, obj.glowColor);
+		setF32ValueAt(this.vIdx + 27, obj.flashColor);
+		setF32ValueAt(this.vIdx + 28, flashStrength);
+		setF32ValueAt(this.vIdx + 29, -1);
+
+		setF32ValueAt(this.vIdx + 30, w + xBase);
+		setF32ValueAt(this.vIdx + 31, h + yBase);
+		setF32ValueAt(this.vIdx + 32, obj.uValue + obj.width);
+		setF32ValueAt(this.vIdx + 33, obj.vValue + obj.height / sink);
+
+		setF32ValueAt(this.vIdx + 34, texelW);
+		setF32ValueAt(this.vIdx + 35, texelH);
+		setF32ValueAt(this.vIdx + 36, obj.glowColor);
+		setF32ValueAt(this.vIdx + 37, obj.flashColor);
+		setF32ValueAt(this.vIdx + 38, flashStrength);
+		setF32ValueAt(this.vIdx + 39, -1);
+		this.vIdx += 40;
+
+		final i4 = this.i * 4;
+		setI32ValueAt(this.iIdx, i4);
+		setI32ValueAt(this.iIdx + 1, 1 + i4);
+		setI32ValueAt(this.iIdx + 2, 2 + i4);
+		setI32ValueAt(this.iIdx + 3, 2 + i4);
+		setI32ValueAt(this.iIdx + 4, 1 + i4);
+		setI32ValueAt(this.iIdx + 5, 3 + i4);
+		this.iIdx += 6;
+		this.i++;
+	}
+
 	@:nonVirtual private inline function setF32ValueAt(index: Int32, value: Float32): Void {
 		return untyped __cpp__('_f32Arr_[{0}] = {1}', index, value);
 	}
@@ -2316,8 +2417,11 @@ class Map {
 						drawPlayer(time, cast(obj, Player));
 					case "Projectile":
 						drawProjectile(time, cast(obj, Projectile));
+					case "Particle":
+						drawParticle(time, obj);
 					default:
-						drawGameObject(time, obj);
+						if (obj.objClass != "ParticleEffect") // hacky
+							drawGameObject(time, obj);
 				}
 			}
 				
