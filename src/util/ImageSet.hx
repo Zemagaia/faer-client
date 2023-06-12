@@ -39,7 +39,7 @@ class ImageSet {
 							var tex = BitmapUtil.mirror(this.images[i]);
 							this.images.push(tex);
 
-							if (!ignoreAtlas) {
+							if (!ignoreAtlas && BitmapUtil.amountTransparent(tex) < 1.0) {
 								var rect = Main.atlasPacker.insert(w + Main.PADDING * 2, height + Main.PADDING * 2);
 								this.rects.push(rect);
 								Main.tempAtlas.copyPixels(tex, new Rectangle(0, 0, rect.width, rect.height),
@@ -58,7 +58,7 @@ class ImageSet {
 				var tex = BitmapUtil.cropToBitmapData(bitmapData, x * width, y * height, w, height);
 				this.images.push(tex);
 
-				if (!ignoreAtlas) {
+				if (!ignoreAtlas && BitmapUtil.amountTransparent(tex) < 1.0) {
 					var rect = Main.atlasPacker.insert(w + Main.PADDING * 2, height + Main.PADDING * 2);
 					this.rects.push(rect);
 					Main.tempAtlas.copyPixels(tex, new Rectangle(0, 0, rect.width, rect.height), new Point(rect.x + Main.PADDING, rect.y + Main.PADDING));
