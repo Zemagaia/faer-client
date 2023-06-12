@@ -421,7 +421,7 @@ class Player extends GameObject {
 
 	public function isFullOccupy(x: Float32, y: Float32) {
 		var square = map.lookupSquare(Math.floor(x), Math.floor(y));
-		return square == null || square.tileType == 255 || square.obj != null && square.obj.props.fullOccupy;
+		return square == null || square.tileType == 0xFF || square.obj != null && square.obj.props.fullOccupy;
 	}
 
 	public function useAltWeapon(xS: Float32, yS: Float32, useType: Int32) {

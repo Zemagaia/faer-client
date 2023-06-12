@@ -675,9 +675,9 @@ class Map {
 		if (boundAngle >= MathUtil.PI_DIV_2 && boundAngle <= MathUtil.PI || boundAngle >= -MathUtil.PI && boundAngle <= -MathUtil.PI_DIV_2) {
 			var topSquare = validPos(floorX, floorY - 1) ? this.squares[(floorY - 1) * this.mapWidth + floorX] : null;
 			var topSqNull = topSquare == null;
-			if (topSqNull|| topSquare.obj == null || topSquare.obj.objClass != "Wall") {
+			if (topSqNull || topSquare.obj == null || topSquare.obj.objClass != "Wall") {
 				var uValue: Float32 = 0.0, vValue: Float32 = 0.0;
-				if (topSqNull) {
+				if (topSqNull || topSquare.tileType == 0xFF) {
 					uValue = wallBackfaceU;
 					vValue = wallBackfaceV;
 				} else {
@@ -751,7 +751,7 @@ class Map {
 			var bottomSqNull = bottomSquare == null;
 			if (bottomSqNull || bottomSquare.obj == null || bottomSquare.obj.objClass != "Wall") {
 				var uValue: Float32 = 0.0, vValue: Float32 = 0.0;
-				if (bottomSqNull) {
+				if (bottomSqNull || bottomSquare.tileType == 0xFF) {
 					uValue = wallBackfaceU;
 					vValue = wallBackfaceV;
 				} else {
@@ -826,7 +826,7 @@ class Map {
 			var leftSqNull = leftSquare == null;
 			if (leftSqNull || leftSquare.obj == null || leftSquare.obj.objClass != "Wall") {
 				var uValue: Float32 = 0.0, vValue: Float32 = 0.0;
-				if (leftSqNull) {
+				if (leftSqNull || leftSquare.tileType == 0xFF) {
 					uValue = wallBackfaceU;
 					vValue = wallBackfaceV;
 				} else {
@@ -900,7 +900,7 @@ class Map {
 			var rightSqNull = rightSquare == null;
 			if (rightSqNull || rightSquare.obj == null || rightSquare.obj.objClass != "Wall") {
 				var uValue: Float32 = 0.0, vValue: Float32 = 0.0;
-				if (rightSqNull) {
+				if (rightSqNull || rightSquare.tileType == 0xFF) {
 					uValue = wallBackfaceU;
 					vValue = wallBackfaceV;
 				} else {

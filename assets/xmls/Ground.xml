@@ -118,13 +118,6 @@
         <Speed>0.58</Speed>
         <Sink/>
     </Ground>
-    <Ground type="0x27" id="Space">
-        <Texture>
-            <Sheet>invisible</Sheet>
-            <Index>0</Index>
-        </Texture>
-        <NoWalk/>
-    </Ground>
     <Ground type="0x29" id="Chasm Ground">
         <RandomTexture>
             <Texture>
@@ -663,9 +656,10 @@
     </Ground>
     <Ground type="0xff" id="Void">
         <Texture>
-            <Sheet>ground</Sheet>
-            <Index>0x66</Index>
+            <Sheet>invisible</Sheet>
+            <Index>0x00</Index>
         </Texture>
+        <NoWalk/>
     </Ground>
 
     <Ground type="0x70" id="Cove Sand">
