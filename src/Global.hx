@@ -197,7 +197,6 @@ final class Global {
 			classModel.getCharacterSkin(owned) ?.setState(CharacterSkinState.OWNED);
 
 		playerModel.setCharacterList(new SavedCharactersList(xml));
-		playerModel.isInvalidated = false;
 
 		var list = new Array<Server>();
 		for (iterXML in xml.elementsNamed("Servers").next().elementsNamed("Server"))
@@ -240,18 +239,5 @@ final class Global {
 			layers.dialogs.closeDialogs();
 		});
 		buyCharacterSlotTask.start();
-	}
-
-	public static function invalidate() {
-		playerModel.isInvalidated = true;
-	}
-
-	public static function setScreenValid(sprite: Sprite) {
-		if (playerModel.isInvalidated) {
-			layers.screens.setScreen(new LoadingScreen());
-			charListTask.start();
-		}
-
-		layers.screens.setScreen(sprite);
 	}
 }

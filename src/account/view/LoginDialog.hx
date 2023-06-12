@@ -99,9 +99,8 @@ class LoginDialog extends Frame {
 		Global.charListTask.start();
 	}
 
-	private function charListComplete(_: TaskData) {
+	private function charListComplete(taskData: TaskData) {
 		Global.layers.dialogs.closeDialogs();
-		Global.invalidate();
-		Global.setScreenValid(new CharacterSelectionScreen());
+		Global.updateAccount.emit();
 	}
 }

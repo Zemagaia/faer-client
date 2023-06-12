@@ -163,13 +163,13 @@ class RegisterDialog extends Frame {
 					if (taskData.success)
 						Global.layers.dialogs.openDialog(new AccountDetailDialog());
 					else {
-						this.displayErrorText(taskData.error);
+						this.displayErrorText(taskData.result);
 						this.enable();
 					}
 				});
 				Global.charListTask.start();
 			} else {
-				this.displayErrorText(taskData.error);
+				this.displayErrorText(taskData.result);
 				this.enable();
 			}
 		});

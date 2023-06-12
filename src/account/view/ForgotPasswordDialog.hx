@@ -66,7 +66,7 @@ class ForgotPasswordDialog extends Frame {
 				if (taskData.success)
 					Global.layers.dialogs.openDialog(new LoginDialog());
 				else {
-					this.emailInput.setError(taskData.error);
+					this.emailInput.setError(taskData.result);
 					this.enable();
 				}
 			});

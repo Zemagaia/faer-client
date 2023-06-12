@@ -7,12 +7,12 @@ import util.Signal;
 class TaskData {
 	public var task: Task;
 	public var success: Bool;
-	public var error: String;
+	public var result: String;
 
-	public function new(task: Task, success: Bool, error: String) {
+	public function new(task: Task, success: Bool, result: String) {
 		this.task = task;
 		this.success = success;
-		this.error = error;
+		this.result = result;
 	}
 }
 
@@ -23,7 +23,7 @@ class Task {
 	public var isStarted = false;
 	public var isFinished = false;
 	public var isOK = false;
-	public var error = "";
+	public var result = "";
 
 	public function new() {
 		this.started = new Signal<Task>();
@@ -55,13 +55,13 @@ class Task {
 
 	public function onReset() {}
 
-	public final function completeTask(isOK: Bool, error: String = "") {
+	public final function completeTask(isOK: Bool, result: String = "") {
 		this.isOK = isOK;
-		this.error = error;
+		this.result = result;
 		this.isFinished = true;
 
-		this.finished.emit(new TaskData(this, isOK, error));
-		this.lastly.emit(new TaskData(this, isOK, error));
+		this.finished.emit(new TaskData(this, isOK, result));
+		this.lastly.emit(new TaskData(this, isOK, result));
 
 		this.reset();
 	}

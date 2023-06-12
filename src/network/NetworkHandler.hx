@@ -1,6 +1,5 @@
 package network;
 
-import util.Lz4;
 import haxe.io.Bytes;
 import haxe.Exception;
 import haxe.ValueException;

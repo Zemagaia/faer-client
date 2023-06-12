@@ -31,7 +31,7 @@ class GetCharListTask extends Task {
 	private function onListComplete(data: String) {
 		if (data != "EOF" && data.indexOf("Error") == -1) {
 			Global.parseCharList(Xml.parse(data).firstElement());
-			completeTask(true);
+			completeTask(true, data);
 		} else {
 			trace('Char list error: $data');
 			completeTask(false);

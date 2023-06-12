@@ -69,7 +69,7 @@ class CharacterRectList extends Sprite {
 	}
 
 	private static function onNewChar(event: Event) {
-		Global.setScreenValid(new NewCharacterScreen());
+		Global.layers.screens.setScreen(new NewCharacterScreen());
 	}
 
 	private static function onBuyCharSlot(event: Event) {

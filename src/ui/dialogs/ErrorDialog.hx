@@ -28,7 +28,6 @@ class ErrorDialog extends Dialog {
 	}
 
 	private static function onComplete(event: Event) {
-		Global.invalidate();
-		Global.setScreenValid(new CharacterSelectionScreen());
+		Global.layers.screens.setScreen(new CharacterSelectionScreen());
 	}
 }

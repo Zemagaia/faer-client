@@ -11,11 +11,9 @@ class PlayerModel {
 	public var crownsChanged = new Signal<Int>();
 
 	public var charList: SavedCharactersList;
-	public var isInvalidated = false;
 	public var currentCharId = 0;
 
 	public function new() {
-		this.isInvalidated = true;
 	}
 
 	public function getMaxCharacters() {

@@ -107,7 +107,7 @@ class TitleView extends Sprite {
 				data.charId = Global.playerModel.getNextCharId();
 				data.gameId = Settings.HUB_GAMEID;
 			} else
-				Global.setScreenValid(new CharacterSelectionScreen());
+				Global.layers.screens.setScreen(new CharacterSelectionScreen());
 		}
 	}
 

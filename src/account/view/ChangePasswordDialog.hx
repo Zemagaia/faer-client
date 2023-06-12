@@ -54,7 +54,7 @@ class ChangePasswordDialog extends Frame {
 				if (taskData.success)
 					Global.layers.dialogs.openDialog(new AccountDetailDialog());
 				else {
-					this.password.setError(taskData.error);
+					this.password.setError(taskData.result);
 					this.enable();
 				}
 			});
