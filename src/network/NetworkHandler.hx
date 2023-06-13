@@ -1,5 +1,11 @@
 package network;
 
+import objects.particles.HealEffect;
+import objects.particles.FlowEffect;
+import objects.particles.NovaEffect;
+import objects.particles.LineEffect;
+import objects.particles.StreamEffect;
+import objects.particles.TeleportEffect;
 import objects.particles.AOEEffect;
 import objects.particles.ThrowEffect;
 import objects.particles.RingEffect;
@@ -123,6 +129,7 @@ enum abstract ShowEffectType(Int8) from Int8 to Int8 {
 	final Stream = 3;
 	final Throw = 4;
 	final Nova = 5;
+	final Line = 7;
 	final Burst = 8;
 	final Flow = 9;
 	final Ring = 10;
@@ -839,7 +846,7 @@ class NetworkHandler {
 							return;
 						}
 
-						var proj: Projectile = Global.projPool.get();
+						var proj = Global.projPool.get();
 						proj.reset(containerType, 0, ownerId, bulletId, angle, Global.gameSprite.lastFixedUpdate);
 						proj.setDamages(damage, 0, 0);
 						Global.gameSprite.map.addGameObject(cast proj, startX, startY);
@@ -852,7 +859,7 @@ class NetworkHandler {
 						var y1 = data.readFloat();
 						var x2 = data.readFloat();
 						var y2 = data.readFloat();
-						var color = data.readInt();
+						var color = data.readUnsignedInt();
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate,
@@ -874,27 +881,42 @@ class NetworkHandler {
 
 						var map = Global.gameSprite.map;
 						switch (effectType) {
-							/*case Teleport:
-								map.addGameObject(new TeleportEffect(), x1, y1);
-							case Stream:
-								map.addGameObject(new StreamEffect(x1, y1, x2, y2, color), x1, y2);*/
-							case Throw:
-								var go = map.getGameObject(targetObjectId);
-								var startX = go != null ? go.mapX : x2;
-								var startY = go != null ? go.mapY : y2;
-								map.addGameObject(new ThrowEffect(startX, startY, x1, y1, color), startX, startY);
-							/*case Nova:
+							case Heal:
 								var go = map.getGameObject(targetObjectId);
 								if (go == null)
 									return;
 
-								map.addGameObject(new NovaEffect(go, x1, color), go.mapX, go.mapY);
+								map.addGameObject(new HealEffect(go, color), go.mapX, go.mapY);
+							case Teleport:
+								map.addGameObject(new TeleportEffect(), x1, y1);
+							case Stream:
+								map.addGameObject(new StreamEffect(x1, y1, x2, y2, color), x1, y2);
+							case Throw:
+								var go = map.getGameObject(targetObjectId);
+								if (go == null)
+									return;
+
+								var startX = go != null ? go.mapX : x2;
+								var startY = go != null ? go.mapY : y2;
+								map.addGameObject(new ThrowEffect(startX, startY, x1, y1, color), startX, startY);
+							case Nova:
+								var go = map.getGameObject(targetObjectId);
+								if (go == null)
+									return;
+
+								map.addGameObject(new NovaEffect(go.mapX, go.mapY, x1, color), go.mapX, go.mapY);
 							case Flow:
 								var go = map.getGameObject(targetObjectId);
 								if (go == null)
 									return;
 
-								map.addGameObject(new FlowEffect(x1, y1, go, color), x1, y1);*/
+								map.addGameObject(new FlowEffect(x1, y1, go, color), x1, y1);
+							case Line:
+								var go = map.getGameObject(targetObjectId);
+								if (go == null)
+									return;
+
+								map.addGameObject(new LineEffect(go.mapX, go.mapY, x1, y1, color), x1, y1);
 							case Ring:
 								var go = map.getGameObject(targetObjectId);
 								if (go == null)

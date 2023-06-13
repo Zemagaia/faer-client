@@ -9,7 +9,7 @@ class SparkParticle extends Particle {
 	public var dx: Float32 = 0.0;
 	public var dy: Float32 = 0.0;
 
-	public function new(size: Float32, color: Int32, lifetime: Int32, z: Float32, dx: Float32, dy: Float32) {
+	public function new(size: Float32, color: UInt, lifetime: Int32, z: Float32, dx: Float32, dy: Float32) {
 		super(color, z, size);
 		this.initialSize = size;
 		this.lifetime = this.timeLeft = lifetime;

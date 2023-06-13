@@ -4,10 +4,10 @@ import objects.particles.Particle;
 import util.NativeTypes;
 
 class ExplosionEffect extends ParticleEffect {
-	public var colors: Array<Int32>;
+	public var colors: Array<UInt>;
 	public var numParts: Int = 0;
 
-	public function new(colors: Array<Int32>, size: Float32, numParts: Int32) {
+	public function new(colors: Array<UInt>, size: Float32, numParts: Int32) {
 		super();
 		this.colors = colors;
 		this.size = size;
@@ -35,7 +35,7 @@ class ExplosionParticle extends Particle {
 	public var yDir: Float32 = 0.0;
 	public var zDir: Float32 = 0.0;
 
-	public function new(color: UInt32, z: Float32, size: Float32, lifetime: Int32, xDir: Float32, yDir: Float32, zDir: Float32) {
+	public function new(color: UInt, z: Float32, size: Float32, lifetime: Int32, xDir: Float32, yDir: Float32, zDir: Float32) {
 		super(color, z, size);
 		this.timeLeft = this.lifetime = lifetime;
 		this.xDir = xDir;

@@ -28,7 +28,7 @@ void main() {
             alpha += texture(sampler, data.uv + data.texelSize).a;
 
             if (alpha > 0) {
-                int glowColor = int(data.colors.x);
+                uint glowColor = uint(data.colors.x);
                 pixel = vec4(((glowColor >> 16) & 0xFF) / 255.0,
                                 ((glowColor >> 8) & 0xFF) / 255.0, 
                                 (glowColor & 0xFF) / 255.0, 1.0);
@@ -37,7 +37,7 @@ void main() {
         } 
     } else {
         if (data.colors.y >= 0) {
-            int flashColor = int(data.colors.y);
+            uint flashColor = uint(data.colors.y);
             float flashStrengthInv = 1 - data.flashStrength;
             pixel = vec4(((flashColor >> 16) & 0xFF) / 255.0 * data.flashStrength + pixel.r * flashStrengthInv,
                             ((flashColor >> 8) & 0xFF) / 255.0 * data.flashStrength + pixel.g * flashStrengthInv, 

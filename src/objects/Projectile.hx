@@ -37,7 +37,7 @@ class Projectile extends GameObject {
 	public var bIdMod2Flip = 0;
 	public var bIdMod4Flip = 0;
 	public var phase = 0.0;
-	public var colors: Array<Int32>;
+	public var colors: Array<UInt>;
 	public var multiHitDict: IntMap<Bool>;
 
 	private var currentX = -1.0;

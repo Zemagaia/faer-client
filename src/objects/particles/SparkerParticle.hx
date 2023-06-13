@@ -12,11 +12,11 @@ class SparkerParticle extends Particle {
 	public var dy: Float32 = 0.0;
 	public var pathX: Float32 = 0.0;
 	public var pathY: Float32 = 0.0;
-	public var color: UInt32 = 0;
+	public var color: UInt = 0;
 
 	private var lastActivate = 0;
 
-	public function new(size: Float32, color: UInt32, lifetime: Int32, startX: Float32, startY: Float32, endX: Float32, endY: Float32) {
+	public function new(size: Float32, color: UInt, lifetime: Int32, startX: Float32, startY: Float32, endX: Float32, endY: Float32) {
 		super(color, 0, size);
 		this.color = color;
 		this.lifetime = this.timeLeft = lifetime;

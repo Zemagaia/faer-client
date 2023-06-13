@@ -8,11 +8,11 @@ class RingEffect extends ParticleEffect {
 	public var startX: Float32 = 0.0;
 	public var startY: Float32 = 0.0;
 	public var novaRadius: Float32 = 0.0;
-	public var color: UInt32 = 0;
+	public var color: UInt = 0;
 	public var cooldown = 0;
 	private var lastActivate = 0;
 
-	public function new(go: GameObject, radius: Float32, color: UInt32, cooldown: Int32) {
+	public function new(go: GameObject, radius: Float32, color: UInt, cooldown: Int32) {
 		super();
 		this.startX = go.mapX;
 		this.startY = go.mapY;

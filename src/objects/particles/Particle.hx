@@ -6,7 +6,7 @@ import util.NativeTypes;
 class Particle extends GameObject {
 	private static var nextFakeObjectId: Int32 = 0;
 
-	public function new(color: UInt32, z: Float32, size: Float32, particleIdx: Int32 = 0) {
+	public function new(color: UInt, z: Float32, size: Float32, particleIdx: Int32 = 0) {
 		super(null, "Particle");
 		objectId = 0x7F000000 | nextFakeObjectId++;
 		this.mapZ = z;

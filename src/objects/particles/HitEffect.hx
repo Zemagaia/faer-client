@@ -4,12 +4,12 @@ import util.NativeTypes;
 import objects.particles.Particle;
 
 class HitEffect extends ParticleEffect {
-	public var colors: Array<Int32>;
+	public var colors: Array<UInt>;
 	public var numParts = 0;
 	public var angle: Float32 = 0.0;
 	public var speed: Float32 = 0.0;
 
-	public function new(colors: Array<Int32>, size: Float32, numParts: Int32, angle: Float32, speed: Float32) {
+	public function new(colors: Array<UInt>, size: Float32, numParts: Int32, angle: Float32, speed: Float32) {
 		super();
 		this.colors = colors;
 		this.size = size;
@@ -25,9 +25,13 @@ class HitEffect extends ParticleEffect {
 		var cosAngle: Float32 = this.speed / 600 * -Math.cos(this.angle);
 		var sinAngle: Float32 = this.speed / 600 * -Math.sin(this.angle);
 
-		for (i in 0...this.numParts)
-			map.addGameObject(new HitParticle(this.colors[Std.int(this.colors.length * Math.random())], 0.5, this.size,
-				Std.int(200 + (Math.random() * 100)), (cosAngle + ((Math.random() - 0.5) * 0.4)), (sinAngle + ((Math.random() - 0.5) * 0.4)), 0), mapX, mapY);
+		for (i in 0...this.numParts) {
+			var rand = Math.random();
+			map.addGameObject(new HitParticle(this.colors[Std.int(this.colors.length * rand)], 0.5, this.size, Std.int(200 + (rand * 100)),
+				cosAngle + (Math.random() - 0.5) * 0.4, sinAngle + (Math.random() - 0.5) * 0.4, 0),
+				mapX, mapY);
+		}
+			
 
 		return false;
 	}
@@ -40,7 +44,7 @@ class HitParticle extends Particle {
 	public var yDir: Float32 = 0.0;
 	public var zDir: Float32 = 0.0;
 
-	public function new(color: UInt32, z: Float32, size: Float32, lifetime: Int32, xDir: Float32, yDir: Float32, zDir: Float32) {
+	public function new(color: UInt, z: Float32, size: Float32, lifetime: Int32, xDir: Float32, yDir: Float32, zDir: Float32) {
 		super(color, z, size);
 		this.timeLeft = this.lifetime = lifetime;
 		this.xDir = xDir;

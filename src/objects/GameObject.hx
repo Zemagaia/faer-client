@@ -119,7 +119,7 @@ class GameObject {
 	public var dh: Float32 = 0.0;
 
 	private var mapColor: UInt32 = 0;
-	private var bloodColors: Array<Int32> = null;
+	private var bloodColors: Array<UInt> = null;
 
 	public static function physicalDamage(dmg: Int, def: Int, cond: Int) {
 		if ((cond & ConditionEffect.INVULNERABLE_BIT) != 0)

@@ -1,15 +1,16 @@
 package util;
+
 import openfl.display.BitmapData;
 import util.NativeTypes;
 
 class BloodComposition {
-	private static var imageDict: Map<BitmapData, Array<Int32>> = new Map<BitmapData, Array<Int32>>();
+	private static var imageDict: Map<BitmapData, Array<UInt>> = new Map<BitmapData, Array<UInt>>();
 
-	public static function getBloodComposition(id: Int32, image: BitmapData, bloodProb: Float32, bloodColor: Int32) {
-		var comp = new Array<Int32>();
+	public static function getBloodComposition(id: Int32, image: BitmapData, bloodProb: Float32, bloodColor: UInt) {
+		var comp = new Array<UInt>();
 		if (image == null)
 			return comp;
-		
+
 		var colors = getColors(image);
 		for (i in 0...colors.length) {
 			if (Math.random() < bloodProb)
@@ -17,7 +18,7 @@ class BloodComposition {
 			else
 				comp.push(colors[Math.round(colors.length * Math.random())]);
 		}
-		
+
 		return comp;
 	}
 
@@ -32,13 +33,12 @@ class BloodComposition {
 	}
 
 	private static function buildColors(image: BitmapData) {
-		var color: Int32 = 0;
-		var colors = new Array<Int32>();
+		var colors = new Array<UInt>();
 		for (x in 0...image.width)
 			for (y in 0...image.height) {
-				color = image.getPixel32(x, y);
+				var color: UInt = image.getPixel32(x, y);
 				if ((color & 0xFF000000) != 0)
-					colors.push(color);
+					colors.push(color - 0xFF000000);
 			}
 
 		return colors;

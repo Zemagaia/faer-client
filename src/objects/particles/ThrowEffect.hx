@@ -4,17 +4,16 @@ import util.Utils.MathUtil;
 import util.NativeTypes;
 import objects.particles.Particle;
 import objects.particles.SparkParticle;
-import openfl.geom.Point;
 
 class ThrowEffect extends ParticleEffect {
-	public var startX: Float32;
-	public var startY: Float32;
-	public var endX: Float32;
-	public var endY: Float32;
-	public var color: UInt32 = 0;
+	public var startX: Float32 = 0.0;
+	public var startY: Float32 = 0.0;
+	public var endX: Float32 = 0.0;
+	public var endY: Float32 = 0.0;
+	public var color: UInt = 0;
 	public var duration: Int32 = 0;
 
-	public function new(startX: Float32, startY: Float32, endX: Float32, endY: Float32, color: UInt32, duration: Int32 = 1000) {
+	public function new(startX: Float32, startY: Float32, endX: Float32, endY: Float32, color: UInt, duration: Int32 = 1000) {
 		super();
 		this.startX = startX;
 		this.startY = startY;
@@ -42,9 +41,9 @@ class ThrowParticle extends Particle {
 	public var dy: Float32 = 0;
 	public var pathX: Float32 = 0;
 	public var pathY: Float32 = 0;
-	public var color: UInt32 = 0;
+	public var color: UInt = 0;
 
-	public function new(size: Float32, color: UInt32, lifetime: Int32, startX: Float32, startY: Float32, endX: Float32, endY: Float32) {
+	public function new(size: Float32, color: UInt, lifetime: Int32, startX: Float32, startY: Float32, endX: Float32, endY: Float32) {
 		super(color, 0, size);
 		this.color = color;
 		this.lifetime = this.timeLeft = lifetime;
