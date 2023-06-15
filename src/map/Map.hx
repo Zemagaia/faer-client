@@ -2414,7 +2414,8 @@ class Map {
 					case "Wall":
 						drawWall(time, obj);
 					case "Player":
-						drawPlayer(time, cast(obj, Player));
+						i++;
+						continue; // drawPlayer(time, cast(obj, Player));
 					case "Projectile":
 						drawProjectile(time, cast(obj, Projectile));
 					case "Particle":

@@ -937,7 +937,6 @@ class NetworkHandler {
 							default:
 								trace("ERROR: Unknown effect type: " + effectType);
 						}
-
 					case Text:
 						var name = data.readUTF();
 						var objectId = data.readInt();
