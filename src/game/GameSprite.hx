@@ -68,7 +68,7 @@ class GameSprite extends Sprite {
 		this.inputHandler = new InputHandler(this);
 		this.textBox = new TextBox(this, 400, 250);
 		this.textBox.y = Math.max(0, Main.stageHeight - this.textBox.height);
-		// addChild(this.textBox);
+		addChild(this.textBox);
 		addEventListener(Event.ADDED_TO_STAGE, this.onAdded);
 	}
 
