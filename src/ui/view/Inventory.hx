@@ -29,7 +29,7 @@ class Inventory extends Sprite {
 	public function new() {
 		super();
 
-		this.decor = new Bitmap(Assets.getBitmapData("assets/ui/inventoryInterface.png"));
+		this.decor = new Bitmap(null);//Assets.getBitmapData("assets/ui/inventoryInterface.png"));
 		this.decor.cacheAsBitmap = true;
 		addChild(this.decor);		
 
