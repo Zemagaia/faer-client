@@ -1,8 +1,10 @@
 package;
 
+import ui.view.LoginView;
+import openfl.display.Bitmap;
 import account.Account;
-import account.services.UploadXmlTask;
-import account.services.UploadBehaviorTask;
+import tasks.UploadXmlTask;
+import tasks.UploadBehaviorTask;
 import mapeditor.MapEditor;
 import openfl.Assets;
 import engine.TextureFactory;
@@ -10,16 +12,15 @@ import util.Signal;
 import lib.tasks.Task;
 import openfl.events.Event;
 import lime.system.System;
-import account.services.BuyCharacterSlotTask;
-import account.services.BuySkinTask;
-import account.services.ChangePasswordTask;
-import account.services.DeleteCharacterTask;
-import account.services.GetCharListTask;
-import account.services.LoadAccountTask;
-import account.services.LoginTask;
-import account.services.RegisterAccountTask;
-import account.services.SendPasswordReminderTask;
-import account.view.BuyingDialog;
+import tasks.BuyCharacterSlotTask;
+import tasks.BuySkinTask;
+import tasks.ChangePasswordTask;
+import tasks.DeleteCharacterTask;
+import tasks.GetCharListTask;
+import tasks.LoadAccountTask;
+import tasks.LoginTask;
+import tasks.RegisterAccountTask;
+import tasks.SendPasswordReminderTask;
 import appengine.SavedCharactersList;
 import assets.CharacterTemplate;
 import characters.CharacterModel;
@@ -32,7 +33,6 @@ import core.Layers;
 import core.PlayerModel;
 import game.GameSprite;
 import game.model.GameInitData;
-import game.model.VialModel;
 import lime.utils.ObjectPool;
 import network.NetworkHandler;
 import objects.Projectile;
@@ -44,8 +44,6 @@ import servers.Server;
 import servers.ServerModel;
 import ui.dialogs.Dialog;
 import ui.dialogs.ErrorDialog;
-import ui.model.TabStripModel;
-import ui.view.TitleView;
 
 using util.Utils;
 
@@ -62,7 +60,6 @@ final class Global {
 	public static var classModel: ClassModel;
 	public static var playerModel: PlayerModel;
 	public static var charModel: CharacterModel;
-	public static var tabStripModel: TabStripModel;
 
 	public static var loadTask: LoadAccountTask;
 	public static var loginTask: LoginTask;
@@ -76,8 +73,9 @@ final class Global {
 	public static var uploadBehaviorTask: UploadBehaviorTask;
 	public static var uploadXmlTask: UploadXmlTask;
 
-	public static var updateAccount: EmptySignal;
 	public static var focusCharSkin: Signal<CharacterSkin>;
+
+	public static var backgroundImage: Bitmap;
 
 	public static function init(root: Sprite) {
 		projPool = new ObjectPool<Projectile>(() -> {
@@ -100,9 +98,7 @@ final class Global {
 		classModel = new ClassModel();
 		playerModel = new PlayerModel();
 		charModel = new CharacterModel();
-		tabStripModel = new TabStripModel();
 
-		updateAccount = new EmptySignal();
 		focusCharSkin = new Signal<CharacterSkin>();
 
 		layers = new Layers();
@@ -137,6 +133,8 @@ final class Global {
 			classModel.getCharacterClass(xml.intElement("PlayerClassType")).skins.addSkin(skin);
 		}
 
+		backgroundImage = new Bitmap(Assets.getBitmapData("assets/ui/background.png"));
+
 		Main.primaryStage3D.addEventListener(Event.CONTEXT3D_CREATE, function(_: Event) {
 			Main.atlas = TextureFactory.make(Main.tempAtlas, false);
 			#if print_atlas
@@ -150,8 +148,7 @@ final class Global {
 			layers.screens.setScreen(new AccountLoadingScreen());
 			loadTask.start();
 			charListTask.start();
-			updateAccount.emit();
-			layers.screens.setScreen(new TitleView());
+			layers.screens.setScreen(new LoginView());
 		});
 		Main.primaryStage3D.requestContext3D();
 	}
@@ -173,15 +170,6 @@ final class Global {
 		playerModel.currentCharId = gameInit.charId;
 		gameSprite = new GameSprite(serverModel.getServer(), gameInit.gameId, gameInit.createCharacter, gameInit.charId, gameInit.fmMap);
 		layers.screens.setScreen(gameSprite);
-	}
-
-	public static function useVial(vialId: Int) {
-		var player = gameSprite.map.player;
-		if (player.getVialCount(vialId) <= 0 || vialId == VialModel.HEALTH_VIAL_ID && player.hp >= player.maxHP || vialId == VialModel.MAGIC_VIAL_ID
-			&& player.mp >= player.maxMP)
-			return;
-
-		NetworkHandler.useItem(System.getTimer(), player.objectId, VialModel.getVialSlot(vialId), vialId, player.mapX, player.mapY, UseType.START_USE);
 	}
 
 	public static function parseCharList(xml: Xml) {
@@ -229,7 +217,7 @@ final class Global {
 			return;
 		}
 
-		layers.dialogs.openDialog(new BuyingDialog());
+		layers.dialogs.openDialog(new Dialog("Buying Character Slot...", null, null, null));
 
 		buyCharacterSlotTask.finished.once(function(taskData: TaskData) {
 			if (taskData.success)

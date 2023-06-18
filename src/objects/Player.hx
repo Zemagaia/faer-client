@@ -3,9 +3,7 @@ package objects;
 import network.NetworkHandler;
 import lime.system.System;
 import constants.ActivationType;
-import constants.GeneralConstants;
 import constants.UseType;
-import game.model.VialModel;
 import game.MoveRecords;
 import map.Camera;
 import map.Square;
@@ -14,7 +12,6 @@ import openfl.filters.GlowFilter;
 import openfl.geom.Matrix;
 import openfl.geom.Point;
 import sound.SoundEffectLibrary;
-import ui.model.TabStripModel;
 import ui.SimpleText;
 import util.AnimatedChar;
 import util.GlowRedrawer;
@@ -85,8 +82,6 @@ class Player extends GameObject {
 	public var tenacity = 0;
 	public var tenacityBoost = 0;
 	public var tenacityMax = 0;
-	public var healthVialCount = 0;
-	public var magicVialCount = 0;
 	public var damageMult = 1.0;
 	public var hitMult = 1.0;
 	public var tier = 1;
@@ -484,44 +479,24 @@ class Player extends GameObject {
 	}
 
 	public function nextAvailableInventorySlot() {
-		var len = this.hasBackpack ? equipment.length : equipment.length - GeneralConstants.NUM_INVENTORY_SLOTS;
-		for (i in 4...len)
+		for (i in 4...22)
 			if (equipment[i] <= 0)
 				return i;
 
 		return -1;
 	}
 
-	public function swapInventoryIndex(current: String) {
+	public function swapInventoryIndex() {
 		var start = 0;
 		var end = 0;
 		if (!this.hasBackpack)
 			return -1;
 
-		if (current == TabStripModel.BACKPACK) {
-			start = GeneralConstants.NUM_EQUIPMENT_SLOTS;
-			end = GeneralConstants.NUM_EQUIPMENT_SLOTS + GeneralConstants.NUM_INVENTORY_SLOTS;
-		} else {
-			start = GeneralConstants.NUM_EQUIPMENT_SLOTS + GeneralConstants.NUM_INVENTORY_SLOTS;
-			end = equipment.length;
-		}
-
-		for (i in start...end)
+		for (i in 4...22)
 			if (equipment[i] <= 0)
 				return i;
 
 		return -1;
-	}
-
-	public function getVialCount(objectType: Int) {
-		switch (objectType) {
-			case VialModel.HEALTH_VIAL_ID:
-				return this.healthVialCount;
-			case VialModel.MAGIC_VIAL_ID:
-				return this.magicVialCount;
-			default:
-				return 0;
-		}
 	}
 
 	private function getMoveSpeed() {

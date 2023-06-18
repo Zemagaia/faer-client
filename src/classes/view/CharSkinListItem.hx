@@ -1,6 +1,6 @@
 package classes.view;
 
-import account.services.BuySkinTask;
+import tasks.BuySkinTask;
 import classes.model.CharacterSkin;
 import classes.model.CharacterSkinState;
 import openfl.display.Bitmap;

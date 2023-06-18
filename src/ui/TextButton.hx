@@ -1,62 +1,50 @@
 package ui;
 
-import openfl.display.GraphicsSolidFill;
+import openfl.geom.ColorTransform;
+import openfl.Assets;
+import openfl.display.Bitmap;
 import openfl.display.Sprite;
 import openfl.events.MouseEvent;
 
 class TextButton extends Sprite {
 	public var text: SimpleText;
-	public var w = 0;
+	public var decor: Bitmap;
 
-	private var enabledFill: GraphicsSolidFill = new GraphicsSolidFill(0xFFFFFF, 1);
-	private var disabledFill: GraphicsSolidFill = new GraphicsSolidFill(0x7F7F7F, 1);
-	private var color: Int = 0xFFFFFF;
+	private static var baseCT = new ColorTransform();
+	private static var hoverCT = new ColorTransform(1.3);
+	private static var pressedCT = new ColorTransform(1, 1.3);
 
-	public function new(size: Int, text: String, bWidth: Int = 0) {
+	public function new(size: Int, text: String) {
 		super();
 
-		this.text = new SimpleText(size, 0x363636, false, 0, 0);
+		this.decor = new Bitmap(Assets.getBitmapData("assets/ui/elements/buttonBg.png"));
+		addChild(this.decor);
+		this.text = new SimpleText(size, 0xB3B3B3, false, 0, 0);
 		this.text.setBold(true);
 		this.text.text = text;
 		this.text.updateMetrics();
+		this.text.x = (width - this.text.width) / 2;
+		this.text.y = (height - this.text.height) / 2;
 		addChild(this.text);
-		this.w = bWidth != 0 ? bWidth : Std.int(this.text.width + 12);
-		this.draw();
-		this.text.x = this.w / 2 - this.text.textWidth / 2 - 2;
-		this.text.y = 1;
 		addEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
-		addEventListener(MouseEvent.ROLL_OUT, this.onRollOut);
+		addEventListener(MouseEvent.MOUSE_DOWN, this.onClick);
+		addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, this.onClick);
+		addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, this.onClick);
+		addEventListener(MouseEvent.ROLL_OUT, this.onBase);
+		addEventListener(MouseEvent.MOUSE_UP, this.onBase);
+		addEventListener(MouseEvent.MIDDLE_MOUSE_UP, this.onBase);
+		addEventListener(MouseEvent.RIGHT_MOUSE_UP, this.onBase);
 	}
 
-	public function setText(text: String) {
-		this.text.text = text;
-		this.text.updateMetrics();
-		this.text.x = this.w / 2 - this.text.textWidth / 2 - 2;
-		this.text.y = 1;
+	private function onMouseOver(_: MouseEvent) {
+		this.decor.transform.colorTransform = hoverCT;
 	}
 
-	public function setEnabled(enabled: Bool) {
-		if (enabled == mouseEnabled)
-			return;
-
-		mouseEnabled = enabled;
-		this.color = enabled ? 0xFFFFFF : 0x7F7F7F;
-		this.draw();
+	private function onBase(_: MouseEvent) {
+		this.decor.transform.colorTransform = baseCT;
 	}
 
-	private function draw() {
-		graphics.clear();
-		graphics.beginFill(this.color, 1);
-		graphics.drawRect(0, 0, this.w, Std.int(this.text.textHeight + 8));
-	}
-
-	private function onMouseOver(event: MouseEvent) {
-		this.color = 0xFFDC85;
-		this.draw();
-	}
-
-	private function onRollOut(event: MouseEvent) {
-		this.color = 0xFFFFFF;
-		this.draw();
+	private function onClick(_: MouseEvent) {
+		this.decor.transform.colorTransform = hoverCT;
 	}
 }

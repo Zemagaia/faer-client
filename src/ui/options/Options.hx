@@ -7,7 +7,6 @@ import openfl.events.KeyboardEvent;
 import openfl.events.MouseEvent;
 import openfl.filters.DropShadowFilter;
 import openfl.text.TextFieldAutoSize;
-import screens.TitleMenuOption;
 import sound.Music;
 import sound.SoundEffectLibrary;
 import ui.SimpleText;
@@ -25,9 +24,9 @@ class Options extends Sprite {
 
 	private var gs: GameSprite;
 	private var title: SimpleText;
-	private var continueButton: TitleMenuOption;
-	private var resetToDefaultsButton: TitleMenuOption;
-	private var homeButton: TitleMenuOption;
+	private var continueButton: ClickableText;
+	private var resetToDefaultsButton: ClickableText;
+	private var homeButton: ClickableText;
 	private var tabs: Array<OptionsTabTitle>;
 	private var selected: OptionsTabTitle = null;
 	private var options: Array<Sprite>;
@@ -73,13 +72,13 @@ class Options extends Sprite {
 		this.title.y = 8;
 		addChild(this.title);
 
-		this.continueButton = new TitleMenuOption("continue", 36, false);
+		this.continueButton = new ClickableText(36, false, "continue");
 		this.continueButton.addEventListener(MouseEvent.CLICK, this.onContinueClick);
 		addChild(this.continueButton);
-		this.resetToDefaultsButton = new TitleMenuOption("defaults", 22, false);
+		this.resetToDefaultsButton = new ClickableText(22, false, "reset");
 		this.resetToDefaultsButton.addEventListener(MouseEvent.CLICK, this.onResetToDefaultsClick);
 		addChild(this.resetToDefaultsButton);
-		this.homeButton = new TitleMenuOption("menu", 22, false);
+		this.homeButton = new ClickableText(22, false, "menu");
 		this.homeButton.addEventListener(MouseEvent.CLICK, this.onHomeClick);
 		addChild(this.homeButton);
 

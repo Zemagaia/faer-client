@@ -3,14 +3,11 @@ package game;
 import map.Camera;
 import network.NetworkHandler;
 import lime.system.System;
-import constants.GeneralConstants;
 import constants.UseType;
-import game.model.VialModel;
 import objects.Player;
 import openfl.events.Event;
 import openfl.events.KeyboardEvent;
 import openfl.events.MouseEvent;
-import ui.model.TabStripModel;
 import ui.options.Options;
 import util.Utils;
 import util.Settings;
@@ -40,13 +37,6 @@ class InputHandler {
 
 	private function setPlayerMovement() {
 		Global.gameSprite.map.player?.setRelativeMovement(this.rotateRight - this.rotateLeft, this.moveRight - this.moveLeft, this.moveDown - this.moveUp);
-	}
-
-	private function useItem(slotId: Int) {
-		if (Global.tabStripModel.currentSelection == TabStripModel.BACKPACK)
-			slotId += GeneralConstants.NUM_INVENTORY_SLOTS;
-
-		NetworkHandler.useItem_new(Global.gameSprite.map.player, slotId);
 	}
 
 	private function togglePerformanceStats() {
@@ -174,29 +164,7 @@ class InputHandler {
 			Camera.angleRad = 0;
 		else if (keyCode == Settings.useAbility)
 			player?.useAltWeapon(Main.primaryStage.mouseX - Main.mouseXOffset, Main.primaryStage.mouseY - Main.mouseYOffset, UseType.START_USE);
-		else if (keyCode == Settings.inv1)
-			this.useItem(4);
-		else if (keyCode == Settings.inv2)
-			this.useItem(5);
-		else if (keyCode == Settings.inv3)
-			this.useItem(6);
-		else if (keyCode == Settings.inv4)
-			this.useItem(7);
-		else if (keyCode == Settings.inv5)
-			this.useItem(8);
-		else if (keyCode == Settings.inv6)
-			this.useItem(9);
-		else if (keyCode == Settings.inv7)
-			this.useItem(10);
-		else if (keyCode == Settings.inv8)
-			this.useItem(11);
-		else if (keyCode == Settings.healthVial) {
-			if (player != null && player.healthVialCount > 0 && player.hp < player.maxHP)
-				Global.useVial(VialModel.HEALTH_VIAL_ID);
-		} else if (keyCode == Settings.magicVial) {
-			if (player != null && player.magicVialCount > 0 && player.mp < player.maxMP)
-				Global.useVial(VialModel.MAGIC_VIAL_ID);
-		} else if (keyCode == Settings.perfStats)
+		else if (keyCode == Settings.perfStats)
 			this.togglePerformanceStats();
 		else if (keyCode == Settings.goToHub)
 			NetworkHandler.escape();

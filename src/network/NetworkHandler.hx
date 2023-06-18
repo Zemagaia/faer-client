@@ -18,10 +18,8 @@ import assets.CharacterFactory;
 import classes.model.CharacterSkin;
 import classes.model.CharacterSkinState;
 import constants.ActivationType;
-import constants.GeneralConstants;
 import constants.ItemConstants;
 import game.events.GuildResultEvent;
-import game.model.VialModel;
 import map.CharacterStatusText;
 import map.SpeechBalloon;
 import objects.GameObject;
@@ -42,79 +40,79 @@ import util.Settings;
 
 using util.Utils.ArrayUtils;
 
-enum abstract C2SPacketId(Int8) from Int8 to Int8 {
+enum abstract C2SPacketId(UInt8) from UInt8 to UInt8 {
 	final PlayerShoot = 0;
-    final Move = 1;
-    final PlayerText = 2;
-    final UpdateAck = 3;
-    final InvSwap = 4;
-    final UseItem = 5;
-    final Hello = 6;
-    final InvDrop = 7;
-    final Pong = 8;
-    final Teleport = 9;
-    final UsePortal = 10;
-    final Buy = 11;
-    final GroundDamage = 12;
-    final PlayerHit = 13;
-    final EnemyHit = 14;
-    final AoeAck = 15;
-    final ShootAck = 16;
-    final OtherHit = 17;
-    final SquareHit = 18;
-    final GotoAck = 19;
-    final EditAccountList = 20;
-    final CreateGuild = 21;
-    final GuildRemove = 22;
-    final GuildInvite = 23;
-    final RequestTrade = 24;
-    final ChangeTrade = 25;
-    final AcceptTrade = 26;
-    final CancelTrade = 27;
-    final Escape = 28;
-    final JoinGuild = 29;
-    final ChangeGuildRank = 30;
-    final Reskin = 31;
-    final MapHello = 32;
+	final Move = 1;
+	final PlayerText = 2;
+	final UpdateAck = 3;
+	final InvSwap = 4;
+	final UseItem = 5;
+	final Hello = 6;
+	final InvDrop = 7;
+	final Pong = 8;
+	final Teleport = 9;
+	final UsePortal = 10;
+	final Buy = 11;
+	final GroundDamage = 12;
+	final PlayerHit = 13;
+	final EnemyHit = 14;
+	final AoeAck = 15;
+	final ShootAck = 16;
+	final OtherHit = 17;
+	final SquareHit = 18;
+	final GotoAck = 19;
+	final EditAccountList = 20;
+	final CreateGuild = 21;
+	final GuildRemove = 22;
+	final GuildInvite = 23;
+	final RequestTrade = 24;
+	final ChangeTrade = 25;
+	final AcceptTrade = 26;
+	final CancelTrade = 27;
+	final Escape = 28;
+	final JoinGuild = 29;
+	final ChangeGuildRank = 30;
+	final Reskin = 31;
+	final MapHello = 32;
 }
 
-enum abstract S2CPacketId(Int8) from Int8 to Int8 {
+enum abstract S2CPacketId(UInt8) from UInt8 to UInt8 {
 	final CreateSuccess = 0;
-    final Text = 1;
-    final ServerPlayerShoot = 2;
-    final Damage = 3;
-    final Update = 4;
-    final Notification = 5;
-    final NewTick = 6;
-    final ShowEffect = 7;
-    final Goto = 8;
-    final InvResult = 9;
-    final Ping = 10;
-    final MapInfo = 11;
-    final Death = 12;
-    final BuyResult = 13;
-    final Aoe = 14;
-    final AccountList = 15;
-    final QuestObjId = 16;
-    final GuildResult = 17;
-    final AllyShoot = 18;
-    final EnemyShoot = 19;
-    final TradeRequested = 20;
-    final TradeStart = 21;
-    final TradeChanged = 22;
-    final TradeDone = 23;
-    final TradeAccepted = 24;
-    final InvitedToGuild = 25;
-    final PlaySound = 26;
-    final Failure = 27;
+	final Text = 1;
+	final ServerPlayerShoot = 2;
+	final Damage = 3;
+	final Update = 4;
+	final Notification = 5;
+	final NewTick = 6;
+	final ShowEffect = 7;
+	final Goto = 8;
+	final InvResult = 9;
+	final Ping = 10;
+	final MapInfo = 11;
+	final Death = 12;
+	final BuyResult = 13;
+	final Aoe = 14;
+	final AccountList = 15;
+	final QuestObjId = 16;
+	final GuildResult = 17;
+	final AllyShoot = 18;
+	final EnemyShoot = 19;
+	final TradeRequested = 20;
+	final TradeStart = 21;
+	final TradeChanged = 22;
+	final TradeDone = 23;
+	final TradeAccepted = 24;
+	final InvitedToGuild = 25;
+	final PlaySound = 26;
+	final Failure = 27;
 }
 
-enum abstract BuyResultType(Int8) from Int8 to Int8 {
+enum abstract BuyResultType(UInt8) from UInt8 to UInt8 {
 	final Success = 0;
 	final OpenDialog = 1;
 }
 
-enum abstract FailureType(Int8) from Int8 to Int8 {
+enum abstract FailureType(UInt8) from UInt8 to UInt8 {
 	final MessageNoDisconnect = -1;
 	final MessageDisconnect = 0;
 	final IncorrectVersion = 1;
@@ -122,7 +120,7 @@ enum abstract FailureType(Int8) from Int8 to Int8 {
 	final InvalidTeleportTarget = 3;
 }
 
-enum abstract ShowEffectType(Int8) from Int8 to Int8 {
+enum abstract ShowEffectType(UInt8) from UInt8 to UInt8 {
 	final None = 0;
 	final Heal = 1;
 	final Teleport = 2;
@@ -138,86 +136,85 @@ enum abstract ShowEffectType(Int8) from Int8 to Int8 {
 	final ThrowProjectile = 16;
 }
 
-enum abstract TradeDone(Int8) from Int8 to Int8 {
+enum abstract TradeDone(UInt8) from UInt8 to UInt8 {
 	final Success = 0;
 	final Cancel = 1;
 }
 
-enum abstract StatType(Int) from Int to Int {
-	final MaxHP = 0;
-	final HP = 1;
-	final Size = 2;
-	final MaxMP = 3;
-	final MP = 4;
-	final Strength = 20;
-	final Defense = 21;
-	final Speed = 22;
-	final Stamina = 27;
-	final Condition = 29;
-	final Penetration = 30;
-	final MaxHPBoost = 46;
-	final MaxMPBoost = 47;
-	final StrengthBoost = 48;
-	final DefenseBoost = 49;
-	final SpeedBoost = 50;
-	final StaminaBoost = 52;
-	final PenetrationBoost = 57;
-	final Inv0 = 8;
-	final Inv1 = 9;
-	final Inv2 = 10;
-	final Inv3 = 11;
-	final Inv4 = 12;
-	final Inv5 = 13;
-	final Inv6 = 14;
-	final Inv7 = 15;
-	final Inv8 = 16;
-	final Inv9 = 17;
-	final Inv10 = 18;
-	final Inv11 = 19;
-	final Inv12 = 67;
-	final Inv13 = 68;
-	final Inv14 = 69;
-	final Inv15 = 70;
-	final Inv16 = 71;
-	final Inv17 = 72;
-	final Inv18 = 73;
-	final Inv19 = 74;
-	final HasBackpack = 75;
-	final Name = 31;
-	final MerchType = 34;
-	final Gems = 35;
-	final MerchPrice = 36;
-	final Active = 37;
-	final AccId = 38;
-	final MerchCurrency = 40;
-	final MerchCount = 42;
-	final Gold = 43;
-	final Crowns = 44;
-	final OwnerAccId = 54;
-	final DamageMultiplier = 55;
-	final Tier = 56;
-	final HitMultiplier = 58;
-	final LegendaryRank = 59;
-	final SinkLevel = 60;
-	final AltTexture = 61;
-	final GuildName = 62;
-	final GuildRank = 63;
-	final PortalTierReq = 64;
-	final HealthVialStack = 65;
-	final MagicVialStack = 66;
-	final Texture = 76;
-	final Wit = 77;
-	final Resistance = 78;
-	final Haste = 79;
-	final Intelligence = 80;
-	final Piercing = 81;
-	final Tenacity = 82;
-	final WitBoost = 83;
-	final ResistanceBoost = 84;
-	final HasteBoost = 85;
-	final IntelligenceBoost = 86;
-	final PiercingBoost = 87;
-	final TenacityBoost = 88;
+enum abstract StatType(UInt8) from UInt8 to UInt8 {
+	final HP = 0;
+	final Size = 1;
+	final MP = 2;
+	final Inv0 = 3;
+	final Inv1 = 4;
+	final Inv2 = 5;
+	final Inv3 = 6;
+	final Inv4 = 7;
+	final Inv5 = 8;
+	final Inv6 = 9;
+	final Inv7 = 10;
+	final Inv8 = 11;
+	final Inv9 = 12;
+	final Inv10 = 13;
+	final Inv11 = 14;
+	final Inv12 = 15;
+	final Inv13 = 16;
+	final Inv14 = 17;
+	final Inv15 = 18;
+	final Inv16 = 19;
+	final Inv17 = 20;
+	final Inv18 = 21;
+	final Inv19 = 22;
+	final Inv20 = 23;
+	final Inv21 = 24;
+	final Name = 24;
+	final MerchType = 26;
+	final MerchPrice = 27;
+	final MerchCount = 28;
+	final Gems = 29;
+	final Gold = 30;
+	final Crowns = 31;
+	final OwnerAccountId = 32;
+	final MaxHP = 33;
+	final MaxMP = 34;
+	final Strength = 35;
+	final Defense = 36;
+	final Speed = 37;
+	final Stamina = 38;
+	final Penetration = 39;
+	final Wit = 40;
+	final Resistance = 41;
+	final Haste = 42;
+	final Intelligence = 43;
+	final Piercing = 44;
+	final Tenacity = 45;
+	final HPBonus = 46;
+	final MPBonus = 47;
+	final StrengthBonus = 48;
+	final DefenseBonus = 49;
+	final SpeedBonus = 50;
+	final StaminaBonus = 51;
+	final PenetrationBonus = 52;
+	final WitBonus = 53;
+	final ResistanceBonus = 54;
+	final HasteBonus = 55;
+	final IntelligenceBonus = 56;
+	final PiercingBonus = 57;
+	final TenacityBonus = 58;
+	final Condition = 59;
+	final Texture1 = 60;
+	final Texture2 = 61;
+	final SellablePrice = 62;
+	final PortalUsable = 63;
+	final AccountId = 64;
+	final Tier = 65;
+	final DamageMultiplier = 66;
+	final HitMultiplier = 67;
+	final Glow = 68;
+	final AltTextureIndex = 69;
+	final Guild = 70;
+	final GuildRank = 71;
+	final Texture = 72;
 }
 
 @:structInit class TradeItem {
@@ -563,7 +560,6 @@ class NetworkHandler {
 						var trueDamage = data.readShort();
 						var numShots = data.readUnsignedByte();
 						var angleInc = data.readFloat();
-						
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate,
@@ -753,7 +749,7 @@ class NetworkHandler {
 								lastTickId = tickId;
 								continue;
 							}
-							
+
 							trace('Could not find NewTick GameObject: objId=$objId, x=$x, y=$y');
 							for (j in 0...data.readShort())
 								parseStat(null, data.readUnsignedByte(), data);
@@ -921,7 +917,7 @@ class NetworkHandler {
 								var go = map.getGameObject(targetObjectId);
 								if (go == null)
 									return;
-								
+
 								map.addGameObject(new RingEffect(go, x1, color, 0), go.mapX, go.mapY);
 							case Jitter:
 								Camera.startJitter();
@@ -1122,8 +1118,7 @@ class NetworkHandler {
 						#end
 				}
 			}
-		}
-		catch (e: Exception) {
+		} catch (e: Exception) {
 			Global.gameSprite?.textBox.addText('Socket Read Error: $e', 0xFF0000);
 			trace('Socket Read Error: $e, stack trace: ${e.stack}');
 			disconnect();
@@ -1312,10 +1307,6 @@ class NetworkHandler {
 		#end
 
 		sourceObj.equipment[slotId1] = ItemConstants.NO_ITEM;
-		if (itemId == VialModel.HEALTH_VIAL_ID)
-			player.healthVialCount++;
-		else if (itemId == VialModel.MAGIC_VIAL_ID)
-			player.magicVialCount++;
 
 		SoundEffectLibrary.play("inventory_move_item");
 		return true;
@@ -1330,9 +1321,6 @@ class NetworkHandler {
 		#if log_packets
 		trace(Global.gameSprite.lastUpdate, "InvDrop: objId=" + object.objectId + ", slotId=" + slotId + ", objType=" + objectType);
 		#end
-
-		if (slotId != VialModel.HEALTH_VIAL_SLOT && slotId != VialModel.MAGIC_VIAL_SLOT)
-			object.equipment[slotId] = ItemConstants.NO_ITEM;
 	}
 
 	public static function useItem(time: Int, objectId: Int, slotId: Int, objectType: Int, posX: Float, posY: Float, useType: Int) {
@@ -1781,7 +1769,8 @@ class NetworkHandler {
 					return;
 
 				go.condition = cond;
-			case Inv0 | Inv1 | Inv2 | Inv3 | Inv4 | Inv5 | Inv6 | Inv7 | Inv8 | Inv9 | Inv10 | Inv11:
+			case Inv0 | Inv1 | Inv2 | Inv3 | Inv4 | Inv5 | Inv6 | Inv7 | Inv8 | Inv9 | Inv10 | Inv11 | Inv12 | Inv13 | Inv14 | Inv15 | Inv16 | Inv17 | Inv18 |
+				Inv19 | Inv20 | Inv21:
 				var itemType = data.readUnsignedShort();
 				if (itemType == 65535)
 					itemType = -1;
@@ -1813,129 +1802,115 @@ class NetworkHandler {
 			// return;
 
 			// go.setPrice(merchPrice);
-			case Active:
+			case PortalUsable:
 				var portalActive = data.readBoolean();
 			// if (go == null)
 			// return;
 
 			// go.portalActive = portalActive;
-			case AccId:
+			case AccountId:
 				var accId = data.readInt();
 				if (go == null)
 					return;
 
 				cast(go, Player).accountId = accId;
-			case MerchCurrency:
-				var merchCurrency = data.readUnsignedByte();
-			// if (go == null)
-			// return;
-
-			// go.setCurrency(merchCurrency);
 			case MerchCount:
 				var merchCount = data.readByte();
 			// if (go == null)
 			// return;
 
 			// go.merchCount = merchCount;
-			case MaxHPBoost:
+			case HPBonus:
 				var maxHPBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).maxHPBoost = maxHPBoost;
-			case MaxMPBoost:
+			case MPBonus:
 				var maxMPBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).maxMPBoost = maxMPBoost;
-			case StrengthBoost:
+			case StrengthBonus:
 				var strengthBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).strengthBoost = strengthBoost;
-			case WitBoost:
+			case WitBonus:
 				var witBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).witBoost = witBoost;
-			case DefenseBoost:
+			case DefenseBonus:
 				var defenseBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).defenseBoost = defenseBoost;
-			case ResistanceBoost:
+			case ResistanceBonus:
 				var resBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).resistanceBoost = resBoost;
-			case SpeedBoost:
+			case SpeedBonus:
 				var speedBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).speedBoost = speedBoost;
-			case HasteBoost:
+			case HasteBonus:
 				var hasteBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).hasteBoost = hasteBoost;
-			case StaminaBoost:
+			case StaminaBonus:
 				var staminaBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).staminaBoost = staminaBoost;
-			case IntelligenceBoost:
+			case IntelligenceBonus:
 				var intBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).intelligenceBoost = intBoost;
-			case PiercingBoost:
+			case PiercingBonus:
 				var pierBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).piercingBoost = pierBoost;
-			case PenetrationBoost:
+			case PenetrationBonus:
 				var penBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).penetrationBoost = penBoost;
-			case TenacityBoost:
+			case TenacityBonus:
 				var tenBoost = data.readShort();
 				if (go == null)
 					return;
 
 				cast(go, Player).tenacityBoost = tenBoost;
-			case OwnerAccId:
+			case OwnerAccountId:
 				var ownerId = data.readInt();
 				if (go == null)
 					return;
 
 				go.ownerId = ownerId;
-			case SinkLevel:
-				var sinkLevel = data.readByte() / 10;
-				if (go == null)
-					return;
-
-				var player = cast(go, Player);
-				if (player != Global.gameSprite.map.player)
-					player.sinkLevel = sinkLevel;
-			case AltTexture:
+			case AltTextureIndex:
 				var altTex = data.readUnsignedShort();
 				if (go == null)
 					return;
 
 				go.setAltTexture(altTex);
-			case GuildName:
+			case Guild:
 				var guildName = data.readUTF();
 				if (go == null)
 					return;
@@ -1947,18 +1922,6 @@ class NetworkHandler {
 					return;
 
 				cast(go, Player).guildRank = guildRank;
-			case HealthVialStack:
-				var healthVialCount = data.readUnsignedByte();
-				if (go == null)
-					return;
-
-				cast(go, Player).healthVialCount = healthVialCount;
-			case MagicVialStack:
-				var magicVialCount = data.readUnsignedByte();
-				if (go == null)
-					return;
-
-				cast(go, Player).magicVialCount = magicVialCount;
 			case Texture:
 				var skinId = data.readUnsignedShort();
 				if (go == null)
@@ -1967,15 +1930,6 @@ class NetworkHandler {
 				var player = cast(go, Player);
 				if (player.skinId != skinId)
 					setPlayerSkinTemplate(player, skinId);
-			case HasBackpack:
-				var hasBackpack = data.readBoolean();
-				if (go == null)
-					return;
-
-				var player = cast(go, Player);
-				player.hasBackpack = hasBackpack;
-				//if (player == Global.gameSprite.map.player && player.hasBackpack)
-					//Global.gameSprite.inventory.addBackpackTab(player);
 			case DamageMultiplier:
 				var damageMult = data.readFloat();
 				if (go == null)
@@ -2013,15 +1967,6 @@ class NetworkHandler {
 					return;
 
 				cast(go, Player).crowns = crowns;
-			case Inv12 | Inv13 | Inv14 | Inv15 | Inv16 | Inv17 | Inv18 | Inv19:
-				var index = statType - StatType.Inv12 + GeneralConstants.NUM_EQUIPMENT_SLOTS + GeneralConstants.NUM_INVENTORY_SLOTS;
-				var itemType = data.readUnsignedShort();
-				if (itemType == 65535)
-					itemType = -1;
-				if (go == null)
-					return;
-
-				cast(go, Player).equipment[index] = itemType;
 			default:
 				trace('Unhandled stat: type=${statType}');
 		}

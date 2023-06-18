@@ -1,6 +1,6 @@
 package ui.view;
 
-import ui.panels.itemgrids.ContainerGrid;
+import ui.itemgrids.ContainerGrid;
 import openfl.text.TextFormatAlign;
 import util.TextureRedrawer;
 import util.AssetLibrary;
@@ -9,14 +9,13 @@ import openfl.display.Bitmap;
 import objects.Player;
 import openfl.display.Graphics;
 import openfl.display.Sprite;
-import ui.panels.itemgrids.EquippedGrid;
-import ui.panels.itemgrids.InventoryGrid;
+import ui.itemgrids.EquippedGrid;
+import ui.itemgrids.InventoryGrid;
 import objects.ObjectLibrary;
 
 class Inventory extends Sprite {
 	public var invGrid: InventoryGrid;
 	public var bpGrid: InventoryGrid;
-	public var vialView: VialInventoryView;
 
 	private var decor: Bitmap;
 	private var containerDecor: Bitmap;
@@ -83,15 +82,6 @@ class Inventory extends Sprite {
 		this.bpGrid.x = 9;
 		this.bpGrid.y = 157;
 		addChild(this.bpGrid);
-
-		this.vialView = new VialInventoryView(false);
-		this.vialView.cacheAsBitmap = true;
-		this.vialView.x = 61;
-		this.vialView.y = 260;
-		addChild(this.vialView);
-
-		this.vialView?.leftSlot?.init(player);
-		this.vialView?.rightSlot?.init(player);
 	}
 
 	public inline function draw(player: Player) {
@@ -133,7 +123,5 @@ class Inventory extends Sprite {
 
 		this.equippedGrid?.draw();
 		this.invGrid?.draw();
-		this.vialView?.leftSlot?.draw(player);
-		this.vialView?.rightSlot?.draw(player);
 	}
 }

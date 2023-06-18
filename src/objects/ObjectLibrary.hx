@@ -1,6 +1,5 @@
 package objects;
 
-import constants.GeneralConstants;
 import constants.ItemConstants;
 import haxe.ds.IntMap;
 import haxe.ds.StringMap;
@@ -140,7 +139,7 @@ class ObjectLibrary {
 		if (objectType != ItemConstants.NO_ITEM) {
 			objectXML = xmlLibrary.get(objectType);
 			slotType = Std.parseInt(objectXML.elementsNamed("SlotType").next().firstChild().nodeValue);
-			for (i in 0...GeneralConstants.NUM_EQUIPMENT_SLOTS)
+			for (i in 0...18)
 				if (player.slotTypes[i] == slotType)
 					return i;
 		}

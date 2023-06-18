@@ -10,7 +10,6 @@ import openfl.display.BitmapData;
 import network.NetworkHandler;
 import map.Camera;
 import util.Utils;
-import game.model.VialModel;
 import appengine.RequestHandler;
 import util.AssetLoader;
 import openfl.display.Bitmap;
@@ -57,8 +56,8 @@ class Main extends Sprite {
 		primaryStage3D = stage.stage3Ds[0];
 		primaryStage = stage;
 
-		Settings.load();
 		AssetLoader.load();
+		Settings.load();
 
 		#if !disable_rpc
 		startTime = Std.int(Date.now().getTime() / 1000);
@@ -76,7 +75,6 @@ class Main extends Sprite {
 		NetworkHandler.init();
 		RequestHandler.init();
 		MathUtil.init();
-		VialModel.init();
 
 		Global.init(this);
 

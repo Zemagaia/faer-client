@@ -43,7 +43,7 @@ class Scrollbar extends Sprite {
 		g.endFill();
 	}
 
-	private static function getSprite(downFunction: MouseEvent -> Void) {
+	private static function getSprite(downFunction: MouseEvent->Void) {
 		var sprite: Sprite = new Sprite();
 		sprite.addEventListener(MouseEvent.MOUSE_DOWN, downFunction);
 		sprite.addEventListener(MouseEvent.ROLL_OVER, onRollOver);

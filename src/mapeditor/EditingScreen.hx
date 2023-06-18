@@ -1,9 +1,9 @@
 package mapeditor;
 
+import screens.CharacterSelectionScreen;
 import haxe.ds.Vector;
 import util.Utils.KeyCode;
 import openfl.events.KeyboardEvent;
-import ui.view.TitleView;
 import ui.dialogs.Dialog;
 import ui.TextInputField;
 import haxe.display.Server.ModuleId;
@@ -23,7 +23,6 @@ import haxe.crypto.Base64;
 import util.NativeTypes;
 import haxe.ValueException;
 import ui.dropdown.DropDown;
-import screens.AccountScreen;
 import ui.view.ScreenBase;
 import openfl.display.Sprite;
 import openfl.events.Event;
@@ -73,7 +72,6 @@ class EditingScreen extends Sprite {
 		super();
 
 		addChild(new ScreenBase());
-		addChild(new AccountScreen());
 
 		this.brushSize = new TextInputField("Brush Size", false, "");
 		this.brushSize.inputText.text = "0.5";
@@ -301,11 +299,6 @@ class EditingScreen extends Sprite {
 				this.commandMenu.setCommand(MECommandMenu.DRAW_COMMAND);
 		}
 		this.meMap.draw();
-	}
-
-	private function onEditComplete(event: Event) {
-		var props = cast(event.currentTarget, EditTileProperties);
-		this.addObjectNameCommandList(props.tiles, props.getObjectName());
 	}
 
 	private function addModifyCommandList(tiles: Array<IntPoint>, layer: Int, type: Int) {
@@ -614,6 +607,6 @@ class EditingScreen extends Sprite {
 		this.meMap.invisibleTexture.dispose();
 		this.meMap.replaceTexture.dispose();
 
-		Global.layers.screens.setScreen(new TitleView());
+		Global.layers.screens.setScreen(new CharacterSelectionScreen());
 	}
 }

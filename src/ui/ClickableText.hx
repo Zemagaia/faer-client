@@ -7,12 +7,12 @@ import sound.SoundEffectLibrary;
 
 class ClickableText extends Sprite {
 	public var text: SimpleText;
-	public var defaultColor = 0xFFFFFF;
+	public var defaultColor = 0xB3B3B3;
 
 	public function new(textSize: Int, bold: Bool, text: String) {
 		super();
 
-		this.text = new SimpleText(textSize, 0xFFFFFF, false, 0, 0);
+		this.text = new SimpleText(textSize, 0xB3B3B3, false, 0, 0);
 		this.text.setBold(bold);
 		this.text.text = text;
 		this.text.updateMetrics();
@@ -20,7 +20,7 @@ class ClickableText extends Sprite {
 		this.text.filters = [new DropShadowFilter(0, 0, 0)];
 		// needed for mouse events to register...
 		graphics.clear();
-		graphics.beginFill(0xFFFFFF, 0);
+		graphics.beginFill(0, 0);
 		graphics.drawRect(this.text.x - 4, this.text.y - 4, this.text.width + 8, this.text.height + 8);
 		addEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
 		addEventListener(MouseEvent.MOUSE_OUT, this.onMouseOut);

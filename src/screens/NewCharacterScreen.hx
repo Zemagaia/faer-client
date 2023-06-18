@@ -1,5 +1,6 @@
 package screens;
 
+import ui.ClickableText;
 import game.view.CurrencyDisplay;
 import haxe.ds.IntMap;
 import objects.ObjectLibrary;
@@ -9,7 +10,7 @@ import openfl.events.MouseEvent;
 import ui.view.ScreenBase;
 
 class NewCharacterScreen extends Sprite {
-	private var backButton: TitleMenuOption;
+	private var backButton: ClickableText;
 	private var currencyDisplay: CurrencyDisplay;
 	private var boxes: IntMap<CharacterBox>;
 
@@ -18,7 +19,6 @@ class NewCharacterScreen extends Sprite {
 
 		this.boxes = new IntMap<CharacterBox>();
 		addChild(new ScreenBase());
-		addChild(new AccountScreen());
 
 		addEventListener(Event.ADDED_TO_STAGE, onAdded);
 	}
@@ -31,7 +31,7 @@ class NewCharacterScreen extends Sprite {
 		var characterType: String = null;
 		var charBox: CharacterBox = null;
 
-		this.backButton = new TitleMenuOption("back", 36, false);
+		this.backButton = new ClickableText(36, false, "back");
 		this.backButton.addEventListener(MouseEvent.CLICK, onBackClick);
 		addChild(this.backButton);
 		this.currencyDisplay = new CurrencyDisplay(CurrencyDisplay.RIGHT_TO_LEFT);

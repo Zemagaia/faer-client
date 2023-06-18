@@ -1,5 +1,6 @@
 package classes.view;
 
+import ui.ClickableText;
 import appengine.SavedCharacter;
 import util.Settings;
 import game.model.GameInitData;
@@ -8,14 +9,12 @@ import openfl.display.Shape;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.MouseEvent;
-import screens.AccountScreen;
 import screens.NewCharacterScreen;
-import screens.TitleMenuOption;
 import ui.view.ScreenBase;
 
 class CharSkinView extends Sprite {
-	private var playBtn: TitleMenuOption;
-	private var backBtn: TitleMenuOption;
+	private var playBtn: ClickableText;
+	private var backBtn: ClickableText;
 	private static var playerXML: Xml;
 
 	public function new(_playerXML: Xml) {
@@ -24,7 +23,6 @@ class CharSkinView extends Sprite {
 		playerXML = _playerXML;
 
 		addChild(new ScreenBase());
-		addChild(new AccountScreen());
 
 		var shape: Shape = new Shape();
 		shape.graphics.clear();
@@ -40,7 +38,7 @@ class CharSkinView extends Sprite {
 		display.y = 25;
 		addChild(display);
 
-		this.playBtn = new TitleMenuOption("play", 36, false);
+		this.playBtn = new ClickableText(36, false, "play");
 		this.playBtn.x = 400 - this.playBtn.width / 2;
 		this.playBtn.y = 520;
 		addChild(this.playBtn);
@@ -49,16 +47,11 @@ class CharSkinView extends Sprite {
 		if (hasSlot)
 			this.playBtn.addEventListener(MouseEvent.CLICK, onPlay);
 
-		this.backBtn = new TitleMenuOption("back", 22, false);
+		this.backBtn = new ClickableText(22, false, "back");
 		this.backBtn.x = 30;
 		this.backBtn.y = 534;
 		addChild(this.backBtn);
 		this.backBtn.addEventListener(MouseEvent.CLICK, onBack);
-
-		var skinView: CharSkinListView = new CharSkinListView();
-		skinView.x = 351;
-		skinView.y = 110;
-		addChild(skinView);
 
 		var classView: ClassDetailView = new ClassDetailView();
 		classView.x = 5;
@@ -75,8 +68,7 @@ class CharSkinView extends Sprite {
 
 	private function onRemoved(_: Event) {
 		removeEventListener(Event.REMOVED_FROM_STAGE, onRemoved);
-		if (this.playBtn.active)
-			this.playBtn.removeEventListener(MouseEvent.CLICK, onPlay);
+		this.playBtn.removeEventListener(MouseEvent.CLICK, onPlay);
 		this.backBtn.removeEventListener(MouseEvent.CLICK, onBack);
 	}
 
@@ -94,7 +86,6 @@ class CharSkinView extends Sprite {
 	}
 
 	public function setPlayButtonEnabled(activate: Bool) {
-		if (!activate)
-			this.playBtn.deactivate();
+		
 	}
 }

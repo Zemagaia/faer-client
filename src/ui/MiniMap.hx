@@ -19,9 +19,7 @@ import openfl.geom.Matrix;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import ui.IconButton;
-import ui.menu.PlayerGroupMenu;
 import ui.options.Options;
-import ui.tooltip.PlayerGroupToolTip;
 import util.AssetLibrary;
 import util.Utils;
 import util.PointUtil;
@@ -50,8 +48,6 @@ class MiniMap extends Sprite {
 	private var zoomButtons: MiniMapZoomButtons;
 	private var decor: Bitmap;
 	private var isMouseOver = false;
-	private var tooltip: PlayerGroupToolTip = null;
-	private var menu: PlayerGroupMenu = null;
 	private var mapMatrix: Matrix;
 	private var arrowMatrix: Matrix;
 	private var players: Array<Player>;
@@ -136,18 +132,6 @@ class MiniMap extends Sprite {
 		if (this.decor != null) {
 			this.decor.bitmapData?.dispose();
 			this.decor = null;
-		}
-
-		if (this.tooltip != null) {
-			if (this.tooltip.parent != null)
-				this.tooltip.parent.removeChild(this.tooltip);
-			this.tooltip = null;
-		}
-
-		if (this.menu != null) {
-			if (this.menu.parent != null)
-				this.menu.parent.removeChild(this.menu);
-			this.menu = null;
 		}
 
 		if (this.zoomButtons != null)
@@ -267,7 +251,7 @@ class MiniMap extends Sprite {
 						mmy = this.tempPoint.y;
 					}
 
-					if (this.isMouseOver && (this.menu == null || this.menu.parent == null)) {
+					if (this.isMouseOver) {
 						dx = mX - mmx;
 						dy = mY - mmy;
 						distSq = dx * dx + dy * dy;
@@ -296,18 +280,6 @@ class MiniMap extends Sprite {
 				g.drawRect(mmx - 2, mmy - 2, 4, 4);
 				g.endFill();
 			}
-		}
-
-		if (this.players.length != 0) {
-			if (this.tooltip == null) {
-				this.tooltip = new PlayerGroupToolTip(this.players);
-				stage.addChild(this.tooltip);
-			} else if (!areSamePlayers(this.tooltip.players, this.players))
-				this.tooltip.setPlayers(this.players);
-		} else if (this.tooltip != null) {
-			if (this.tooltip.parent != null)
-				this.tooltip.parent.removeChild(this.tooltip);
-			this.tooltip = null;
 		}
 
 		var px = focus.mapX, py = focus.mapY;
@@ -393,18 +365,11 @@ class MiniMap extends Sprite {
 	private function addMouseListeners() {
 		addEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
 		addEventListener(MouseEvent.MOUSE_OUT, this.onMouseOut);
-		addEventListener(MouseEvent.CLICK, this.onMapClick);
+		// addEventListener(MouseEvent.CLICK, this.onMapClick);
 	}
 
 	private function onZoomChanged(zoomLevel: Int) {
 		this.zoomIndex = zoomLevel;
-	}
-
-	private function addMenu() {
-		this.menu = new PlayerGroupMenu(this.map, this.tooltip.players);
-		this.menu.x = this.tooltip.x + 12;
-		this.menu.y = this.tooltip.y;
-		stage.addChild(this.menu);
 	}
 
 	private function onHubClick(event: MouseEvent) {
@@ -425,24 +390,5 @@ class MiniMap extends Sprite {
 
 	private function onMouseOut(event: MouseEvent) {
 		this.isMouseOver = false;
-	}
-
-	private function onMapClick(event: MouseEvent) {
-		if (this.tooltip == null || this.tooltip.parent == null || this.tooltip.players == null || this.tooltip.players.length == 0)
-			return;
-
-		if (this.menu != null) {
-			if (this.menu.parent != null)
-				this.menu.parent.removeChild(this.menu);
-			this.menu = null;
-		}
-
-		this.addMenu();
-
-		if (this.tooltip != null) {
-			if (this.tooltip.parent != null)
-				this.tooltip.parent.removeChild(this.tooltip);
-			this.tooltip = null;
-		}
 	}
 }

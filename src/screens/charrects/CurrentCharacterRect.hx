@@ -11,9 +11,7 @@ import openfl.events.Event;
 import openfl.events.MouseEvent;
 import openfl.filters.DropShadowFilter;
 import screens.events.DeleteCharacterEvent;
-import ui.DeleteXGraphic;
 import ui.SimpleText;
-import ui.tooltip.MyPlayerToolTip;
 import ui.tooltip.ToolTip;
 
 class CurrentCharacterRect extends CharacterRect {
@@ -52,13 +50,6 @@ class CurrentCharacterRect extends CharacterRect {
 		this.selectContainer.addChild(this.classNameText);
 		this.selectContainer.addEventListener(MouseEvent.CLICK, this.onSelected);
 
-		this.deleteButton = new DeleteXGraphic();
-		this.deleteButton.addEventListener(MouseEvent.MOUSE_DOWN, this.onDeleteDown);
-		this.deleteButton.x = CharacterRect.WIDTH - 40;
-		this.deleteButton.y = (CharacterRect.HEIGHT - this.deleteButton.height) * 0.5;
-		addChild(this.deleteButton);
-		this.deleteButton.addEventListener(MouseEvent.CLICK, this.onDeleteCharacter);
-
 		addEventListener(Event.ADDED_TO_STAGE, onAdded);
 	}
 
@@ -71,7 +62,7 @@ class CurrentCharacterRect extends CharacterRect {
 		removeEventListener(Event.REMOVED_FROM_STAGE, onRemoved);
 
 		this.selectContainer.removeEventListener(MouseEvent.CLICK, this.onSelected);
-		this.deleteButton.removeEventListener(MouseEvent.CLICK, this.onDeleteCharacter);
+		//this.deleteButton.removeEventListener(MouseEvent.CLICK, this.onDeleteCharacter);
 
 		removeToolTip();
 	}
@@ -105,8 +96,6 @@ class CurrentCharacterRect extends CharacterRect {
 	override public function onMouseOver(event: MouseEvent) {
 		super.onMouseOver(event);
 		removeToolTip();
-		toolTip = new MyPlayerToolTip(this.charName, this.savedChar.charXML);
-		stage.addChild(toolTip);
 	}
 
 	override public function onRollOut(event: MouseEvent) {

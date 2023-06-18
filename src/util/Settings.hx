@@ -1,5 +1,7 @@
 package util;
 
+import sound.SoundEffectLibrary;
+import sound.Music;
 import util.Utils.KeyCode;
 import util.NativeTypes;
 import sys.FileSystem;
@@ -27,6 +29,7 @@ class Settings {
 	public static inline var MAPTEST_GAMEID = -6;
 	public static inline var TERMS_OF_USE_URL = "https://to.do/tos";
 	public static inline var PRIVACY_POLICY_URL = "https://to.do/privacy";
+	public static inline var SETTINGS_VERSION: UInt8 = 0;
 
 	public static var moveLeft = KeyCode.A;
 	public static var moveRight = KeyCode.D;
@@ -37,14 +40,6 @@ class Settings {
 	public static var shoot = KeyCode.Mouse1;
 	public static var useAbility = KeyCode.Mouse2;
 	public static var interact = KeyCode.R;
-	public static var inv1 = KeyCode.Number1;
-	public static var inv2 = KeyCode.Number2;
-	public static var inv3 = KeyCode.Number3;
-	public static var inv4 = KeyCode.Number4;
-	public static var inv5 = KeyCode.Number5;
-	public static var inv6 = KeyCode.Number6;
-	public static var inv7 = KeyCode.Number7;
-	public static var inv8 = KeyCode.Number8;
 	public static var goToHub = KeyCode.Tab;
 	public static var chatUp = KeyCode.PageUp;
 	public static var chatDown = KeyCode.PageDown;
@@ -56,8 +51,6 @@ class Settings {
 	public static var chatCmd = KeyCode.Slash;
 	public static var respond = KeyCode.F2;
 	public static var guildChat = KeyCode.G;
-	public static var healthVial = KeyCode.F;
-	public static var magicVial = KeyCode.V;
 	public static var switchTabs = KeyCode.B;
 	public static var walk = KeyCode.Shift;
 	public static var playMusic = true;
@@ -69,6 +62,7 @@ class Settings {
 	public static var cameraAngle: Float32 = 0.0;
 	public static var selectedCursor: Int8 = 3;
 	public static var glowType: GlowType = GlowType.High;
+	public static var savedEmail = "";
 
 	public static var messagesSent = new Array<String>();
 
@@ -76,6 +70,16 @@ class Settings {
 		try {
 			if (FileSystem.exists("settings")) {
 				var o = File.read("settings");
+				var ver = o.readByte();
+				if (ver != SETTINGS_VERSION) {
+					trace("Invalid settings version. Loading default");
+					o.close();
+
+					setDefaults();
+					save();
+					load();
+					return;
+				}
 				moveLeft = o.readByte();
 				moveRight = o.readByte();
 				moveUp = o.readByte();
@@ -85,14 +89,6 @@ class Settings {
 				shoot = o.readByte();
 				useAbility = o.readByte();
 				interact = o.readByte();
-				inv1 = o.readByte();
-				inv2 = o.readByte();
-				inv3 = o.readByte();
-				inv4 = o.readByte();
-				inv5 = o.readByte();
-				inv6 = o.readByte();
-				inv7 = o.readByte();
-				inv8 = o.readByte();
 				goToHub = o.readByte();
 				chatUp = o.readByte();
 				chatDown = o.readByte();
@@ -104,8 +100,6 @@ class Settings {
 				chatCmd = o.readByte();
 				respond = o.readByte();
 				guildChat = o.readByte();
-				healthVial = o.readByte();
-				magicVial = o.readByte();
 				switchTabs = o.readByte();
 				walk = o.readByte();
 				playMusic = o.readByte() == 1 ? true : false;
@@ -117,16 +111,21 @@ class Settings {
 				cameraAngle = o.readFloat();
 				selectedCursor = o.readByte();
 				glowType = o.readByte();
+				savedEmail = o.readString(o.readUInt16());
 				o.close();
 			}
 		} catch (e) {
 			trace('Settings load failed $e');
 		}
+
+		Music.setPlayMusic(Settings.playMusic);
+		SoundEffectLibrary.setPlaySFX(Settings.playSfx);
 	}
 
 	public static function save() {
 		try {
 			var w = File.write("settings");
+			w.writeByte(SETTINGS_VERSION);
 			w.writeByte(moveLeft);
 			w.writeByte(moveRight);
 			w.writeByte(moveUp);
@@ -136,14 +135,6 @@ class Settings {
 			w.writeByte(shoot);
 			w.writeByte(useAbility);
 			w.writeByte(interact);
-			w.writeByte(inv1);
-			w.writeByte(inv2);
-			w.writeByte(inv3);
-			w.writeByte(inv4);
-			w.writeByte(inv5);
-			w.writeByte(inv6);
-			w.writeByte(inv7);
-			w.writeByte(inv8);
 			w.writeByte(goToHub);
 			w.writeByte(chatUp);
 			w.writeByte(chatDown);
@@ -155,8 +146,6 @@ class Settings {
 			w.writeByte(chatCmd);
 			w.writeByte(respond);
 			w.writeByte(guildChat);
-			w.writeByte(healthVial);
-			w.writeByte(magicVial);
 			w.writeByte(switchTabs);
 			w.writeByte(walk);
 			w.writeByte(playMusic == true ? 1 : 0);
@@ -169,6 +158,8 @@ class Settings {
 			w.writeFloat(cameraAngle);
 			w.writeByte(selectedCursor);
 			w.writeByte(glowType);
+			w.writeUInt16(savedEmail.length);
+			w.writeString(savedEmail);
 			w.close();
 		} catch (e) {
 			trace('Settings save failed: $e');
@@ -185,14 +176,6 @@ class Settings {
 		shoot = KeyCode.Mouse1;
 		useAbility = KeyCode.Mouse2;
 		interact = KeyCode.R;
-		inv1 = KeyCode.Number1;
-		inv2 = KeyCode.Number2;
-		inv3 = KeyCode.Number3;
-		inv4 = KeyCode.Number4;
-		inv5 = KeyCode.Number5;
-		inv6 = KeyCode.Number6;
-		inv7 = KeyCode.Number7;
-		inv8 = KeyCode.Number8;
 		goToHub = KeyCode.Tab;
 		chatUp = KeyCode.PageUp;
 		chatDown = KeyCode.PageDown;
@@ -204,8 +187,6 @@ class Settings {
 		chatCmd = KeyCode.Slash;
 		respond = KeyCode.F2;
 		guildChat = KeyCode.G;
-		healthVial = KeyCode.F;
-		magicVial = KeyCode.V;
 		switchTabs = KeyCode.B;
 		walk = KeyCode.Shift;
 		playMusic = true;
@@ -217,6 +198,7 @@ class Settings {
 		textBubbles = true;
 		selectedCursor = 3;
 		glowType = GlowType.None;
+		// e-mail is intentionally missing from here
 
 		Main.refreshCursor();
 	}

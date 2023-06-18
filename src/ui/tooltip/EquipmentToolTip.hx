@@ -10,7 +10,7 @@ import ui.LineBreakDesign;
 import ui.SimpleText;
 import util.BitmapUtil;
 import util.Utils;
-import util.Utils;
+import constants.ItemConstants;
 
 using util.Utils;
 
@@ -93,6 +93,49 @@ class EquipmentToolTip extends ToolTip {
 		}
 	}
 
+	public static function slotTypeToName(itemType: Int) {
+		switch (itemType) {
+			case ItemConstants.ACCESSORY_TYPE:
+				return "Ring";
+			case ItemConstants.CONSUMABLE_TYPE:
+				return "Consumable";
+
+			case ItemConstants.SWORD_TYPE:
+				return "Sword";
+			case ItemConstants.BOW_TYPE:
+				return "Bow";
+			case ItemConstants.STAFF_TYPE:
+				return "Staff";
+			case ItemConstants.SCEPTER_TYPE:
+				return "Scepter";
+
+			case ItemConstants.VEST_TYPE:
+				return "Vest";
+			case ItemConstants.HIDE_TYPE:
+				return "Hide";
+			case ItemConstants.ROBE_TYPE:
+				return "Robe";
+
+			case ItemConstants.FLASK_TYPE:
+				return "Flask";
+			case ItemConstants.BLOODSTONE_TYPE:
+				return "Bloodstone";
+			case ItemConstants.TOTEM_TYPE:
+				return "Totem";
+			case ItemConstants.HELM_TYPE:
+				return "Helm";
+			case ItemConstants.BULWARK_TYPE:
+				return "Bulwark";
+			case ItemConstants.CLOCK_TYPE:
+				return "Clock";
+			case ItemConstants.CAGE_TYPE:
+				return "Cage";
+
+			default:
+				return "Unknown";
+		}
+	}
+
 	public function new(objectType: Int, player: Player, invType: Int, inventoryOwnerType: String, inventorySlotID: Int = 1) {
 		this.player = player;
 		this.playerCanUse = player != null ? ObjectLibrary.isUsableByPlayer(objectType, player) : false;
@@ -134,7 +177,7 @@ class EquipmentToolTip extends ToolTip {
 		else
 			this.tierText.text = "Common";
 
-		this.tierText.text += " " + Slot.slotTypeToName(this.objectXML.intElement("SlotType"));
+		this.tierText.text += " " + slotTypeToName(this.objectXML.intElement("SlotType"));
 		if (this.tierText.text.indexOf("Tier") == -1 && this.objectXML.elementExists("TierReq"))
 			tierText.text += " (Tier " + StringUtils.toRoman(this.objectXML.intElement("TierReq")) + ")";
 		this.tierText.updateMetrics();

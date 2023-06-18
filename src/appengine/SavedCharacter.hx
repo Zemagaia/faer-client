@@ -1,11 +1,12 @@
 package appengine;
 
+import openfl.geom.Rectangle;
+import util.BinPacker.Rect;
 import objects.ObjectLibrary;
 import openfl.display.BitmapData;
 import openfl.geom.ColorTransform;
 import util.AnimatedChar;
 import util.AnimatedChars;
-import util.CachingColorTransformer;
 import util.GlowRedrawer;
 import util.MaskedImage;
 import util.TextureRedrawer;
@@ -24,9 +25,9 @@ class SavedCharacter {
 		var image: MaskedImage = animatedChar.imageFromDir(dir, action, p);
 		var bd: BitmapData = GlowRedrawer.outlineGlow(TextureRedrawer.resize(image.image, 100, false), 0);
 		if (!available)
-			bd = CachingColorTransformer.transformBitmapData(bd, notAvailableCT);
+			bd.colorTransform(new Rectangle(0, 0, bd.width, bd.height), notAvailableCT);
 		else if (!selected)
-			bd = CachingColorTransformer.transformBitmapData(bd, dimCT);
+			bd.colorTransform(new Rectangle(0, 0, bd.width, bd.height), dimCT);
 
 		return bd;
 	}

@@ -1,5 +1,10 @@
 package ui.dialogs;
 
+import openfl.display.BitmapData;
+import util.NativeTypes.Float32;
+import openfl.geom.Rectangle;
+import openfl.Assets;
+import openfl.display.Bitmap;
 import openfl.display.CapsStyle;
 import openfl.display.Graphics;
 import openfl.display.GraphicsPath;
@@ -25,42 +30,68 @@ class Dialog extends Sprite {
 	private static inline var WIDTH: Int = 300;
 
 	public var box: Sprite;
-	public var rect: Shape;
 	public var textText: SimpleText;
 	public var titleText: SimpleText = null;
 	public var button1: TextButton = null;
 	public var button2: TextButton = null;
 	public var offsetX = 0.0;
 	public var offsetY = 0.0;
+	public var decorContainer: Shape;
+	public var closeButton: Bitmap;
+	public var closeButtonContainer: Sprite;
 
-	private var path: GraphicsPath = new GraphicsPath();
-	private var outlineFill: GraphicsSolidFill = new GraphicsSolidFill(0xFFFFFF, 1);
-	private var lineStyle: GraphicsStroke;
-	private var backgroundFill: GraphicsSolidFill = new GraphicsSolidFill(0x363636, 1);
-	private var graphicsData: Vector<IGraphicsData>;
+	private var closeTexBase: BitmapData;
+	private var closeTexHovered: BitmapData;
 
 	public function new(text: String, title: String, button1: String = null, button2: String = null) {
 		super();
 
-		this.lineStyle = new GraphicsStroke(1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.ROUND, 3, outlineFill);
-		this.graphicsData = new Vector<IGraphicsData>(0, false, [lineStyle, backgroundFill, path, GraphicsUtil.END_FILL, GraphicsUtil.END_STROKE]);
+		var decor = Assets.getBitmapData("assets/ui/tooltips/tooltipFrame.png");
+		this.decorContainer = new Shape();
+		this.decorContainer.graphics.beginBitmapFill(decor);
+		this.decorContainer.graphics.drawRect(0, 0, decor.width, decor.height);
+		this.decorContainer.graphics.endFill();
+		this.decorContainer.scale9Grid = new Rectangle(6, 6, 36, 36);
+
+		this.closeTexBase = Assets.getBitmapData("assets/ui/elements/xButton.png");
+		this.closeTexHovered = Assets.getBitmapData("assets/ui/elements/xButtonHighlight.png");
+		this.closeButtonContainer = new Sprite();
+		this.closeButton = new Bitmap(this.closeTexBase);
+		this.closeButton.x = WIDTH - this.closeButton.width - 10;
+		this.closeButton.y = 10;
+		this.closeButton.scaleX = this.closeButton.scaleY = 0.75;
+		this.closeButtonContainer.addChild(this.closeButton);
+		this.closeButtonContainer.addEventListener(MouseEvent.CLICK, this.onCloseClick);
+		this.closeButtonContainer.addEventListener(MouseEvent.ROLL_OVER, this.onRollOver);
+		this.closeButtonContainer.addEventListener(MouseEvent.ROLL_OUT, this.onRollOut);
+
 		this.box = new Sprite();
 		this.initText(text);
 		this.initTitleText(title);
 		if (button1 != null) {
-			this.button1 = new TextButton(16, button1, 120);
+			this.button1 = new TextButton(16, button1);
 			this.button1.addEventListener(MouseEvent.CLICK, this.onButton1Click);
 		}
+
 		if (button2 != null) {
-			this.button2 = new TextButton(16, button2, 120);
+			this.button2 = new TextButton(16, button2);
 			this.button2.addEventListener(MouseEvent.CLICK, this.onButton2Click);
 		}
+
 		this.draw();
 		addEventListener(Event.ADDED_TO_STAGE, this.onAddedToStage);
 	}
 
-	public function setBaseAlpha(value: Float) {
-		this.rect.alpha = value > 1 ? 1 : value < 0 ? 0 : value;
+	private function onCloseClick(_: MouseEvent) {
+		Global.layers.dialogs.closeDialogs();
+	}
+
+	private function onRollOver(_: MouseEvent) {
+		this.closeButton.bitmapData = this.closeTexHovered;
+	}
+
+	private function onRollOut(_: MouseEvent) {
+		this.closeButton.bitmapData = this.closeTexBase;
 	}
 
 	public function initText(text: String) {
@@ -76,17 +107,17 @@ class Dialog extends Sprite {
 	}
 
 	public function draw() {
-		var by = 0;
 		if (this.titleText != null) {
-			this.titleText.y = 2;
+			this.titleText.y = 10;
 			this.box.addChild(this.titleText);
-			this.textText.y = this.box.height + 8;
-		} else {
-			this.textText.y = 4;
-		}
+			this.textText.y = this.box.height + 10;
+		} else
+			this.textText.y = 10;
+
 		this.box.addChild(this.textText);
+
 		if (this.button1 != null) {
-			by = Std.int(this.box.height + 16);
+			var by = Std.int(this.box.height + 16);
 			this.box.addChild(this.button1);
 			this.button1.y = by;
 			if (this.button2 == null) {
@@ -98,12 +129,13 @@ class Dialog extends Sprite {
 				this.button2.y = by;
 			}
 		}
-		GraphicsUtil.clearPath(this.path);
-		GraphicsUtil.drawCutEdgeRect(0, 0, WIDTH, Std.int(this.box.height + 10), 4, [1, 1, 1, 1], this.path);
-		this.rect = new Shape();
-		var g: Graphics = this.rect.graphics;
-		g.drawGraphicsData(this.graphicsData);
-		this.box.addChildAt(this.rect, 0);
+
+		this.decorContainer.width = WIDTH;
+		this.decorContainer.height = this.box.height + 10;
+		this.box.addChildAt(this.decorContainer, 0);
+
+		this.box.addChild(this.closeButtonContainer);
+
 		this.box.filters = [new DropShadowFilter(0, 0, 0, 1, 16, 16, 1)];
 		addChild(this.box);
 	}

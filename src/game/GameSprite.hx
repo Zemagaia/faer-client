@@ -23,7 +23,6 @@ import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.filters.DropShadowFilter;
 import servers.Server;
-import ui.GuildText;
 import ui.SimpleText;
 import ui.TextBox;
 import ui.view.CharacterDetailsView;
@@ -40,7 +39,6 @@ class GameSprite extends Sprite {
 	public var miniMap: MiniMap;
 	public var characterDetails: CharacterDetailsView;
 	public var inventory: Inventory;
-	public var guildText: GuildText;
 	public var currencyDisplay: CurrencyDisplay;
 	public var lastUpdate: Int32 = 0;
 	public var lastFixedUpdate: Int32 = 0;
@@ -108,7 +106,7 @@ class GameSprite extends Sprite {
 		this.statsView.updateMetrics();
 		this.statsView.x = 510;
 		this.statsView.y = 35;
-		// addChild(this.statsView);
+		addChild(this.statsView);
 	}
 
 	public function updateStats(time: Int32) {
@@ -142,30 +140,24 @@ class GameSprite extends Sprite {
 		this.miniMap = new MiniMap(200, 200);
 		this.miniMap.x = Main.stageWidth - 120;
 		this.miniMap.y = 100;
-		// addChild(this.miniMap);
+		addChild(this.miniMap);
 
-		this.characterDetails = new CharacterDetailsView();
+		/*this.characterDetails = new CharacterDetailsView();
 		this.characterDetails.cacheAsBitmap = true;
 		this.characterDetails.x = this.characterDetails.y = 20;
-		// addChild(this.characterDetails);
+		addChild(this.characterDetails);*/
 
 		this.inventory = new Inventory();
 		this.inventory.cacheAsBitmap = true;
 		this.inventory.x = Main.stageWidth - 220;
 		this.inventory.y = Main.stageHeight - 320;
-		// addChild(this.inventory);
+		addChild(this.inventory);
 
 		this.currencyDisplay = new CurrencyDisplay(CurrencyDisplay.LEFT_TO_RIGHT, this);
 		this.currencyDisplay.cacheAsBitmap = true;
 		this.currencyDisplay.x = 300;
 		this.currencyDisplay.y = 90;
-		// addChild(this.currencyDisplay);
-
-		this.guildText = new GuildText("", -1);
-		this.guildText.cacheAsBitmap = true;
-		this.guildText.x = 64;
-		this.guildText.y = 6;
-		// addChild(this.guildText);
+		addChild(this.currencyDisplay);
 
 		this.addStatsView();
 		this.lastFrameUpdate = System.getTimer();
@@ -222,9 +214,7 @@ class GameSprite extends Sprite {
 			var playerX = this.map.player.mapX;
 			var playerY = this.map.player.mapY;
 			for (go in this.map.gameObjects)
-				if (go?.props != null
-					&& (go.objClass == "Portal" || go.objClass == "Container")
-					&& (Math.abs(playerX - go.mapX) < 1 || Math.abs(playerY - go.mapY) < 1)) {
+				if (go?.props != null && (go.objClass == "Portal" || go.objClass == "Container") && (Math.abs(playerX - go.mapX) < 1 || Math.abs(playerY - go.mapY) < 1)) {
 					var dist = PointUtil.distanceXY(go.mapX, go.mapY, playerX, playerY);
 					if (dist < minDist) {
 						minDist = dist;
@@ -261,9 +251,6 @@ class GameSprite extends Sprite {
 				this.inventory.draw(player);
 				this.characterDetails.draw(player);
 				this.currencyDisplay.draw(player.gems, player.gold, player.crowns);
-				if (this.map.showDisplays)
-					this.guildText.draw(player.guildName, player.guildRank);
-
 				this.moveRecords.addRecord(time, player.mapX, player.mapY);
 			}
 

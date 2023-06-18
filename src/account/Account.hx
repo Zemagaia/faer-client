@@ -1,6 +1,6 @@
 package account;
 
-import sys.io.File;
+import util.Settings;
 
 class Account {
 	public static var userName = "";
@@ -12,9 +12,8 @@ class Account {
 		email = newEmail;
 		password = newPassword;
 
-		var w = File.write("login");
-		w.writeString('name=>$userName\nemail=>$email\npassword=>$password');
-		w.close();
+		Settings.savedEmail = newEmail;
+		Settings.save();
 	}
 
 	public static function clear() {
