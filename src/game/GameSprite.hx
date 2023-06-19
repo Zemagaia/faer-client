@@ -25,7 +25,6 @@ import openfl.filters.DropShadowFilter;
 import servers.Server;
 import ui.SimpleText;
 import ui.TextBox;
-import ui.view.CharacterDetailsView;
 import ui.view.Inventory;
 import util.PointUtil;
 import openfl.utils.ByteArray;
@@ -37,7 +36,6 @@ class GameSprite extends Sprite {
 	public var inputHandler: InputHandler;
 	public var textBox: TextBox;
 	public var miniMap: MiniMap;
-	public var characterDetails: CharacterDetailsView;
 	public var inventory: Inventory;
 	public var currencyDisplay: CurrencyDisplay;
 	public var lastUpdate: Int32 = 0;
@@ -142,11 +140,6 @@ class GameSprite extends Sprite {
 		this.miniMap.y = 100;
 		addChild(this.miniMap);
 
-		/*this.characterDetails = new CharacterDetailsView();
-		this.characterDetails.cacheAsBitmap = true;
-		this.characterDetails.x = this.characterDetails.y = 20;
-		addChild(this.characterDetails);*/
-
 		this.inventory = new Inventory();
 		this.inventory.cacheAsBitmap = true;
 		this.inventory.x = Main.stageWidth - 220;
@@ -228,7 +221,6 @@ class GameSprite extends Sprite {
 			if (player != null) {
 				if (!this.uiInited) {
 					this.inventory.init(player);
-					this.characterDetails.init(player);
 					#if !disable_rpc
 					if (Main.rpcReady) {
 						final className = player.props.displayId;
@@ -249,7 +241,6 @@ class GameSprite extends Sprite {
 
 				this.miniMap.draw();
 				this.inventory.draw(player);
-				this.characterDetails.draw(player);
 				this.currencyDisplay.draw(player.gems, player.gold, player.crowns);
 				this.moveRecords.addRecord(time, player.mapX, player.mapY);
 			}

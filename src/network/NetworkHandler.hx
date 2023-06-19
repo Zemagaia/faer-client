@@ -167,7 +167,7 @@ enum abstract StatType(UInt8) from UInt8 to UInt8 {
 	final Inv19 = 22;
 	final Inv20 = 23;
 	final Inv21 = 24;
-	final Name = 24;
+	final Name = 25;
 	final MerchType = 26;
 	final MerchPrice = 27;
 	final MerchCount = 28;
