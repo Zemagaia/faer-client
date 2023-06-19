@@ -1,5 +1,6 @@
 package screens;
 
+import mapeditor.EditingScreen;
 import assets.IconFactory;
 import openfl.display.BitmapData;
 import screens.charrects.CharacterRectList;
@@ -28,6 +29,7 @@ class CharacterSelectionScreen extends Sprite {
 	private var selectTextBackground: Sprite;
 	private var selectText: SimpleText;
 	private var characterRectList: CharacterRectList;
+	private var editorButton: TextButton;
 	private var pageDecor: Bitmap;
 	private var pageText: SimpleText;
 	private var currentPage = 1;
@@ -122,6 +124,14 @@ class CharacterSelectionScreen extends Sprite {
 		this.characterRectList.x = (Main.stageWidth - 1000) / 2;
 		this.characterRectList.y = 80;
 		addChild(this.characterRectList);
+
+		if (Global.playerModel.isAdmin()) {
+			this.editorButton = new TextButton(22, "Editor");
+			this.editorButton.addEventListener(MouseEvent.CLICK, this.onEditorClicked);
+			this.editorButton.x = this.characterRectList.x + this.characterRectList.width - this.editorButton.width;
+			this.editorButton.y = 425;
+			addChild(this.editorButton);
+		}	
 
 		this.goldDecor = new Bitmap(Assets.getBitmapData("assets/ui/screens/charSelect/currencyAndGuildViewer.png"));
 		this.goldDecor.x = this.characterRectList.x;
@@ -291,6 +301,10 @@ class CharacterSelectionScreen extends Sprite {
 	private function onLogOutClicked(_: MouseEvent) {
 		Account.clear();
 		Global.layers.screens.setScreen(new LoginView());
+	}
+
+	private function onEditorClicked(_: MouseEvent) {
+		Global.layers.screens.setScreen(new EditingScreen());
 	}
 
 	private function onLeftPageMouseDown(_: MouseEvent) {
