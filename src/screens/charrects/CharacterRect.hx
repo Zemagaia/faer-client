@@ -1,54 +1,74 @@
 package screens.charrects;
 
-import openfl.display.Graphics;
-import openfl.display.Shape;
+import openfl.Assets;
+import openfl.display.BitmapData;
+import openfl.display.Bitmap;
 import openfl.display.Sprite;
 import openfl.events.MouseEvent;
 
 class CharacterRect extends Sprite {
-	public static inline var WIDTH = 384;
-	public static inline var HEIGHT = 59;
-
 	public var selectContainer: Sprite;
 
-	private var color = 0;
-	private var overColor = 0;
-	private var box: Shape;
+	private var baseTex: BitmapData;
+	private var hoverTex: BitmapData;
+	private var pressedTex: BitmapData;
+	
+	private var decor: Bitmap;
 
-	public function new(color: Int, overColor: Int) {
+	private var hovering = false;
+	private var pressed = false;
+
+	public function new(boxType: String = "") {
 		super();
 
-		this.color = color;
-		this.overColor = overColor;
-		this.box = new Shape();
-		this.drawBox(false);
-		addChild(this.box);
-		addEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
-		addEventListener(MouseEvent.ROLL_OUT, this.onRollOut);
-	}
+		this.baseTex = Assets.getBitmapData('assets/ui/screens/charSelect/characterBox$boxType.png');
+		this.hoverTex = Assets.getBitmapData('assets/ui/screens/charSelect/characterBox${boxType}Hover.png');
+		this.pressedTex = Assets.getBitmapData('assets/ui/screens/charSelect/characterBox${boxType}Press.png');
 
-	public function makeContainer() {
+		this.decor = new Bitmap(this.baseTex);
+		addChild(this.decor);
+
+		// for mouse events
 		this.selectContainer = new Sprite();
-		this.selectContainer.mouseChildren = false;
-		this.selectContainer.buttonMode = true;
-		this.selectContainer.graphics.beginFill(0xFF00FF, 0);
-		this.selectContainer.graphics.drawRect(0, 0, WIDTH, HEIGHT);
+		this.selectContainer.graphics.beginFill(0, 0);
+		this.selectContainer.graphics.drawRect(0, 0, width, height);
 		addChild(this.selectContainer);
+
+		addEventListener(MouseEvent.ROLL_OVER, this.onRollOver);
+		addEventListener(MouseEvent.ROLL_OUT, this.onRollOut);
+		addEventListener(MouseEvent.MOUSE_DOWN, this.onClick);
+		addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, this.onClick);
+		addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, this.onClick);
+		addEventListener(MouseEvent.MOUSE_UP, this.onMouseUp);
+		addEventListener(MouseEvent.MIDDLE_MOUSE_UP, this.onMouseUp);
+		addEventListener(MouseEvent.RIGHT_MOUSE_UP, this.onMouseUp);
 	}
 
-	private function drawBox(over: Bool) {
-		var g: Graphics = this.box.graphics;
-		g.clear();
-		g.beginFill(over ? this.overColor : this.color);
-		g.drawRect(0, 0, WIDTH, HEIGHT);
-		g.endFill();
+	private function onRollOver(_: MouseEvent) {
+		this.hovering = true;
+		this.decor.bitmapData = this.hoverTex;
 	}
 
-	public function onMouseOver(_: MouseEvent) {
-		this.drawBox(true);
+	private function onMouseUp(_: MouseEvent) {
+		this.pressed = false;
+
+		if (this.hovering)
+			this.onRollOver(null);
+		else
+			this.decor.bitmapData = this.baseTex;
 	}
 
-	public function onRollOut(_: MouseEvent) {
-		this.drawBox(false);
+	private function onRollOut(_: MouseEvent) {
+		this.hovering = false;
+
+		if (this.pressed)
+			this.onClick(null);
+		else
+			this.decor.bitmapData = this.baseTex;
+	}
+
+	private function onClick(_: MouseEvent) {
+		this.pressed = true;
+		this.decor.bitmapData = this.pressedTex;
 	}
 }

@@ -46,12 +46,20 @@ class Dialog extends Sprite {
 	public function new(text: String, title: String, button1: String = null, button2: String = null) {
 		super();
 
-		var decor = Assets.getBitmapData("assets/ui/tooltips/tooltipFrame.png");
+		var titleBase = Assets.getBitmapData("assets/ui/screens/charSelect/titleTextBackground.png");
+		var titleBackground = new Sprite();
+		titleBackground.graphics.beginBitmapFill(titleBase);
+		titleBackground.graphics.drawRect(0, 0, titleBase.width, titleBase.height);
+		titleBackground.graphics.endFill();
+		titleBackground.scale9Grid = new Rectangle(5, 5, 38, 38);
+		addChild(titleBackground);
+
+		var decor = Assets.getBitmapData("assets/ui/elements/dialogBaseBg.png");
 		this.decorContainer = new Shape();
 		this.decorContainer.graphics.beginBitmapFill(decor);
 		this.decorContainer.graphics.drawRect(0, 0, decor.width, decor.height);
 		this.decorContainer.graphics.endFill();
-		this.decorContainer.scale9Grid = new Rectangle(6, 6, 36, 36);
+		this.decorContainer.scale9Grid = new Rectangle(8, 8, 32, 32);
 
 		this.closeTexBase = Assets.getBitmapData("assets/ui/elements/xButton.png");
 		this.closeTexHovered = Assets.getBitmapData("assets/ui/elements/xButtonHighlight.png");
@@ -131,7 +139,7 @@ class Dialog extends Sprite {
 		}
 
 		this.decorContainer.width = WIDTH;
-		this.decorContainer.height = this.box.height + 10;
+		this.decorContainer.height = this.box.height + 20;
 		this.box.addChildAt(this.decorContainer, 0);
 
 		this.box.addChild(this.closeButtonContainer);

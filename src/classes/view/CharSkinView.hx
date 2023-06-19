@@ -1,5 +1,6 @@
 package classes.view;
 
+import ui.SoundIcon;
 import ui.ClickableText;
 import appengine.SavedCharacter;
 import util.Settings;
@@ -10,7 +11,6 @@ import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.MouseEvent;
 import screens.NewCharacterScreen;
-import ui.view.ScreenBase;
 
 class CharSkinView extends Sprite {
 	private var playBtn: ClickableText;
@@ -22,7 +22,8 @@ class CharSkinView extends Sprite {
 		
 		playerXML = _playerXML;
 
-		addChild(new ScreenBase());
+		addChild(Global.backgroundImage);
+		addChild(new SoundIcon());
 
 		var shape: Shape = new Shape();
 		shape.graphics.clear();

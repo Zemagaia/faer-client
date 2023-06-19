@@ -118,8 +118,10 @@ class RegisterView extends Sprite {
 
 	private function isPasswordValid() {
 		var isValid = this.passwordInput.text() != "";
-		if (!isValid)
+		if (!isValid) {
 			this.passwordInput.setError("Password too short");
+			return false;
+		}
 
 		isValid = this.passwordInput.text() == this.passwordConfirmInput.text();
 		if (!isValid)

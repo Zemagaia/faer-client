@@ -13,23 +13,6 @@ class BuyCharacterRect extends CharacterRect {
 	private var priceText: SimpleText;
 	private var currency: Bitmap;
 
-	private static function buildIcon(): Shape {
-		var shape: Shape = new Shape();
-		var g: Graphics = shape.graphics;
-		g.beginFill(0x3B3536);
-		g.lineStyle(1, 0x463E41);
-		g.drawCircle(22, 22, 19);
-		g.lineStyle();
-		g.endFill();
-		g.beginFill(0x1F1F1F);
-		g.drawRect(14, 20, 16, 4);
-		g.endFill();
-		g.beginFill(0x1F1F1F);
-		g.drawRect(20, 14, 4, 16);
-		g.endFill();
-		return shape;
-	}
-
 	private static function getOrdinalString(num: Int) {
 		var str: String = Std.string(num);
 		var ones: Int = num % 10;
@@ -49,31 +32,26 @@ class BuyCharacterRect extends CharacterRect {
 	}
 
 	public function new() {
-		super(0x1F1F1F, 0x424242);
-		var icon: Shape = buildIcon();
-		icon.x = 7;
-		icon.y = 7;
-		addChild(icon);
-		makeContainer();
-		this.classNameText = new SimpleText(18, 0xFFFFFF);
+		super("Buy");
+		this.classNameText = new SimpleText(18, 0xB3B3B3);
 		this.classNameText.setBold(true);
-		this.classNameText.text = "Buy " + getOrdinalString(Global.playerModel.getMaxCharacters() + 1) + " Character Slot";
+		this.classNameText.text = "Buy Character Slot";
 		this.classNameText.filters = [new DropShadowFilter(0, 0, 0, 1, 8, 8)];
 		this.classNameText.updateMetrics();
-		this.classNameText.x = (CharacterRect.WIDTH - this.classNameText.width) / 2 - 22;
-		this.classNameText.y = (CharacterRect.HEIGHT - this.classNameText.height) / 2 - 3;
-		selectContainer.addChild(this.classNameText);
-		this.priceText = new SimpleText(18, 0xFFFFFF);
+		this.classNameText.x = (210 - this.classNameText.width) / 2 + 71;
+		this.classNameText.y = (32 - this.classNameText.height) / 2 + 17;
+		addChild(this.classNameText);
+		this.priceText = new SimpleText(10, 0xB3B3B3);
 		this.priceText.text = Std.string(Global.playerModel.getNextCharSlotPrice());
 		this.priceText.updateMetrics();
 		this.priceText.filters = [new DropShadowFilter(0, 0, 0, 1, 8, 8)];
-		this.priceText.x = CharacterRect.WIDTH - 43 - this.priceText.width;
-		this.priceText.y = this.classNameText.y;
-		selectContainer.addChild(this.priceText);
-		var bd: BitmapData = Global.playerModel.isNextCharSlotCurrencyGems() ? IconFactory.makeGold() : IconFactory.makeGems();
+		this.priceText.x = (32 - this.priceText.width) / 2 + 282;
+		this.priceText.y = (14 - this.priceText.height) / 2 + 33;
+		addChild(this.priceText);
+		var bd = Global.playerModel.isNextCharSlotCurrencyGems() ? IconFactory.makeGold(20) : IconFactory.makeGems(20);
 		this.currency = new Bitmap(bd);
-		this.currency.x = CharacterRect.WIDTH - 43;
-		this.currency.y = this.priceText.y + 2;
-		selectContainer.addChild(this.currency);
+		this.currency.x = width - 39;
+		this.currency.y = this.classNameText.y - 2;
+		addChild(this.currency);
 	}
 }

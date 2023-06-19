@@ -1,10 +1,10 @@
 package screens;
 
+import ui.SoundIcon;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.filters.DropShadowFilter;
 import ui.SimpleText;
-import ui.view.ScreenBase;
 
 class LoadingScreen extends Sprite {
 	private var loadingText: SimpleText;
@@ -18,7 +18,9 @@ class LoadingScreen extends Sprite {
 	public function onAddedToStage(event: Event) {
 		removeEventListener(Event.ADDED_TO_STAGE, this.onAddedToStage);
 
-		addChild(new ScreenBase());
+		addChild(Global.backgroundImage);
+		addChild(new SoundIcon());
+
 		this.loadingText = new SimpleText(30, 0xFFFFFF, false, 0, 0);
 		this.loadingText.setBold(true);
 		this.loadingText.text = "Loading...";

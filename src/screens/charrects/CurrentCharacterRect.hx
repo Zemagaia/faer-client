@@ -1,5 +1,8 @@
 package screens.charrects;
 
+import openfl.display.BitmapData;
+import openfl.Assets;
+import openfl.display.Bitmap;
 import util.Settings;
 import appengine.SavedCharacter;
 import characters.ConfirmDeleteCharacterDialog;
@@ -22,8 +25,13 @@ class CurrentCharacterRect extends CharacterRect {
 
 	private var charType: CharacterClass;
 	private var classNameText: SimpleText;
-	private var deleteButton: Sprite;
 	private var icon: DisplayObject;
+	public var deleteButton: Bitmap;
+	public var deleteButtonContainer: Sprite;
+
+	private var deleteTexBase: BitmapData;
+	private var deleteTexHovered: BitmapData;
+
 
 	private static function removeToolTip() {
 		if (toolTip != null) {
@@ -34,23 +42,47 @@ class CurrentCharacterRect extends CharacterRect {
 	}
 
 	public function new(charName: String, charType: CharacterClass, savedChar: SavedCharacter) {
-		super(0x5C5C5C, 0x7F7F7F);
+		super();
 		this.charName = charName;
 		this.charType = charType;
 		this.savedChar = savedChar;
-		makeContainer();
-
-		this.classNameText = new SimpleText(18, 0xFFFFFF, false, 0, 0);
+		this.classNameText = new SimpleText(18, 0xB3B3B3, false, 0, 0);
 		this.classNameText.setBold(true);
-		this.classNameText.text = "T" + this.savedChar.tier() + " " + this.charType.name;
+		this.classNameText.text = "L" + this.savedChar.tier() + " " + this.charType.name;
 		this.classNameText.updateMetrics();
 		this.classNameText.filters = [new DropShadowFilter(0, 0, 0, 1, 8, 8)];
-		this.classNameText.x = (CharacterRect.WIDTH - this.classNameText.width) / 2;
-		this.classNameText.y = (CharacterRect.HEIGHT - this.classNameText.height) / 2 - 3;
-		this.selectContainer.addChild(this.classNameText);
+		this.classNameText.x = (202 - this.classNameText.width) / 2 + 71;
+		this.classNameText.y = (32 - this.classNameText.height) / 2 + 17;
+		addChild(this.classNameText);
+
+		this.deleteTexBase = Assets.getBitmapData("assets/ui/elements/xButton.png");
+		this.deleteTexHovered = Assets.getBitmapData("assets/ui/elements/xButtonHighlight.png");
+		this.deleteButtonContainer = new Sprite();
+		this.deleteButton = new Bitmap(this.deleteTexBase);
+		this.deleteButton.x = 288;
+		this.deleteButton.y = 16;
+		this.deleteButtonContainer.addChild(this.deleteButton);
+		this.deleteButtonContainer.addEventListener(MouseEvent.CLICK, this.onDeleteClick);
+		this.deleteButtonContainer.addEventListener(MouseEvent.ROLL_OVER, this.onDeleteRollOver);
+		this.deleteButtonContainer.addEventListener(MouseEvent.ROLL_OUT, this.onDeleteRollOut);
+		addChild(this.deleteButtonContainer);
+		
 		this.selectContainer.addEventListener(MouseEvent.CLICK, this.onSelected);
 
 		addEventListener(Event.ADDED_TO_STAGE, onAdded);
+	}
+
+	private function onDeleteClick(_: MouseEvent) {
+		Global.charModel.select(this.savedChar);
+		Global.layers.dialogs.openDialog(new ConfirmDeleteCharacterDialog());
+	}
+
+	private function onDeleteRollOver(_: MouseEvent) {
+		this.deleteButton.bitmapData = this.deleteTexHovered;
+	}
+
+	private function onDeleteRollOut(_: MouseEvent) {
+		this.deleteButton.bitmapData = this.deleteTexBase;
 	}
 
 	private function onAdded(_: Event) {
@@ -61,8 +93,8 @@ class CurrentCharacterRect extends CharacterRect {
 	private function onRemoved(_: Event) {
 		removeEventListener(Event.REMOVED_FROM_STAGE, onRemoved);
 
-		this.selectContainer.removeEventListener(MouseEvent.CLICK, this.onSelected);
-		//this.deleteButton.removeEventListener(MouseEvent.CLICK, this.onDeleteCharacter);
+		removeEventListener(MouseEvent.CLICK, this.onSelected);
+		// this.deleteButton.removeEventListener(MouseEvent.CLICK, this.onDeleteCharacter);
 
 		removeToolTip();
 	}
@@ -79,22 +111,17 @@ class CurrentCharacterRect extends CharacterRect {
 		Global.playGame(data);
 	}
 
-	private function onDeleteCharacter(_: MouseEvent) {
-		Global.charModel.select(this.savedChar);
-		Global.layers.dialogs.openDialog(new ConfirmDeleteCharacterDialog());
-	}
-
 	public function setIcon(value: DisplayObject) {
 		if (this.icon != null)
-			selectContainer.removeChild(this.icon);
+			removeChild(this.icon);
 		this.icon = value;
-		this.icon.x = this.icon.y = 3;
+		this.icon.x = this.icon.y = 12;
 		if (this.icon != null)
-			selectContainer.addChild(this.icon);
+			addChild(this.icon);
 	}
 
-	override public function onMouseOver(event: MouseEvent) {
-		super.onMouseOver(event);
+	override public function onRollOver(event: MouseEvent) {
+		super.onRollOver(event);
 		removeToolTip();
 	}
 

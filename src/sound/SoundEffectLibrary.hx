@@ -24,7 +24,7 @@ class SoundEffectLibrary {
 	}
 
 	public static function setPlaySFX(playSFX: Bool) {
-		Settings.playSfx = !Settings.playSfx;
+		Settings.playSfx = playSFX;
 		Settings.save();
 	}
 }

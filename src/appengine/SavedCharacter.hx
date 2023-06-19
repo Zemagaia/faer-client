@@ -12,7 +12,7 @@ import util.MaskedImage;
 import util.TextureRedrawer;
 
 class SavedCharacter {
-	private static var notAvailableCT: ColorTransform = new ColorTransform(0, 0, 0, 0.5, 0, 0, 0, 0);
+	private static var notAvailableCT: ColorTransform = new ColorTransform(0, 0, 0, 0.5, 255, 255, 255, 0);
 	private static var dimCT: ColorTransform = new ColorTransform(0.75, 0.75, 0.75, 1, 0, 0, 0, 0);
 
 	public var charXML: Xml;
@@ -58,7 +58,7 @@ class SavedCharacter {
 	}
 
 	public function tier() {
-		return this.charXML.elementsNamed("Tier").hasNext() ? Std.parseInt(this.charXML.elementsNamed("Tier").next().firstChild().nodeValue) : 0;
+		return this.charXML.elementsNamed("Tier").hasNext() ? Std.parseInt(this.charXML.elementsNamed("Tier").next().firstChild().nodeValue) : 1;
 	}
 
 	public function displayId() {

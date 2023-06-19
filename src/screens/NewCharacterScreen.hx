@@ -1,5 +1,6 @@
 package screens;
 
+import ui.SoundIcon;
 import ui.ClickableText;
 import game.view.CurrencyDisplay;
 import haxe.ds.IntMap;
@@ -7,7 +8,6 @@ import objects.ObjectLibrary;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.MouseEvent;
-import ui.view.ScreenBase;
 
 class NewCharacterScreen extends Sprite {
 	private var backButton: ClickableText;
@@ -18,7 +18,8 @@ class NewCharacterScreen extends Sprite {
 		super();
 
 		this.boxes = new IntMap<CharacterBox>();
-		addChild(new ScreenBase());
+		addChild(Global.backgroundImage);
+		addChild(new SoundIcon());
 
 		addEventListener(Event.ADDED_TO_STAGE, onAdded);
 	}

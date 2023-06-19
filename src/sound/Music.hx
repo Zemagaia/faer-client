@@ -17,7 +17,7 @@ class Music {
 	}
 
 	public static function setPlayMusic(playMusic: Bool) {
-		Settings.playMusic = !Settings.playMusic;
+		Settings.playMusic = playMusic;
 		Settings.save();
 
 		if (music != null) {

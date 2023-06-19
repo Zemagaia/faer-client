@@ -116,11 +116,14 @@ class PlayerModel {
 	}
 
 	public function getGuildName() {
-		return this.charList?.guildName ?? "";
+		var ret = this.charList?.guildName ?? "- No Guild -";
+		if (ret == "")
+			return "- No Guild -";
+		return ret;
 	}
 
 	public function getGuildRank() {
-		return this.charList?.guildRank ?? 0;
+		return this.charList?.guildRank ?? -1;
 	}
 
 	public function getNextCharSlotPrice() {

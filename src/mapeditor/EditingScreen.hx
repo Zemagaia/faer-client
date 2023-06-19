@@ -1,5 +1,6 @@
 package mapeditor;
 
+import ui.SoundIcon;
 import screens.CharacterSelectionScreen;
 import haxe.ds.Vector;
 import util.Utils.KeyCode;
@@ -23,7 +24,6 @@ import haxe.crypto.Base64;
 import util.NativeTypes;
 import haxe.ValueException;
 import ui.dropdown.DropDown;
-import ui.view.ScreenBase;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.IOErrorEvent;
@@ -71,7 +71,8 @@ class EditingScreen extends Sprite {
 	public function new() {
 		super();
 
-		addChild(new ScreenBase());
+		addChild(Global.backgroundImage);
+		addChild(new SoundIcon());
 
 		this.brushSize = new TextInputField("Brush Size", false, "");
 		this.brushSize.inputText.text = "0.5";

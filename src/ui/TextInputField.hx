@@ -1,5 +1,7 @@
 package ui;
 
+import openfl.display.BitmapData;
+import openfl.events.MouseEvent;
 import openfl.text.TextFormatAlign;
 import openfl.Assets;
 import openfl.display.Bitmap;
@@ -17,6 +19,11 @@ class TextInputField extends Sprite {
 	public var nameText: SimpleText;
 	public var inputText: SimpleText;
 	public var errorText: SimpleText;
+	private var hovering: Bool;
+	private var pressed: Bool;
+	private var textBoxBase: BitmapData;
+	private var textBoxHover: BitmapData;
+	private var textBoxPress: BitmapData;
 
 	public function new(name: String, isPassword: Bool, error: String) {
 		super();
@@ -28,7 +35,10 @@ class TextInputField extends Sprite {
 		this.nameText.updateMetrics();
 		this.nameText.filters = [new DropShadowFilter(0, 0, 0)];
 		addChild(this.nameText);
-		this.decor = new Bitmap(Assets.getBitmapData("assets/ui/elements/textBoxBg.png"));
+		this.textBoxBase = Assets.getBitmapData("assets/ui/elements/textBoxBg.png");
+		this.textBoxHover = Assets.getBitmapData("assets/ui/elements/textboxHover.png");
+		this.textBoxPress = Assets.getBitmapData("assets/ui/elements/textboxPress.png");
+		this.decor = new Bitmap(this.textBoxBase);
 		this.decor.y = 30;
 		addChild(this.decor);
 		this.inputText = new SimpleText(20, 0xB3B3B3, true, 310, 30);
@@ -39,12 +49,21 @@ class TextInputField extends Sprite {
 		this.inputText.updateMetrics();
 		this.inputText.addEventListener(Event.CHANGE, this.onInputChange);
 		addChild(this.inputText);
-		this.errorText = new SimpleText(12, 0xFC8642, false, 0, 0);
-		this.errorText.y = this.inputText.y + 32;
+		this.errorText = new SimpleText(12, 0xFF2244, false, 0, 0);
+		this.errorText.y = this.inputText.y + 40;
 		this.errorText.text = error;
 		this.errorText.updateMetrics();
 		this.errorText.filters = [new DropShadowFilter(0, 0, 0)];
 		addChild(this.errorText);
+
+		addEventListener(MouseEvent.ROLL_OVER, this.onRollOver);
+		addEventListener(MouseEvent.ROLL_OUT, this.onRollOut);
+		addEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
+		addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, this.onMouseDown);
+		addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, this.onMouseDown);
+		addEventListener(MouseEvent.MOUSE_UP, this.onMouseUp);
+		addEventListener(MouseEvent.MIDDLE_MOUSE_UP, this.onMouseUp);
+		addEventListener(MouseEvent.RIGHT_MOUSE_UP, this.onMouseUp);
 	}
 
 	public function text() {
@@ -58,5 +77,32 @@ class TextInputField extends Sprite {
 
 	public function onInputChange(event: Event) {
 		this.setError("");
+	}
+
+	private function onRollOver(_: MouseEvent) {
+		this.hovering = true;
+		this.decor.bitmapData = this.textBoxHover;
+	}
+
+	private function onMouseUp(_: MouseEvent) {
+		this.pressed = false;
+
+		if (this.hovering)
+			this.onRollOver(null);
+		else
+			this.decor.bitmapData = this.textBoxBase;
+	}
+
+	private function onRollOut(_: MouseEvent) {
+		this.hovering = false;
+		if (this.pressed)
+			this.onMouseDown(null);
+		else
+			this.decor.bitmapData = this.textBoxBase;
+	}
+
+	private function onMouseDown(_: MouseEvent) {
+		this.pressed = true;
+		this.decor.bitmapData = this.textBoxPress;
 	}
 }

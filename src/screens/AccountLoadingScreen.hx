@@ -1,5 +1,6 @@
 package screens;
 
+import ui.SoundIcon;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.filters.DropShadowFilter;
@@ -11,6 +12,9 @@ class AccountLoadingScreen extends Sprite {
 	public function new() {
 		super();
 
+		addChild(Global.backgroundImage);
+		addChild(new SoundIcon());
+		
 		addEventListener(Event.ADDED_TO_STAGE, this.onAddedToStage);
 	}
 
