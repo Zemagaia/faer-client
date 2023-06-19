@@ -1043,4 +1043,26 @@
         <BlendPriority>-1</BlendPriority>
     </Ground>
 
+    <Ground type="0x9C" id="Orc Cave Cobble">
+        <RandomTexture>
+            <Texture>
+                <Sheet>ground</Sheet>
+                <Index>0xf1</Index>
+            </Texture>
+            <Texture>
+                <Sheet>ground</Sheet>
+                <Index>0xf2</Index>
+            </Texture>
+            <Texture>
+                <Sheet>ground</Sheet>
+                <Index>0xf3</Index>
+            </Texture>
+            <Texture>
+                <Sheet>ground</Sheet>
+                <Index>0xf4</Index>
+            </Texture>
+        </RandomTexture>
+        <BlendPriority>4</BlendPriority>
+    </Ground>
+
 </GroundTypes>
