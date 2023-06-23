@@ -66,10 +66,10 @@ class ProjectileProperties {
 		this.acceleration = projectileXML.floatElement("Acceleration");
 		this.accelerationDelay = projectileXML.intElement("AccelerationDelay");
 		this.speedClamp = projectileXML.floatElement("SpeedClamp", -1);
-		this.angleChange = projectileXML.floatElement("AngleChange", 180) * MathUtil.TO_RAD;
-		this.angleChangeDelay = projectileXML.intElement("AngleChangeDelay", 50);
+		this.angleChange = projectileXML.floatElement("AngleChange") * MathUtil.TO_RAD;
+		this.angleChangeDelay = projectileXML.intElement("AngleChangeDelay");
 		this.angleChangeEnd = projectileXML.intElement("AngleChangeEnd", MathUtil.INT_MAX);
-		this.zeroVelocityDelay = projectileXML.intElement("ZeroVelocityDelay", 150);
+		this.zeroVelocityDelay = projectileXML.intElement("ZeroVelocityDelay");
 		this.heatSeekSpeed = projectileXML.floatElement("HeatSeekStrength");
 		this.heatSeekRadius = projectileXML.floatElement("HeatSeekRadius");
 		this.heatSeekDelay = projectileXML.intElement("HeatSeekDelay");
