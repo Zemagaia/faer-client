@@ -6,8 +6,6 @@ import ui.itemgrids.itemtiles.InventoryTile;
 import util.NativeTypes;
 
 class InventoryGrid extends ItemGrid {
-	private static inline var NUM_SLOTS = 8;
-
 	private var tiles: Array<InventoryTile>;
 	private var isBackpack = false;
 
@@ -16,7 +14,7 @@ class InventoryGrid extends ItemGrid {
 		super(gridOwner, currentPlayer, itemIndexOffset, disableBgDraw);
 		this.tiles = new Array<InventoryTile>();
 		this.isBackpack = isBackpack;
-		for (i in 0...NUM_SLOTS) {
+		for (i in 0...18) {
 			tile = new InventoryTile(i + indexOffset, this, interactive);
 			addToGrid(tile, 1, i);
 			this.tiles[i] = tile;
@@ -27,7 +25,7 @@ class InventoryGrid extends ItemGrid {
 		var numItems = 0;
 		if (items != null) {
 			numItems = items.length;
-			for (i in 0...NUM_SLOTS) {
+			for (i in 0...18) {
 				if (i + indexOffset < numItems)
 					this.tiles[i].setItem(items[i + indexOffset]);
 				else

@@ -63,7 +63,7 @@ class TextBox extends Sprite {
 		this.textSprite.mouseChildren = false;
 		addChild(this.textSprite);
 		var format: TextFormat = new TextFormat();
-		format.font = "Faer";
+		format.font = "Ubuntu Bold";
 		format.size = 14;
 		format.color = 0xFFFFFF;
 		format.bold = true;

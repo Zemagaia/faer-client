@@ -1,5 +1,8 @@
 package ui.tooltip;
 
+import openfl.geom.Rectangle;
+import openfl.display.BitmapData;
+import openfl.utils.Assets;
 import openfl.display.DisplayObject;
 import openfl.display.Sprite;
 import openfl.events.Event;
@@ -7,27 +10,29 @@ import openfl.events.MouseEvent;
 import openfl.filters.DropShadowFilter;
 
 class ToolTip extends Sprite {
-	public var contentWidth = 0;
-	public var contentHeight = 0;
+	public var contentWidth = 0.0;
+	public var contentHeight = 0.0;
+	public var decorContainer: Sprite;
 
-	private var background = 0;
-	private var backgroundAlpha = 0.0;
-	private var outline = 0;
-	private var outlineAlpha = 0.0;
+	private var decor: BitmapData;
 	private var followMouse = false;
 	private var targetObj: DisplayObject;
 
 	public function new(background: Int, backgroundAlpha: Float, outline: Int, outlineAlpha: Float, followMouse: Bool = true) {
 		super();
 
-		this.background = background;
-		this.backgroundAlpha = backgroundAlpha;
-		this.outline = outline;
-		this.outlineAlpha = outlineAlpha;
+		this.decor = Assets.getBitmapData("assets/ui/tooltips/tooltipFrame.png");
 		this.followMouse = followMouse;
 		mouseEnabled = false;
 		mouseChildren = false;
-		filters = [new DropShadowFilter(0, 0, 0, 1, 16, 16)];
+		this.decorContainer = new Sprite();
+		this.decorContainer.graphics.beginBitmapFill(this.decor);
+		this.decorContainer.graphics.drawRect(0, 0, this.decor.width, this.decor.height);
+		this.decorContainer.graphics.endFill();
+		this.decorContainer.scale9Grid = new Rectangle(29, 29, 1, 1);
+		this.decorContainer.x = this.decorContainer.y = -6;
+		this.decorContainer.width = this.decorContainer.height = 0;
+		addChild(this.decorContainer);
 		addEventListener(Event.ADDED_TO_STAGE, this.onAddedToStage);
 		addEventListener(Event.REMOVED_FROM_STAGE, this.onRemovedFromStage);
 	}
@@ -41,6 +46,7 @@ class ToolTip extends Sprite {
 
 	public function detachFromTarget() {
 		if (this.targetObj != null) {
+			this.decorContainer.width = this.decorContainer.height = 0; // more hackyness
 			this.targetObj.removeEventListener(MouseEvent.ROLL_OUT, this.onLeaveTarget);
 			parent?.removeChild(this);
 			this.targetObj = null;
@@ -48,13 +54,11 @@ class ToolTip extends Sprite {
 	}
 
 	public function draw() {
-		this.contentWidth = Std.int(width);
-		this.contentHeight = Std.int(height);
+		this.contentWidth = Math.max(60, width);
+		this.contentHeight = Math.max(40, height);
 
-		graphics.clear();
-		graphics.lineStyle(2, this.outline, this.outlineAlpha);
-		graphics.beginFill(this.background, this.backgroundAlpha);
-		graphics.drawRect(-4, -4, this.contentWidth + 12, this.contentHeight + 12);
+		this.decorContainer.width = this.contentWidth + 12;
+		this.decorContainer.height = this.contentHeight + 12;
 	}
 
 	private function position() {

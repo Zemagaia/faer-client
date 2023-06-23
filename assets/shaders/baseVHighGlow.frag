@@ -15,7 +15,7 @@ layout (location = 0) out vec4 resultColor;
 uniform sampler2D sampler;
 
 void main() {
-    if (data.barThresh != -1 && data.barThresh < data.uv.x)
+    if (data.barThresh > 0 && data.barThresh < data.uv.x)
         discard;
         
     vec4 pixel = texture(sampler, data.uv);
@@ -32,7 +32,7 @@ void main() {
                 pixel = vec4(((glowColor >> 16) & 0xFF) / 255.0,
                                 ((glowColor >> 8) & 0xFF) / 255.0, 
                                 (glowColor & 0xFF) / 255.0, 1.0);
-            } else {
+            } else if (data.barThresh != -2) { // turbo hacky
                 float sum = 0.0;
                 for (int i = 0; i < 9; i++) {
                     float uvY = data.uv.y + data.texelSize.y * float(i - 4.5);

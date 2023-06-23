@@ -16,8 +16,8 @@ import objects.ObjectLibrary;
 class Inventory extends Sprite {
 	public var invGrid: InventoryGrid;
 	public var bpGrid: InventoryGrid;
+	public var decor: Bitmap;
 
-	private var decor: Bitmap;
 	private var containerDecor: Bitmap;
 	private var containerName: SimpleText;
 	private var containerBitmapLeft: Bitmap;
@@ -28,21 +28,21 @@ class Inventory extends Sprite {
 	public function new() {
 		super();
 
-		this.decor = new Bitmap(null);//Assets.getBitmapData("assets/ui/inventoryInterface.png"));
+		this.decor = new Bitmap(Assets.getBitmapData("assets/ui/playerInterfaceInventory.png"));
 		this.decor.cacheAsBitmap = true;
-		addChild(this.decor);		
+		addChild(this.decor);
 
 		this.containerDecor = new Bitmap(Assets.getBitmapData("assets/ui/containerInterface.png"));
 		this.containerDecor.cacheAsBitmap = true;
-		this.containerDecor.x = -this.containerDecor.width - 10;
-		this.containerDecor.y = 150;
+		this.containerDecor.x = -this.containerDecor.width - 5;
+		this.containerDecor.y = this.decor.height - this.containerDecor.height;
 		this.containerDecor.visible = false;
 		addChild(this.containerDecor);
 
 		this.containerName = new SimpleText(14, 0xB3B3B3, 85);
 		this.containerName.cacheAsBitmap = true;
 		this.containerName.x = this.containerDecor.x + 51;
-		this.containerName.y = 264;
+		this.containerName.y = this.containerDecor.y + 156;
 		this.containerName.setBold(true);
 		this.containerName.setItalic(true);
 		this.containerName.setAlignment(TextFormatAlign.CENTER);
@@ -52,14 +52,14 @@ class Inventory extends Sprite {
 		this.containerBitmapLeft = new Bitmap(null);
 		this.containerBitmapLeft.cacheAsBitmap = true;
 		this.containerBitmapLeft.x = this.containerDecor.x + 7;
-		this.containerBitmapLeft.y = 262;
+		this.containerBitmapLeft.y = this.containerDecor.y + 154;
 		this.containerBitmapLeft.visible = false;
 		addChild(this.containerBitmapLeft);
 
 		this.containerBitmapRight = new Bitmap(null);
 		this.containerBitmapRight.cacheAsBitmap = true;
 		this.containerBitmapRight.x = this.containerDecor.x + 157;
-		this.containerBitmapRight.y = 262;
+		this.containerBitmapRight.y = this.containerDecor.y + 154;
 		this.containerBitmapRight.visible = false;
 		addChild(this.containerBitmapRight);
 	}
@@ -67,7 +67,7 @@ class Inventory extends Sprite {
 	public function init(player: Player) {
 		this.equippedGrid = new EquippedGrid(player, player.slotTypes, player, 0, true);
 		this.equippedGrid.cacheAsBitmap = true;
-		this.equippedGrid.x = 9;
+		this.equippedGrid.x = 53;
 		this.equippedGrid.y = 9;
 		addChild(this.equippedGrid);
 
@@ -76,12 +76,6 @@ class Inventory extends Sprite {
 		this.invGrid.x = 9;
 		this.invGrid.y = 69;
 		addChild(this.invGrid);
-
-		this.bpGrid = new InventoryGrid(player, player, 12, true, true);
-		this.bpGrid.cacheAsBitmap = true;
-		this.bpGrid.x = 9;
-		this.bpGrid.y = 157;
-		addChild(this.bpGrid);
 	}
 
 	public inline function draw(player: Player) {
@@ -91,7 +85,7 @@ class Inventory extends Sprite {
 				if (this.containerGrid == null) {
 					this.containerGrid = new ContainerGrid(go, player, true);
 					this.containerGrid.cacheAsBitmap = true;
-					this.containerGrid.x = this.containerDecor.x + 9;
+					this.containerGrid.x = this.containerDecor.x + 31;
 					this.containerGrid.y = this.containerDecor.y + 9;
 					addChild(this.containerGrid);
 
@@ -105,7 +99,7 @@ class Inventory extends Sprite {
 					this.containerBitmapLeft.bitmapData = this.containerBitmapRight.bitmapData = tex;
 				}
 
-				this.containerGrid.draw();				
+				this.containerGrid.draw();
 			} else {
 				this.containerName.visible = this.containerDecor.visible = this.containerBitmapLeft.visible = this.containerBitmapRight.visible = false;
 				if (this.containerGrid != null && contains(this.containerGrid)) {

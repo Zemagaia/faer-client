@@ -2193,10 +2193,6 @@ class Map {
 			obj.height = texH / Main.ATLAS_HEIGHT;
 		}
 
-		var sink: Float32 = 1.0;
-		if (obj.curSquare != null && !(obj.flying || obj.curSquare.obj != null && obj.curSquare.obj.props.protectFromSink))
-			sink += obj.curSquare.sink + obj.sinkLevel;
-
 		var flashStrength: Float32 = 0.0;
 		if (obj.flashPeriodMs > 0) {
 			if (obj.flashRepeats != -1 && time > obj.flashStartTime + obj.flashPeriodMs * obj.flashRepeats)
@@ -2207,7 +2203,7 @@ class Map {
 			flashStrength = 1; // more hackyness
 
 		var w = size * texW * RenderUtils.clipSpaceScaleX * 0.5;
-		var h = hBase * RenderUtils.clipSpaceScaleY * 0.5 / sink;
+		var h = hBase * RenderUtils.clipSpaceScaleY * 0.5;
 		var yBase = (screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
 		var xBase = screenX * RenderUtils.clipSpaceScaleX;
 		var texelW: Float32 = obj.outlineSize / Main.ATLAS_WIDTH / size;
@@ -2223,7 +2219,7 @@ class Map {
 		setF32ValueAt(this.vIdx + 6, obj.glowColor);
 		setF32ValueAt(this.vIdx + 7, obj.flashColor);
 		setF32ValueAt(this.vIdx + 8, flashStrength);
-		setF32ValueAt(this.vIdx + 9, -1);
+		setF32ValueAt(this.vIdx + 9, -2);
 
 		setF32ValueAt(this.vIdx + 10, w + xBase);
 		setF32ValueAt(this.vIdx + 11, -h + yBase);
@@ -2235,31 +2231,31 @@ class Map {
 		setF32ValueAt(this.vIdx + 16, obj.glowColor);
 		setF32ValueAt(this.vIdx + 17, obj.flashColor);
 		setF32ValueAt(this.vIdx + 18, flashStrength);
-		setF32ValueAt(this.vIdx + 19, -1);
+		setF32ValueAt(this.vIdx + 19, -2);
 
 		setF32ValueAt(this.vIdx + 20, -w + xBase);
 		setF32ValueAt(this.vIdx + 21, h + yBase);
 		setF32ValueAt(this.vIdx + 22, obj.uValue);
-		setF32ValueAt(this.vIdx + 23, obj.vValue + obj.height / sink);
+		setF32ValueAt(this.vIdx + 23, obj.vValue + obj.height);
 
 		setF32ValueAt(this.vIdx + 24, texelW);
 		setF32ValueAt(this.vIdx + 25, texelH);
 		setF32ValueAt(this.vIdx + 26, obj.glowColor);
 		setF32ValueAt(this.vIdx + 27, obj.flashColor);
 		setF32ValueAt(this.vIdx + 28, flashStrength);
-		setF32ValueAt(this.vIdx + 29, -1);
+		setF32ValueAt(this.vIdx + 29, -2);
 
 		setF32ValueAt(this.vIdx + 30, w + xBase);
 		setF32ValueAt(this.vIdx + 31, h + yBase);
 		setF32ValueAt(this.vIdx + 32, obj.uValue + obj.width);
-		setF32ValueAt(this.vIdx + 33, obj.vValue + obj.height / sink);
+		setF32ValueAt(this.vIdx + 33, obj.vValue + obj.height);
 
 		setF32ValueAt(this.vIdx + 34, texelW);
 		setF32ValueAt(this.vIdx + 35, texelH);
 		setF32ValueAt(this.vIdx + 36, obj.glowColor);
 		setF32ValueAt(this.vIdx + 37, obj.flashColor);
 		setF32ValueAt(this.vIdx + 38, flashStrength);
-		setF32ValueAt(this.vIdx + 39, -1);
+		setF32ValueAt(this.vIdx + 39, -2);
 		this.vIdx += 40;
 
 		final i4 = this.i * 4;

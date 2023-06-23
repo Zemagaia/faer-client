@@ -40,6 +40,7 @@ class Projectile extends GameObject {
 	public var colors: Array<UInt>;
 	public var multiHitDict: IntMap<Bool>;
 
+	private var heatSeekFired = false;
 	private var currentX = -1.0;
 	private var currentY = -1.0;
 
@@ -91,7 +92,7 @@ class Projectile extends GameObject {
 		if (elapsed > this.projProps.lifetime)
 			return false;
 
-		this.updatePosition(elapsed);
+		this.updatePosition(elapsed, dt);
 		if (!this.moveTo(this.currentX, this.currentY) || curSquare != null && curSquare.tileType == 0xFF) {
 			if (this.damagesPlayers)
 				NetworkHandler.squareHit(time, this.bulletId, this.ownerId);
@@ -165,7 +166,7 @@ class Projectile extends GameObject {
 		this.bIdMod2Flip = (this.bulletId & 1) == 0 ? 1 : -1;
 		this.bIdMod4Flip = (this.bulletId & 3) < 2 ? 1 : -1;
 		this.phase = (this.bulletId & 1) == 0 ? 0 : MathUtil.PI;
-		this.angle = angle % (MathUtil.PI * 2);
+		this.angle = angle % MathUtil.TAU;
 		this.sinAngle = MathUtil.sin(this.angle);
 		this.cosAngle = MathUtil.cos(this.angle);
 		this.startTime = startTime;
@@ -188,6 +189,7 @@ class Projectile extends GameObject {
 		else
 			this.size = ObjectLibrary.getSizeFromType(this.containerType) / 100;
 		this.physicalDamage = this.magicDamage = this.trueDamage = 0;
+		this.heatSeekFired = false;
 	}
 
 	public function setDamages(physicalDmg: Int32, magicDmg: Int32, trueDmg: Int32) {
@@ -203,122 +205,144 @@ class Projectile extends GameObject {
 		return curSquare != null;
 	}
 
-	public function getHit(): GameObject {
+	public function getHit() {
 		var distSqr = 0.0;
 		var minDistSqr = MathUtil.FLOAT_MAX;
 		var target: GameObject = null;
 
 		var i = 0;
-		if (damagesEnemies) {
-			while (i < map.gameObjectsLen) {
-				var go = map.gameObjects.unsafeGet(i);
-				if (!go.props.isEnemy) {
-					i++;
-					continue;
-				}
+		while (i < map.gameObjectsLen) {
+			var go = map.gameObjects.unsafeGet(i);
+			if (!(damagesPlayers ? go.props.isPlayer : go.props.isEnemy)) {
+				i++;
+				continue;
+			}
 
-				distSqr = PointUtil.distanceSquaredXY(go.mapX, go.mapY, this.currentX, this.currentY);
-				if (distSqr < 0.33 && distSqr < minDistSqr && (!this.projProps.multiHit || !(this.multiHitDict.exists(go.objectId)))) {
+			distSqr = PointUtil.distanceSquaredXY(go.mapX, go.mapY, this.currentX, this.currentY);
+			if (distSqr < 0.33 && (!this.projProps.multiHit || !(this.multiHitDict.exists(go.objectId)))) {
+				if (distSqr < minDistSqr) {
 					minDistSqr = distSqr;
 					target = go;
 				}
-				i++;
 			}
-		} else if (damagesPlayers) {
-			while (i < map.gameObjectsLen) {
-				var go = map.gameObjects.unsafeGet(i);
-				if (!go.props.isPlayer) {
-					i++;
-					continue;
-				}
-				var player: Player = cast go;
-				distSqr = PointUtil.distanceSquaredXY(player.mapX, player.mapY, this.currentX, this.currentY);
-				if (distSqr < 0.33 && (!this.projProps.multiHit || !(this.multiHitDict.exists(player.objectId)))) {
-					if (player.objectId == map.player.objectId)
-						return player;
-
-					if (distSqr < minDistSqr) {
-						minDistSqr = distSqr;
-						target = cast(player, GameObject);
-					}
-				}
-				i++;
-			}
+			i++;
 		}
 
 		return target;
 	}
 
-	private function updatePosition(elapsed: Int32) {
-		// a little horrible but necessary for parity with server, it needs to predict off of time instead of constant updates
-		// also need to be careful with threading
-		this.currentX = this.startX;
-		this.currentY = this.startY;
+	private function findHeatSeekingTarget(radiusSqr: Float) {
+		var maxHp = MathUtil.FLOAT_MIN;
+		var target: GameObject = null;
 
+		var i = 0;
+		while (i < map.gameObjectsLen) {
+			var go = map.gameObjects.unsafeGet(i);
+
+			if (!(damagesPlayers ? go.props.isPlayer : go.props.isEnemy)) {
+				i++;
+				continue;
+			}
+
+			if (go.maxHP > maxHp
+				&& PointUtil.distanceSquaredXY(go.mapX, go.mapY, this.currentX, this.currentY) < radiusSqr
+				&& (!this.projProps.multiHit || !(this.multiHitDict.exists(go.objectId)))) {
+				maxHp = go.maxHP;
+				target = go;
+			}
+
+			i++;
+		}
+
+		return target;
+	}
+
+	private function updatePosition(elapsed: Int32, dt: Int16) {
 		var periodFactor = 0.0;
 		var amplitudeFactor = 0.0;
 		var theta = 0.0;
 		var t = 0.0;
 		var x = 0.0;
 		var y = 0.0;
-		var halfway = 0.0;
 		var deflection = 0.0;
-		var dist = 0.0, baseSpeed = this.projProps.speed;
-		if (this.projProps.acceleration == 0 || elapsed < this.projProps.accelerationDelay)
-			dist = elapsed * baseSpeed;
-		else {
-			var timeTillMaxSpeed = 0;
-			var timeClamped = 0, clampedSpeed = 0.0;
-			if (this.projProps.speedClamp != -1) {
-				clampedSpeed = this.projProps.speedClamp / 10000.0;
-				var speedNeeded = Math.abs(this.projProps.speedClamp - this.projProps.realSpeed);
-				timeTillMaxSpeed = Std.int(speedNeeded / (Math.abs(this.projProps.acceleration) * 10000.0));
-				timeTillMaxSpeed = Std.int(Math.min(elapsed - this.projProps.accelerationDelay, timeTillMaxSpeed));
-				if (elapsed - this.projProps.accelerationDelay - timeTillMaxSpeed > 0)
-					timeClamped = elapsed - this.projProps.accelerationDelay - timeTillMaxSpeed;
-			} else
-				timeTillMaxSpeed = this.projProps.lifetime - this.projProps.accelerationDelay;
-			dist = this.projProps.accelerationDelay * baseSpeed
-				+ timeTillMaxSpeed * baseSpeed
-				+ (timeTillMaxSpeed * timeTillMaxSpeed / 2000.0) * (this.projProps.acceleration / 1000.0)
-				+ timeClamped * clampedSpeed;
+
+		if (this.projProps.heatSeekRadius > 0 && elapsed >= this.projProps.heatSeekDelay && !this.heatSeekFired) {
+			var target = this.findHeatSeekingTarget(this.projProps.heatSeekRadius * this.projProps.heatSeekRadius);
+			if (target != null) {
+				this.angle = Math.atan2(target.mapY - this.currentY, target.mapX - this.currentX) % MathUtil.TAU;
+				this.cosAngle = MathUtil.cos(this.angle);
+				this.sinAngle = MathUtil.sin(this.angle);
+				this.heatSeekFired = true;
+			}
 		}
 
-		if (this.projProps.wavy) {
-			periodFactor = 6 * MathUtil.PI;
-			amplitudeFactor = MathUtil.PI / 64;
-			theta = this.angle + amplitudeFactor * MathUtil.sin(this.phase + periodFactor * elapsed / 1000);
-			this.currentX += dist * MathUtil.cos(theta);
-			this.currentY += dist * MathUtil.sin(theta);
-		} else if (this.projProps.parametric) {
-			t = elapsed / this.projProps.lifetime * 2 * MathUtil.PI;
-			x = MathUtil.sin(t) * this.bIdMod2Flip;
-			y = MathUtil.sin(2 * t) * this.bIdMod4Flip;
-			this.currentX += (x * this.cosAngle - y * this.sinAngle) * this.projProps.magnitude;
-			this.currentY += (x * this.sinAngle + y * this.cosAngle) * this.projProps.magnitude;
-		} else {
-			if (this.projProps.boomerang) {
-				// todo: make the halfway actually halfway for accel projs
-				halfway = this.projProps.lifetime * (this.projProps.speed / 2);
-				if (dist > halfway)
-					dist = halfway - (dist - halfway);
-			}
-			this.currentX += dist * this.cosAngle;
-			this.currentY += dist * this.sinAngle;
-			if (this.projProps.amplitude != 0) {
-				deflection = this.projProps.amplitude * MathUtil.sin(this.phase
-					+ elapsed / this.projProps.lifetime * this.projProps.frequency * 2 * MathUtil.PI);
-				this.currentX += deflection * MathUtil.cos(this.angle + MathUtil.PI / 2);
-				this.currentY += deflection * MathUtil.sin(this.angle + MathUtil.PI / 2);
+		if (this.projProps.angleChange != 0 && elapsed < this.projProps.angleChangeEnd && elapsed >= this.projProps.angleChangeDelay) {
+			this.angle += dt * this.projProps.angleChange / 1000.0;
+			this.cosAngle = MathUtil.cos(this.angle);
+			this.sinAngle = MathUtil.sin(this.angle);
+		}
+
+		var dist = 0.0;
+		if (this.projProps.zeroVelocityDelay == -1 || this.projProps.zeroVelocityDelay > elapsed) {
+			var baseSpeed = this.heatSeekFired ? this.projProps.heatSeekSpeed : this.projProps.speed;
+			if (this.projProps.acceleration == 0 || elapsed < this.projProps.accelerationDelay)
+				dist = dt * baseSpeed;
+			else {
+				var accelDist = dt * ((this.projProps.realSpeed
+					+ this.projProps.acceleration * (elapsed - this.projProps.accelerationDelay) / 1000.0) / 10000.0);
+				if (this.projProps.speedClamp != -1)
+					dist = accelDist;
+				else {
+					var clampDist = dt * this.projProps.speedClamp / 10000.0;
+					dist = this.projProps.acceleration > 0 ? Math.min(accelDist, clampDist) : Math.max(accelDist, clampDist);
+				}
 			}
 		}
+		
+
+		if (this.heatSeekFired) {
+			this.currentX += dist * this.cosAngle;
+			this.currentY += dist * this.sinAngle;
+		} else {
+			if (this.projProps.wavy) {
+				periodFactor = 6 * MathUtil.PI;
+				amplitudeFactor = MathUtil.PI / 64;
+				theta = this.angle + amplitudeFactor * MathUtil.sin(this.phase + periodFactor * elapsed / 1000);
+				this.currentX += dist * MathUtil.cos(theta);
+				this.currentY += dist * MathUtil.sin(theta);
+			} else if (this.projProps.parametric) {
+				t = elapsed / this.projProps.lifetime * 2 * MathUtil.PI;
+				x = MathUtil.sin(t) * this.bIdMod2Flip;
+				y = MathUtil.sin(2 * t) * this.bIdMod4Flip;
+				this.currentX += (x * this.cosAngle - y * this.sinAngle) * this.projProps.magnitude;
+				this.currentY += (x * this.sinAngle + y * this.cosAngle) * this.projProps.magnitude;
+			} else {
+				if (this.projProps.boomerang && elapsed > this.projProps.lifetime / 2)
+					dist = -dist;
+
+				this.currentX += dist * this.cosAngle;
+				this.currentY += dist * this.sinAngle;
+				if (this.projProps.amplitude != 0) {
+					deflection = this.projProps.amplitude * MathUtil.sin(this.phase
+						+ elapsed / this.projProps.lifetime * this.projProps.frequency * 2 * MathUtil.PI) / 10.0; // ? trollart
+					this.currentX += deflection * MathUtil.cos(this.angle + MathUtil.PI / 2);
+					this.currentY += deflection * MathUtil.sin(this.angle + MathUtil.PI / 2);
+				}
+			}
+		}		
 	}
 
 	public function getDirectionAngle(time: Int32) {
-		this.updatePosition(time - this.startTime + 16);
+		var prevX = this.currentX;
+		var prevY = this.currentY;
 
-		var xDelta = this.currentX - this.mapX;
-		var yDelta = this.currentY - this.mapY;
+		this.updatePosition(time - this.startTime, 16);
+
+		var xDelta = this.currentX - prevX;
+		var yDelta = this.currentY - prevY;
+		this.currentX = prevX;
+		this.currentY = prevY;
+
 		if (xDelta == 0 && yDelta == 0)
 			return this.prevDirAngle;
 

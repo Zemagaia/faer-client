@@ -31,7 +31,7 @@ class IconButton extends Sprite {
 		addChild(this.icon);
 		this.hotkeyName = hotkeyName;
 		if (toolTipTitle != "")
-			this.toolTip = new TextToolTip(0x363636, 0x9B9B9B, toolTipTitle, "");
+			this.toolTip = new TextToolTip(0x363636, 0x9B9B9B, "", toolTipTitle);
 		addEventListener(Event.REMOVED_FROM_STAGE, this.onRemovedFromStage);
 		addEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
 		addEventListener(MouseEvent.MOUSE_OUT, this.onMouseOut);
@@ -50,16 +50,16 @@ class IconButton extends Sprite {
 
 	public function onMouseOver(event: MouseEvent) {
 		this.setColorTransform(mouseOverCT);
-		if (this.toolTip != null && !stage.contains(this.toolTip)) {
-			// this.toolTip.setText("Hotkey: " + KeyCodeUtil.charCodeStrings[Std.parseInt(Settings.values.get(this.hotkeyName))]);
+		if (this.toolTip != null && !stage.contains(this.toolTip))
 			stage.addChild(this.toolTip);
-		}
 	}
 
 	public function onMouseOut(event: MouseEvent) {
 		this.setColorTransform(null);
-		if (this.toolTip != null && this.toolTip.parent != null)
+		if (this.toolTip != null && this.toolTip.parent != null) {
+			this.toolTip.decorContainer.width = this.toolTip.decorContainer.height = 0; // horrible hack. maybe fix properly?
 			this.toolTip.parent.removeChild(this.toolTip);
+		}
 	}
 
 	private function onRemovedFromStage(event: Event) {

@@ -207,7 +207,7 @@ enum abstract StatType(UInt8) from UInt8 to UInt8 {
 	final SellablePrice = 62;
 	final PortalUsable = 63;
 	final AccountId = 64;
-	final Tier = 65;
+	final Level = 65;
 	final DamageMultiplier = 66;
 	final HitMultiplier = 67;
 	final Glow = 68;
@@ -228,7 +228,6 @@ class NetworkHandler {
 	private static var socket = new Socket();
 
 	public static var server: Server;
-	public static var gameId = 0;
 	public static var createCharacter = false;
 	public static var charId = 0;
 	public static var lastTickId: Int = -1;
@@ -251,9 +250,8 @@ class NetworkHandler {
 		socket.endian = Endian.LITTLE_ENDIAN;
 	}
 
-	public static function reset(newServer: Server, newGameId: Int, newCreateCharacter: Bool, newCharId: Int, newFmMap: ByteArray) {
+	public static function reset(newServer: Server, newCreateCharacter: Bool, newCharId: Int, newFmMap: ByteArray) {
 		server = newServer;
-		gameId = newGameId;
 		createCharacter = newCreateCharacter;
 		charId = newCharId;
 		fmMap = newFmMap;
@@ -304,7 +302,7 @@ class NetworkHandler {
 
 		if (fmMap == null || fmMap.length == 0) {
 			outgoingData.writeUTF(Settings.BUILD_VERSION);
-			outgoingData.writeInt(gameId);
+			outgoingData.writeInt(-2);
 			outgoingData.writeUTF(Account.email);
 			outgoingData.writeUTF(Account.password);
 			outgoingData.writeShort(charId);
@@ -1942,12 +1940,12 @@ class NetworkHandler {
 					return;
 
 				cast(go, Player).hitMult = hitMult;
-			case Tier:
-				var tier = data.readUnsignedByte();
+			case Level:
+				var level = data.readUnsignedByte();
 				if (go == null)
 					return;
 
-				cast(go, Player).tier = tier;
+				cast(go, Player).level = level;
 				cast(go, Player).updateMaxValues();
 			case Gems:
 				var gems = data.readInt();

@@ -19,6 +19,7 @@ class ObjectLibrary {
 	public static var typeToTextureData: IntMap<TextureData> = new IntMap<TextureData>();
 	public static var typeToTopTextureData: IntMap<TextureData> = new IntMap<TextureData>();
 	public static var typeToAnimationsData: IntMap<AnimationsData> = new IntMap<AnimationsData>();
+	public static var typeToAbilityProps = new IntMap<AbilityProperties>();
 	public static var defaultProps: ObjectProperties = new ObjectProperties(null);
 	public static var playerChars: Array<Xml> = new Array<Xml>();
 	public static var hexTransforms: Array<Xml> = new Array<Xml>();
@@ -45,6 +46,7 @@ class ObjectLibrary {
 			idToType.set(id, objectType);
 			typeToDisplayId.set(objectType, displayId);
 			if (objectXML.elementsNamed("Class").next().firstChild().nodeValue == "Player") {
+				typeToAbilityProps.set(objectType, new AbilityProperties(objectXML));
 				playerClassAbbr.set(objectType, objectXML.get("id").substr(0, 2));
 				found = false;
 				for (i in 0...playerChars.length)

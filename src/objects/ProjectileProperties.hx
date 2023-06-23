@@ -1,7 +1,10 @@
 package objects;
 
+import util.Utils.MathUtil;
 import util.NativeTypes;
 import util.ConditionEffect;
+
+using util.Utils.XmlUtil;
 
 class ProjectileProperties {
 	public var bulletType = 0;
@@ -25,24 +28,25 @@ class ProjectileProperties {
 	public var magnitude = 0.0;
 	public var acceleration = 0.0;
 	public var accelerationDelay = 0;
-	public var speedClamp = 0;
+	public var speedClamp = 0.0;
+	public var angleChange = 0.0;
+	public var angleChangeDelay = 0;
+	public var angleChangeEnd = 0;
+	public var zeroVelocityDelay = 0;
+	public var heatSeekSpeed = 0.0;
+	public var heatSeekRadius = 0.0;
+	public var heatSeekDelay = 0;
 
 	public function new(projectileXML: Xml) {
-		this.bulletType = Std.parseInt(projectileXML.get("id"));
-		this.objectId = projectileXML.elementsNamed("ObjectId").next().firstChild().nodeValue;
-		this.lifetime = Std.parseInt(projectileXML.elementsNamed("LifetimeMS").next().firstChild().nodeValue);
-		this.realSpeed = Std.parseInt(projectileXML.elementsNamed("Speed").next().firstChild().nodeValue);
+		this.bulletType = projectileXML.intAttribute("id");
+		this.objectId = projectileXML.element("ObjectId");
+		this.lifetime = projectileXML.intElement("LifetimeMS");
+		this.realSpeed = projectileXML.intElement("Speed");
 		this.speed = this.realSpeed / 10000.0;
-		this.size = projectileXML.elementsNamed("Size").hasNext() ? Std.parseInt(projectileXML.elementsNamed("Size").next().firstChild().nodeValue) : -1;
-
-		if (projectileXML.elementsNamed("Damage").hasNext())
-			this.physicalDamage = Std.parseInt(projectileXML.elementsNamed("Damage").next().firstChild().nodeValue);
-
-		if (projectileXML.elementsNamed("MagicDamage").hasNext())
-			this.magicDamage = Std.parseInt(projectileXML.elementsNamed("MagicDamage").next().firstChild().nodeValue);
-
-		if (projectileXML.elementsNamed("TrueDamage").hasNext())
-			this.trueDamage = Std.parseInt(projectileXML.elementsNamed("TrueDamage").next().firstChild().nodeValue);
+		this.size = projectileXML.intElement("Size", -1);
+		this.physicalDamage = projectileXML.intElement("Damage");
+		this.magicDamage = projectileXML.intElement("MagicDamage");
+		this.trueDamage = projectileXML.intElement("TrueDamage");
 
 		for (condEffectXML in projectileXML.elementsNamed("ConditionEffect")) {
 			if (this.effects == null)
@@ -50,23 +54,24 @@ class ProjectileProperties {
 			this.effects.push(ConditionEffect.getConditionEffectFromName(condEffectXML.firstChild().nodeValue));
 		}
 
-		this.multiHit = projectileXML.elementsNamed("MultiHit").hasNext();
-		this.armorPiercing = projectileXML.elementsNamed("ArmorPiercing").hasNext();
-		this.particleTrail = projectileXML.elementsNamed("ParticleTrail").hasNext();
-		this.wavy = projectileXML.elementsNamed("Wavy").hasNext();
-		this.parametric = projectileXML.elementsNamed("Parametric").hasNext();
-		this.boomerang = projectileXML.elementsNamed("Boomerang").hasNext();
-		this.amplitude = projectileXML.elementsNamed("Amplitude")
-			.hasNext() ? Std.parseFloat(projectileXML.elementsNamed("Amplitude").next().firstChild().nodeValue) : 0;
-		this.frequency = projectileXML.elementsNamed("Frequency")
-			.hasNext() ? Std.parseFloat(projectileXML.elementsNamed("Frequency").next().firstChild().nodeValue) : 1;
-		this.magnitude = projectileXML.elementsNamed("Magnitude")
-			.hasNext() ? Std.parseFloat(projectileXML.elementsNamed("Magnitude").next().firstChild().nodeValue) : 3;
-		this.acceleration = projectileXML.elementsNamed("Acceleration")
-			.hasNext() ? Std.parseFloat(projectileXML.elementsNamed("Acceleration").next().firstChild().nodeValue) : 0;
-		this.accelerationDelay = projectileXML.elementsNamed("AccelerationDelay")
-			.hasNext() ? Std.parseInt(projectileXML.elementsNamed("AccelerationDelay").next().firstChild().nodeValue) : 0;
-		this.speedClamp = projectileXML.elementsNamed("SpeedClamp")
-			.hasNext() ? Std.parseInt(projectileXML.elementsNamed("SpeedClamp").next().firstChild().nodeValue) : -1;
+		this.multiHit = projectileXML.elementExists("MultiHit");
+		this.armorPiercing = projectileXML.elementExists("ArmorPiercing");
+		this.particleTrail = projectileXML.elementExists("ParticleTrail");
+		this.wavy = projectileXML.elementExists("Wavy");
+		this.parametric = projectileXML.elementExists("Parametric");
+		this.boomerang = projectileXML.elementExists("Boomerang");
+		this.amplitude = projectileXML.floatElement("Amplitude");
+		this.frequency = projectileXML.floatElement("Frequency", 1);
+		this.magnitude = projectileXML.floatElement("Magnitude", 3);
+		this.acceleration = projectileXML.floatElement("Acceleration");
+		this.accelerationDelay = projectileXML.intElement("AccelerationDelay");
+		this.speedClamp = projectileXML.floatElement("SpeedClamp", -1);
+		this.angleChange = projectileXML.floatElement("AngleChange") * MathUtil.TO_RAD;
+		this.angleChangeDelay = projectileXML.intElement("AngleChangeDelay");
+		this.angleChangeEnd = projectileXML.intElement("AngleChangeEnd", MathUtil.INT_MAX);
+		this.zeroVelocityDelay = projectileXML.intElement("ZeroVelocityDelay");
+		this.heatSeekSpeed = projectileXML.floatElement("HeatSeekStrength");
+		this.heatSeekRadius = projectileXML.floatElement("HeatSeekRadius");
+		this.heatSeekDelay = projectileXML.intElement("HeatSeekDelay");
 	}
 }

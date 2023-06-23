@@ -156,21 +156,24 @@ class EquipmentToolTip extends ToolTip {
 		var texture = ObjectLibrary.getRedrawnTextureFromType(this.objectType, 60, true, true, scaleValue);
 		texture = BitmapUtil.cropToBitmapData(texture, 4, 4, texture.width - 8, texture.height - 8);
 		this.icon = new Bitmap(texture);
-		this.icon.y = 6;
+		this.icon.x = 12;
+		this.icon.y = 12;
 		addChild(this.icon);
 
 		this.titleText = new SimpleText(16, this.rarityColor, false, Std.int(MAX_WIDTH - this.icon.width - 4 - 30), 0);
 		this.titleText.setBold(true);
+		this.titleText.setItalic(true);
 		this.titleText.wordWrap = true;
 		this.titleText.text = ObjectLibrary.typeToDisplayId.get(this.objectType);
 		this.titleText.updateMetrics();
 		this.titleText.filters = [new DropShadowFilter(0, 0, 0, 0.5, 12, 12)];
-		this.titleText.x = this.icon.width + 4;
+		this.titleText.x = this.icon.width + 16;
+		this.titleText.y = 6;
 		addChild(this.titleText);
 
-		this.tierText = new SimpleText(13, this.rarityColor, false, Std.int(MAX_WIDTH - this.icon.width - 4 - 30), 0);
+		this.tierText = new SimpleText(12, this.rarityColor, false, Std.int(MAX_WIDTH - this.icon.width - 4 - 30), 0);
 		this.tierText.filters = [new DropShadowFilter(0, 0, 0, 0.5, 12, 12)];
-		this.tierText.x = this.icon.width + 4;
+		this.tierText.x = this.icon.width + 16;
 		this.tierText.y = this.titleText.y + this.titleText.actualHeight;
 		if (this.objectXML.elementExists("Tier"))
 			this.tierText.text = this.objectXML.element("Tier");
@@ -330,13 +333,13 @@ class EquipmentToolTip extends ToolTip {
 			this.line1.x = 8;
 			this.line1.y = this.yOffset;
 			addChild(this.line1);
-			this.effectsText = new SimpleText(14, 0xFFFFFF, false, Std.int(MAX_WIDTH - this.icon.width - 4), 0);
+			this.effectsText = new SimpleText(14, 0xB3B3B3, false, Std.int(MAX_WIDTH - this.icon.width - 4), 0);
 			this.effectsText.wordWrap = true;
 			this.effectsText.htmlText = this.buildEffectsHTML(this.effects);
 			this.effectsText.useTextDimensions();
 			this.effectsText.filters = [new DropShadowFilter(0, 0, 0, 0.5, 12, 12)];
-			this.effectsText.x = 4;
-			this.effectsText.y = this.line1.y + 8;
+			this.effectsText.x = 10;
+			this.effectsText.y = this.line1.y + 14;
 			addChild(this.effectsText);
 			this.yOffset = Std.int(this.effectsText.y + this.effectsText.height + 8);
 		}
@@ -356,13 +359,13 @@ class EquipmentToolTip extends ToolTip {
 			this.line2.x = 8;
 			this.line2.y = this.yOffset;
 			addChild(this.line2);
-			this.restrictionsText = new SimpleText(14, 0xFFFFFF, false, MAX_WIDTH - 4, 0);
+			this.restrictionsText = new SimpleText(14, 0xB3B3B3, false, MAX_WIDTH - 4, 0);
 			this.restrictionsText.wordWrap = true;
 			this.restrictionsText.htmlText = "<span class=\'in\'>" + buildRestrictionsHTML(this.restrictions) + "</span>";
 			this.restrictionsText.useTextDimensions();
 			this.restrictionsText.filters = [new DropShadowFilter(0, 0, 0, 0.5, 12, 12)];
-			this.restrictionsText.x = 4;
-			this.restrictionsText.y = this.line2.y + 8;
+			this.restrictionsText.x = 10;
+			this.restrictionsText.y = this.line2.y + 14;
 			addChild(this.restrictionsText);
 		}
 	}

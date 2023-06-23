@@ -168,7 +168,7 @@ final class Global {
 
 	public static function playGame(gameInit: GameInitData) {
 		playerModel.currentCharId = gameInit.charId;
-		gameSprite = new GameSprite(serverModel.getServer(), gameInit.gameId, gameInit.createCharacter, gameInit.charId, gameInit.fmMap);
+		gameSprite = new GameSprite(serverModel.getServer(), gameInit.createCharacter, gameInit.charId, gameInit.fmMap);
 		layers.screens.setScreen(gameSprite);
 	}
 
