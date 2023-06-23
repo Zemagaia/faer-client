@@ -74,8 +74,24 @@ class Dialog extends Sprite {
 		this.closeButtonContainer.addEventListener(MouseEvent.ROLL_OUT, this.onRollOut);
 
 		this.box = new Sprite();
-		this.initText(text);
-		this.initTitleText(title);
+		this.textText = new SimpleText(14, 0xB3B3B3, false, WIDTH - 40, 0);
+		this.textText.x = 20;
+		this.textText.multiline = true;
+		this.textText.wordWrap = true;
+		this.textText.htmlText = "<p align=\"center\">" + text + "</p>";
+		this.textText.autoSize = TextFieldAutoSize.CENTER;
+		this.textText.mouseEnabled = true;
+		this.textText.updateMetrics();
+		this.textText.filters = [new DropShadowFilter(0, 0, 0, 1, 6, 6, 1)];
+
+		if (title != null) {
+			this.titleText = new SimpleText(18, 0xB3B3B3, false, WIDTH, 0);
+			this.titleText.setBold(true);
+			this.titleText.htmlText = "<p align=\"center\">" + title + "</p>";
+			this.titleText.updateMetrics();
+			this.titleText.filters = [new DropShadowFilter(0, 0, 0, 1, 8, 8, 1)];
+		}
+
 		if (button1 != null) {
 			this.button1 = new TextButton(16, button1);
 			this.button1.addEventListener(MouseEvent.CLICK, this.onButton1Click);
@@ -100,18 +116,6 @@ class Dialog extends Sprite {
 
 	private function onRollOut(_: MouseEvent) {
 		this.closeButton.bitmapData = this.closeTexBase;
-	}
-
-	public function initText(text: String) {
-		this.textText = new SimpleText(14, 0xB3B3B3, false, WIDTH - 40, 0);
-		this.textText.x = 20;
-		this.textText.multiline = true;
-		this.textText.wordWrap = true;
-		this.textText.htmlText = "<p align=\"center\">" + text + "</p>";
-		this.textText.autoSize = TextFieldAutoSize.CENTER;
-		this.textText.mouseEnabled = true;
-		this.textText.updateMetrics();
-		this.textText.filters = [new DropShadowFilter(0, 0, 0, 1, 6, 6, 1)];
 	}
 
 	public function draw() {
@@ -146,16 +150,6 @@ class Dialog extends Sprite {
 
 		this.box.filters = [new DropShadowFilter(0, 0, 0, 1, 16, 16, 1)];
 		addChild(this.box);
-	}
-
-	private function initTitleText(title: String) {
-		if (title != null) {
-			this.titleText = new SimpleText(18, 5746018, false, WIDTH, 0);
-			this.titleText.setBold(true);
-			this.titleText.htmlText = "<p align=\"center\">" + title + "</p>";
-			this.titleText.updateMetrics();
-			this.titleText.filters = [new DropShadowFilter(0, 0, 0, 1, 8, 8, 1)];
-		}
 	}
 
 	private function onAddedToStage(event: Event) {

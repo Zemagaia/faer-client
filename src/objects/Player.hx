@@ -84,7 +84,7 @@ class Player extends GameObject {
 	public var tenacityMax = 0;
 	public var damageMult = 1.0;
 	public var hitMult = 1.0;
-	public var tier = 1;
+	public var level = 1;
 	public var hasBackpack = false;
 	public var locked = false;
 	public var ignored = false;
@@ -96,6 +96,8 @@ class Player extends GameObject {
 	public var moveMultiplier = 1.0;
 	public var hurtSound = "";
 	public var deathSound = "";
+	public var xp = 0;
+	public var xpTarget = 1;
 
 	private var rotate = 0.0;
 	private var relMoveVec: Point = null;
@@ -123,7 +125,7 @@ class Player extends GameObject {
 		player.piercing = playerXML.intElement("Piercing");
 		player.penetration = playerXML.intElement("Penetration");
 		player.tenacity = playerXML.intElement("Tenacity");
-		player.tier = playerXML.intElement("Tier");
+		player.level = playerXML.intElement("Tier");
 		return player;
 	}
 
@@ -139,25 +141,25 @@ class Player extends GameObject {
 			.next()
 			.firstChild()
 			.nodeValue : "monster/default_death";
-		this.tier = objectXML.intElement("Tier");
+		this.level = objectXML.intElement("Tier");
 		this.objectXML = objectXML;
 		this.updateMaxValues();
 	}
 
 	public function updateMaxValues() {
-		this.maxHPMax = this.objectXML.elementsNamed("Health").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
-		this.maxMPMax = this.objectXML.elementsNamed("Mana").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
-		this.strengthMax = this.objectXML.elementsNamed("Strength").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
-		this.witMax = this.objectXML.elementsNamed("Wit").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
-		this.defenseMax = this.objectXML.elementsNamed("Defense").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
-		this.resistanceMax = this.objectXML.elementsNamed("Resistance").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
-		this.speedMax = this.objectXML.elementsNamed("Speed").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
-		this.hasteMax = this.objectXML.elementsNamed("Haste").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
-		this.staminaMax = this.objectXML.elementsNamed("Stamina").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
-		this.intelligenceMax = this.objectXML.elementsNamed("Intelligence").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
-		this.piercingMax = this.objectXML.elementsNamed("Piercing").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
-		this.penetrationMax = this.objectXML.elementsNamed("Penetration").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
-		this.tenacityMax = this.objectXML.elementsNamed("Tenacity").next().intAttribute('t${this.tier > 0 ? this.tier : 1}');
+		this.maxHPMax = this.objectXML.elementsNamed("Health").next().intAttribute('t${this.level > 0 ? this.level : 1}');
+		this.maxMPMax = this.objectXML.elementsNamed("Mana").next().intAttribute('t${this.level > 0 ? this.level : 1}');
+		this.strengthMax = this.objectXML.elementsNamed("Strength").next().intAttribute('t${this.level > 0 ? this.level : 1}');
+		this.witMax = this.objectXML.elementsNamed("Wit").next().intAttribute('t${this.level > 0 ? this.level : 1}');
+		this.defenseMax = this.objectXML.elementsNamed("Defense").next().intAttribute('t${this.level > 0 ? this.level : 1}');
+		this.resistanceMax = this.objectXML.elementsNamed("Resistance").next().intAttribute('t${this.level > 0 ? this.level : 1}');
+		this.speedMax = this.objectXML.elementsNamed("Speed").next().intAttribute('t${this.level > 0 ? this.level : 1}');
+		this.hasteMax = this.objectXML.elementsNamed("Haste").next().intAttribute('t${this.level > 0 ? this.level : 1}');
+		this.staminaMax = this.objectXML.elementsNamed("Stamina").next().intAttribute('t${this.level > 0 ? this.level : 1}');
+		this.intelligenceMax = this.objectXML.elementsNamed("Intelligence").next().intAttribute('t${this.level > 0 ? this.level : 1}');
+		this.piercingMax = this.objectXML.elementsNamed("Piercing").next().intAttribute('t${this.level > 0 ? this.level : 1}');
+		this.penetrationMax = this.objectXML.elementsNamed("Penetration").next().intAttribute('t${this.level > 0 ? this.level : 1}');
+		this.tenacityMax = this.objectXML.elementsNamed("Tenacity").next().intAttribute('t${this.level > 0 ? this.level : 1}');
 	}
 
 	override public function update(time: Int32, dt: Int16) {
@@ -219,7 +221,6 @@ class Player extends GameObject {
 			this.needsBlinkingClear = true;
 		}
 	}*/
-
 	public function getPortrait(sizeMult: Float32 = 1, animCharOverride: AnimatedChar = null) {
 		var image: MaskedImage = null;
 		var size = 0;

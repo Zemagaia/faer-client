@@ -131,7 +131,7 @@ class CharacterSelectionScreen extends Sprite {
 			this.editorButton.x = this.characterRectList.x + this.characterRectList.width - this.editorButton.width;
 			this.editorButton.y = 425;
 			addChild(this.editorButton);
-		}	
+		}
 
 		this.goldDecor = new Bitmap(Assets.getBitmapData("assets/ui/screens/charSelect/currencyAndGuildViewer.png"));
 		this.goldDecor.x = this.characterRectList.x;
@@ -141,7 +141,7 @@ class CharacterSelectionScreen extends Sprite {
 		this.goldIcon = new Bitmap(IconFactory.makeGold());
 		this.goldIcon.x = this.goldDecor.x + (32 - this.goldIcon.width) / 2 + 4;
 		this.goldIcon.y = this.goldDecor.y + (32 - this.goldIcon.height) / 2 + 4;
-		addChild(this.goldIcon); 
+		addChild(this.goldIcon);
 
 		this.goldText = new SimpleText(22, 0xB3B3B3);
 		this.goldText.setText(Std.string(Global.playerModel.getGold()));

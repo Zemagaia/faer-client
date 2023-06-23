@@ -1,36 +1,43 @@
 package ui;
 
-import openfl.display.GraphicsPath;
-import openfl.display.GraphicsPathWinding;
-import openfl.display.GraphicsSolidFill;
-import openfl.display.IGraphicsData;
 import openfl.display.Shape;
-import openfl.Vector;
-import util.GraphicsUtil;
+import openfl.Assets;
+import openfl.display.Bitmap;
+import openfl.display.Sprite;
 
-class LineBreakDesign extends Shape {
-	private var designFill = new GraphicsSolidFill(0xFFFFFF, 1);
-	private var designPath = new GraphicsPath(null, null, GraphicsPathWinding.NON_ZERO);
-	private var designGraphicsData = new Vector<IGraphicsData>(0, false, [
-		new GraphicsSolidFill(0xFFFFFF, 1),
-		new GraphicsPath(null, null, GraphicsPathWinding.NON_ZERO),
-		GraphicsUtil.END_FILL
-	]);
-
+class LineBreakDesign extends Sprite {
 	public function new(width: Int, color: Int) {
 		super();
 
-		this.setWidthColor(width, color);
-	}
+		var rightDecor = new Bitmap(Assets.getBitmapData("assets/ui/tooltips/linebreakDecorRight.png"));
+		var leftDecor = new Bitmap(Assets.getBitmapData("assets/ui/tooltips/linebreakDecorLeft.png"));
 
-	public function setWidthColor(width: Int, color: Int) {
-		graphics.clear();
-		this.designFill.color = color;
-		GraphicsUtil.clearPath(this.designPath);
-		GraphicsUtil.drawDiamond(0, 0, 4, this.designPath);
-		GraphicsUtil.drawDiamond(width, 0, 4, this.designPath);
-		GraphicsUtil.drawRect(0, -1, width, 2, this.designPath);
-		this.designGraphicsData[1] = this.designPath;
-		graphics.drawGraphicsData(this.designGraphicsData);
+		// jank
+		var line1 = new Shape();
+		line1.graphics.lineStyle(1, 0x170704);
+		line1.graphics.beginFill(0x66401E);
+		line1.graphics.drawRect(leftDecor.width / 2, -1, width - rightDecor.width / 2 - leftDecor.width / 2, 3); 
+		line1.graphics.endFill();
+		addChild(line1);
+
+		var line2 = new Shape();
+		line2.graphics.beginFill(0xA4653A);
+		line2.graphics.drawRect(line1.x, line1.y + 1, line1.width, 1);
+		line2.graphics.endFill();
+		addChild(line2);
+
+		leftDecor.y = -leftDecor.height / 2;
+		addChild(leftDecor);
+
+		rightDecor.x = width - rightDecor.width;
+		rightDecor.y = -rightDecor.height / 2;
+		addChild(rightDecor);
+
+		// extreme jank
+		var pad = new Shape();
+		pad.graphics.beginFill(0, 0);
+		pad.graphics.drawRect(width, 0, 12, 1);
+		pad.graphics.endFill();
+		addChild(pad);
 	}
 }

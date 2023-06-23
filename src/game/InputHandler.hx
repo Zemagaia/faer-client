@@ -40,12 +40,16 @@ class InputHandler {
 	}
 
 	private function togglePerformanceStats() {
-		if (Global.gameSprite.statsView != null) {
-			Global.gameSprite.statsView.visible = false;
-			Global.gameSprite.statsView = null;
+		if (Global.gameSprite.fpsView != null) {
+			Global.gameSprite.fpsView.visible = false;
+			Global.gameSprite.fpsView = null;
+			Settings.perfStatsOpen = false;
+			Settings.save();
 		} else {
 			Global.gameSprite.addStatsView();
 			Global.gameSprite.lastFrameUpdate = System.getTimer();
+			Settings.perfStatsOpen = true;
+			Settings.save();
 		}
 	}
 
@@ -119,7 +123,8 @@ class InputHandler {
 		if (!this.shootDown)
 			return;
 
-		Global.gameSprite.map.player?.attemptAttackAngle(Math.atan2(Main.primaryStage.mouseY - Main.mouseYOffset + 20, Main.primaryStage.mouseX - Main.mouseXOffset));
+		Global.gameSprite.map.player?.attemptAttackAngle(Math.atan2(Main.primaryStage.mouseY - Main.mouseYOffset + 20,
+			Main.primaryStage.mouseX - Main.mouseXOffset));
 	}
 
 	private function onKeyDown(event: KeyboardEvent) {

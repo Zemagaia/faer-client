@@ -34,7 +34,7 @@ class ItemGrid extends Sprite {
 		]
 	];
 	private static inline var padding = 4;
-	private static inline var rowLength = 4;
+	private static inline var rowLength = 6;
 
 	public var owner: GameObject;
 	public var curPlayer: Player;

@@ -150,17 +150,11 @@ class Options extends Sprite {
 	}
 
 	private function addHotKeysOptions() {
-		this.addOption(new KeyMapper("healthVial", "Use Health Vial", "This key will use health vials if available"));
-		this.addOption(new KeyMapper("magicVial", "Use Magic Vial", "This key will use magic vials if available"));
-		this.addOption(new KeyMapper("inv1", "Use Inventory Slot 1", "Use item in inventory slot 1"));
-		this.addOption(new KeyMapper("inv2", "Use Inventory Slot 2", "Use item in inventory slot 2"));
-		this.addOption(new KeyMapper("inv3", "Use Inventory Slot 3", "Use item in inventory slot 3"));
-		this.addOption(new KeyMapper("inv4", "Use Inventory Slot 4", "Use item in inventory slot 4"));
-		this.addOption(new KeyMapper("inv5", "Use Inventory Slot 5", "Use item in inventory slot 5"));
-		this.addOption(new KeyMapper("inv6", "Use Inventory Slot 6", "Use item in inventory slot 6"));
-		this.addOption(new KeyMapper("inv7", "Use Inventory Slot 7", "Use item in inventory slot 7"));
-		this.addOption(new KeyMapper("inv8", "Use Inventory Slot 8", "Use item in inventory slot 8"));
-		this.addOption(new KeyMapper("goToHub", "Escape To Hub", "This key will instantly escape you to the Hub"));
+		this.addOption(new KeyMapper("ability1", "Use First Ability", "This key will use your class's first ability"));
+		this.addOption(new KeyMapper("ability2", "Use Second Ability", "This key will use your class's second ability"));
+		this.addOption(new KeyMapper("ability3", "Use Third Ability", "This key will use your class's third ability"));
+		this.addOption(new KeyMapper("ultimateAbility", "Use Ultimate Ability", "This key will use your class's ultimate ability"));
+		this.addOption(new KeyMapper("goToHub", "Escape To Hub", "This key will instantly teleport you to the Hub (if not in combat)"));
 		this.addOption(new KeyMapper("options", "Show Options", "This key will bring up the options screen"));
 		this.addOption(new KeyMapper("switchTabs", "Switch Tabs", "This key will switch from available tabs"));
 	}

@@ -107,7 +107,6 @@ class CurrentCharacterRect extends CharacterRect {
 		var data: GameInitData = new GameInitData();
 		data.createCharacter = false;
 		data.charId = this.savedChar.charId();
-		data.gameId = Settings.HUB_GAMEID;
 		Global.playGame(data);
 	}
 

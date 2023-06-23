@@ -81,7 +81,6 @@ class CharSkinView extends Sprite {
 		var game: GameInitData = new GameInitData();
 		game.createCharacter = true;
 		game.charId = Global.playerModel.getNextCharId();
-		game.gameId = Settings.HUB_GAMEID;
 		//Global.playerModel.addCharacter(new SavedCharacter(playerXML, Global.playerModel.getName()));
 		Global.playGame(game);
 	}

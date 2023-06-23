@@ -42,11 +42,11 @@ class MiniMap extends Sprite {
 	public var blueArrow: BitmapData;
 	public var groundLayer: Shape;
 	public var characterLayer: Shape;
-
+	public var decor: Bitmap;
+	
 	private var optionsButton: IconButton;
 	private var hubButton: IconButton;
 	private var zoomButtons: MiniMapZoomButtons;
-	private var decor: Bitmap;
 	private var isMouseOver = false;
 	private var mapMatrix: Matrix;
 	private var arrowMatrix: Matrix;
