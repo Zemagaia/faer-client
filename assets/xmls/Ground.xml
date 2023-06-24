@@ -50,6 +50,8 @@
             <Index>0x04</Index>
         </Texture>
         <BlendPriority>98</BlendPriority>
+        <LightColor>0x4C8AED</LightColor>
+        <LightIntensity>0.1</LightIntensity>
         <NoWalk/>
     </Ground>
     <Ground type="0x21" id="Grass">
@@ -787,11 +789,15 @@
         <Speed>0.58</Speed>
         <Sink/>
         <!-- <BlendPriority>-99</BlendPriority> -->
+        <LightColor>0xFFF4AA</LightColor>
+        <LightIntensity>0.001</LightIntensity>
     </Ground>
     <Ground type="0x7b" id="Chasm Bridge">
         <Texture><Sheet>ground</Sheet><Index>0x79</Index></Texture>
         <Speed>0.8</Speed>
         <!-- <BlendPriority>-99</BlendPriority> -->
+        <LightColor>0xF59F19</LightColor>
+        <LightIntensity>0.001</LightIntensity>
     </Ground>
     <Ground type="0x7c" id="Chasm Ground Tile">
         <Texture><Sheet>ground</Sheet><Index>0xa8</Index></Texture>

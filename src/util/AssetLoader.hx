@@ -21,16 +21,17 @@ class AssetLoader {
 		AssetLibrary.addImageSet("invisible", new BitmapData(8, 8, true, 0), 8, 8);
 		AssetLibrary.addImageSet("wallBackface", new BitmapData(8, 8, false, 0), 8, 8);
 
-		// all ui currently. not part of the sprite batcher
+		// not part of the sprite batcher
 		AssetLibrary.addImageSet("keyIndicators", Assets.getBitmapData("assets/sheets/KeyIndicators.png"), 100, 100, true);
 		AssetLibrary.addImageSet("cursors", Assets.getBitmapData("assets/sheets/Cursors.png"), 32, 32, true);
 		AssetLibrary.addImageSet("items", Assets.getBitmapData("assets/sheets/Items.png"), 8, 8, true);
 		AssetLibrary.addImageSet("skinItems", Assets.getBitmapData("assets/sheets/Players.png"), 8, 8, true);
 		AssetLibrary.addImageSet("tieredItems", Assets.getBitmapData("assets/sheets/TieredItems.png"), 8, 8, true);
 		AssetLibrary.addImageSet("speechBalloons", Assets.getBitmapData("assets/sheets/SpeechBalloons.png"), 32, 24, true);
-		
 		AssetLibrary.addImageSet("errorTexture", Assets.getBitmapData("assets/sheets/ErrorTexture.png"), 8, 8, true);
-		AssetLibrary.addImageSet("abilityIcons", Assets.getBitmapData("assets/sheets/AbilityIcons.png"), 40, 40);
+		AssetLibrary.addImageSet("abilityIcons", Assets.getBitmapData("assets/sheets/AbilityIcons.png"), 40, 40, true);
+		AssetLibrary.addImageSet("light", Assets.getBitmapData("assets/sheets/Light.png"), 384, 384, true);
+
 		AssetLibrary.addImageSet("particles", Assets.getBitmapData("assets/sheets/Particles.png"), 8, 8);
 		AssetLibrary.addImageSet("bars", Assets.getBitmapData("assets/sheets/Bars.png"), 24, 8);
 		AssetLibrary.addImageSet("ground", Assets.getBitmapData("assets/sheets/Ground.png"), 8, 8);

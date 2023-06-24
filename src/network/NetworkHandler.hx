@@ -694,12 +694,12 @@ class NetworkHandler {
 						var height = data.readInt();
 						var name = data.readUTF();
 						var displayName = data.readUTF();
-						var background = data.readInt();
-						var difficulty = data.readInt();
+						var bgLightColor = data.readInt();
+						var bgLightIntensity = data.readFloat();
 						var allowPlayerTeleport = data.readBoolean();
 						var showDisplays = data.readBoolean();
 
-						Global.gameSprite.map.setProps(width, height, name, background, allowPlayerTeleport, showDisplays);
+						Global.gameSprite.map.setProps(width, height, name, allowPlayerTeleport, showDisplays, bgLightColor, bgLightIntensity);
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate,
@@ -711,10 +711,10 @@ class NetworkHandler {
 							+ name
 							+ ", displayName="
 							+ displayName
-							+ ", background="
-							+ background
-							+ ", difficulty="
-							+ difficulty
+							+ ", bgLightColor="
+							+ bgLightColor
+							+ ", bgLightIntensity="
+							+ bgLightIntensity
 							+ ", allowPlayerTeleport="
 							+ allowPlayerTeleport
 							+ ", showDisplays="

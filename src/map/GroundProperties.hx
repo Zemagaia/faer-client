@@ -15,23 +15,27 @@ class GroundProperties {
 	public var push = false;
 	public var sink = false;
 	public var sinking = false;
+	public var lightColor = -1;
+	public var lightIntensity = 0.1;
 
-	public function new(groundXML: Xml) {
-		this.objType = groundXML.intAttribute("type");
-		this.objId = groundXML.attribute("id");
-		this.noWalk = groundXML.elementExists("NoWalk");
-		this.damage = groundXML.intElement("Damage");
-		this.push = groundXML.elementExists("Push");
-		this.blendPriority = groundXML.intElement("BlendPriority");
-		this.speed = groundXML.floatElement("Speed", 1.0);
-		this.uOffset = groundXML.intElement("XOffset");
-		this.vOffset = groundXML.intElement("YOffset");
-		this.push = groundXML.elementExists("Push");
-		this.sink = groundXML.elementExists("Sink");
-		this.sinking = groundXML.elementExists("Sinking");
+	public function new(groundXml: Xml) {
+		this.objType = groundXml.intAttribute("type");
+		this.objId = groundXml.attribute("id");
+		this.noWalk = groundXml.elementExists("NoWalk");
+		this.damage = groundXml.intElement("Damage");
+		this.push = groundXml.elementExists("Push");
+		this.blendPriority = groundXml.intElement("BlendPriority");
+		this.speed = groundXml.floatElement("Speed", 1.0);
+		this.uOffset = groundXml.intElement("XOffset");
+		this.vOffset = groundXml.intElement("YOffset");
+		this.push = groundXml.elementExists("Push");
+		this.sink = groundXml.elementExists("Sink");
+		this.sinking = groundXml.elementExists("Sinking");
+		this.lightColor = groundXml.intElement("LightColor", -1);
+		this.lightIntensity = groundXml.floatElement("LightIntensity", 0.1);
 
-		if (groundXML.elementExists("Animate"))
-			this.animate = new AnimateProperties(groundXML.elementsNamed("Animate").next());
+		if (groundXml.elementExists("Animate"))
+			this.animate = new AnimateProperties(groundXml.elementsNamed("Animate").next());
 		else
 			this.animate = new AnimateProperties(Xml.parse(""));
 	}

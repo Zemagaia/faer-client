@@ -2,7 +2,8 @@ package objects;
 
 import util.Utils;
 import haxe.ds.IntMap;
-import sound.SoundEffectLibrary;
+
+using util.Utils.XmlUtil;
 
 class ObjectProperties {
 	public var objType = 0;
@@ -26,7 +27,6 @@ class ObjectProperties {
 	public var dontFaceAttacks = false;
 	public var bloodProb = 0.0;
 	public var bloodColor = 0xFF0000;
-	public var shadowColor = 0;
 	public var sounds: IntMap<String> = null;
 	public var portrait: TextureData = null;
 	public var minSize = 100;
@@ -35,116 +35,93 @@ class ObjectProperties {
 	public var whileMoving: WhileMovingProperties = null;
 	public var oldSound = "";
 	public var projectiles: IntMap<ProjectileProperties>;
-	public var scepterProps: ScepterProperties;
 	public var angleCorrection = 0.0;
 	public var rotation = 0.0;
 	public var floating = false;
 	public var floatTime = 0;
 	public var floatHeight = 0.0;
 	public var floatSine = false;
+	public var lightColor = -1;
+	public var lightIntensity = 0.1;
 	public var showEffects: Array<ShowEffectProperties> = null;
 
-	public function new(objectXML: Xml) {
+	public function new(objectXml: Xml) {
 		var bulletType = 0;
 		this.projectiles = new IntMap<ProjectileProperties>();
-		if (objectXML == null)
+		if (objectXml == null)
 			return;
 
-		this.objType = Std.parseInt(objectXML.get("type"));
-		this.objId = objectXML.get("id");
-		this.displayId = this.objId;
-		if (objectXML.elementsNamed("DisplayId").hasNext())
-			this.displayId = objectXML.elementsNamed("DisplayId").next().firstChild().nodeValue;
-
-		this.isPlayer = objectXML.elementsNamed("Player").hasNext();
-		this.isEnemy = objectXML.elementsNamed("Enemy").hasNext();
-		this.drawOnGround = objectXML.elementsNamed("DrawOnGround").hasNext();
-		if (this.drawOnGround || objectXML.elementsNamed("DrawUnder").hasNext())
+		this.objType = objectXml.intAttribute("type");
+		this.objId = objectXml.attribute("id");
+		this.displayId = objectXml.element("DisplayId", this.objId);
+		this.isPlayer = objectXml.elementExists("Player");
+		this.isEnemy = objectXml.elementExists("Enemy");
+		this.drawOnGround = objectXml.elementExists("DrawOnGround");
+		if (this.drawOnGround || objectXml.elementExists("DrawUnder"))
 			this.drawUnder = true;
 
-		this.occupySquare = objectXML.elementsNamed("OccupySquare").hasNext();
-		this.fullOccupy = objectXML.elementsNamed("FullOccupy").hasNext();
-		this.enemyOccupySquare = objectXML.elementsNamed("EnemyOccupySquare").hasNext();
-		this.staticObj = objectXML.elementsNamed("Static").hasNext();
-		this.noMiniMap = objectXML.elementsNamed("NoMiniMap").hasNext();
-		this.protectFromGroundDamage = objectXML.elementsNamed("ProtectFromGroundDamage").hasNext();
-		this.protectFromSink = objectXML.elementsNamed("ProtectFromSink").hasNext();
-		this.flying = objectXML.elementsNamed("Flying").hasNext();
-		this.showName = objectXML.elementsNamed("ShowName").hasNext();
-		this.dontFaceAttacks = objectXML.elementsNamed("DontFaceAttacks").hasNext();
-		this.floating = objectXML.elementsNamed("Float").hasNext();
+		this.occupySquare = objectXml.elementExists("OccupySquare");
+		this.fullOccupy = objectXml.elementExists("FullOccupy");
+		this.enemyOccupySquare = objectXml.elementExists("EnemyOccupySquare");
+		this.staticObj = objectXml.elementExists("Static");
+		this.noMiniMap = objectXml.elementExists("NoMiniMap");
+		this.protectFromGroundDamage = objectXml.elementExists("ProtectFromGroundDamage");
+		this.protectFromSink = objectXml.elementExists("ProtectFromSink");
+		this.flying = objectXml.elementExists("Flying");
+		this.showName = objectXml.elementExists("ShowName");
+		this.dontFaceAttacks = objectXml.elementExists("DontFaceAttacks");
+		this.floating = objectXml.elementExists("Float");
 		if (this.floating) {
-			this.floatSine = objectXML.elementsNamed("Float")
-				.next()
-				.exists("sine") ? false : objectXML.elementsNamed("Float")
-				.next()
-				.get("sine") == "true";
-			this.floatTime = objectXML.elementsNamed("Float").next().exists("time") ? 500 : Std.parseInt(objectXML.elementsNamed("Float").next().get("time"));
-			this.floatHeight = objectXML.elementsNamed("Float")
-				.next()
-				.exists("height") ? 0.5 : Std.parseFloat(objectXML.elementsNamed("Float").next().get("height"));
+			var floatXml = objectXml.elementsNamed("Float").next();
+			this.floatSine = floatXml.attribute("sine") == "true";
+			this.floatTime = floatXml.intAttribute("time", 500);
+			this.floatHeight = floatXml.floatAttribute("height", 0.5);
 		}
 
-		if (objectXML.elementsNamed("Z").hasNext())
-			this.baseZ = Std.parseFloat(objectXML.elementsNamed("Z").next().firstChild().nodeValue);
+		this.baseZ = objectXml.floatElement("Z");
+		this.color = objectXml.intElement("Color", 0xFFFFFF);
+		this.lightColor = objectXml.intElement("LightColor", -1);
+		this.lightIntensity = objectXml.floatElement("LightIntensity", 0.1);
 
-		if (objectXML.elementsNamed("Color").hasNext())
-			this.color = Std.parseInt(objectXML.elementsNamed("Color").next().firstChild().nodeValue);
-
-		if (objectXML.elementsNamed("Size").hasNext())
-			this.minSize = this.maxSize = Std.parseInt(objectXML.elementsNamed("Size").next().firstChild().nodeValue);
+		if (objectXml.elementExists("Size"))
+			this.minSize = this.maxSize = objectXml.intElement("Size", 100);
 		else {
-			if (objectXML.elementsNamed("MinSize").hasNext())
-				this.minSize = Std.parseInt(objectXML.elementsNamed("MinSize").next().firstChild().nodeValue);
-
-			if (objectXML.elementsNamed("MaxSize").hasNext())
-				this.maxSize = Std.parseInt(objectXML.elementsNamed("MaxSize").next().firstChild().nodeValue);
-
-			if (objectXML.elementsNamed("SizeStep").hasNext())
-				this.sizeStep = Std.parseInt(objectXML.elementsNamed("SizeStep").next().firstChild().nodeValue);
+			this.minSize = objectXml.intElement("MinSize", 100);
+			this.maxSize = objectXml.intElement("MaxSize", 100);
+			this.sizeStep = objectXml.intElement("SizeStep", 5);
 		}
 
-		this.oldSound = objectXML.elementsNamed("OldSound")
-			.hasNext() ? objectXML.elementsNamed("OldSound")
-			.next()
-			.firstChild()
-			.nodeValue : null;
-		for (xml in objectXML.elementsNamed("Projectile")) {
-			bulletType = Std.parseInt(xml.get("id"));
+		this.oldSound = objectXml.element("OldSound", null);
+		for (xml in objectXml.elementsNamed("Projectile")) {
+			bulletType = xml.intAttribute("id");
 			this.projectiles.set(bulletType, new ProjectileProperties(xml));
 		}
 
-		if (objectXML.elementsNamed("Scepter").hasNext())
-			this.scepterProps = new ScepterProperties(objectXML.elementsNamed("Scepter").next());
-
 		this.showEffects = new Array<ShowEffectProperties>();
-		for (xml in objectXML.elementsNamed("ShowEffect"))
+		for (xml in objectXml.elementsNamed("ShowEffect"))
 			this.showEffects.push(new ShowEffectProperties(xml));
 
-		this.angleCorrection = objectXML.elementsNamed("AngleCorrection")
-			.hasNext() ? Std.parseFloat(objectXML.elementsNamed("AngleCorrection").next().firstChild().nodeValue) * (MathUtil.PI / 4) : 0;
-		this.rotation = objectXML.elementsNamed("Rotation").hasNext() ? Std.parseFloat(objectXML.elementsNamed("Rotation").next().firstChild().nodeValue) : 0;
+		this.angleCorrection = objectXml.floatElement("AngleCorrection") * (MathUtil.PI / 4);
+		this.rotation = objectXml.floatElement("Rotation");
 
-		for (xml in objectXML.elementsNamed("BloodProb"))
-			this.bloodProb = Std.parseFloat(objectXML.elementsNamed("BloodProb").next().firstChild().nodeValue);
+		for (xml in objectXml.elementsNamed("BloodProb"))
+			this.bloodProb = xml.intValue();
 
-		for (xml in objectXML.elementsNamed("BloodColor"))
-			this.bloodColor = Std.parseInt(objectXML.elementsNamed("BloodColor").next().firstChild().nodeValue);
+		for (xml in objectXml.elementsNamed("BloodColor"))
+			this.bloodColor = xml.intValue();
 
-		for (xml in objectXML.elementsNamed("ShadowColor"))
-			this.shadowColor = Std.parseInt(objectXML.elementsNamed("ShadowColor").next().firstChild().nodeValue);
-
-		for (soundXML in objectXML.elementsNamed("Sound")) {
+		for (soundXML in objectXml.elementsNamed("Sound")) {
 			if (this.sounds == null)
 				this.sounds = new IntMap<String>();
-			this.sounds.set(Std.parseInt(soundXML.get("id")), soundXML.firstChild().nodeValue);
+
+			this.sounds.set(soundXML.intAttribute("id"), soundXML.value());
 		}
 
-		for (xml in objectXML.elementsNamed("Portrait"))
-			this.portrait = new TextureData(objectXML.elementsNamed("Portrait").next());
+		for (xml in objectXml.elementsNamed("Portrait"))
+			this.portrait = new TextureData(xml);
 
-		for (xml in objectXML.elementsNamed("WhileMoving"))
-			this.whileMoving = new WhileMovingProperties(objectXML.elementsNamed("WhileMoving").next());
+		for (xml in objectXml.elementsNamed("WhileMoving"))
+			this.whileMoving = new WhileMovingProperties(xml);
 	}
 
 	public function getSize() {
@@ -156,32 +133,6 @@ class ObjectProperties {
 	}
 }
 
-class DrainProperties {
-	public var drainStat = 0;
-	public var drainPerSec = 0;
-
-	public function new(drainXML: Xml) {
-		this.drainStat = Std.parseInt(drainXML.get("stat"));
-		this.drainPerSec = Std.parseInt(drainXML.firstChild().nodeValue);
-	}
-}
-
-class ScepterProperties {
-	public var color = 0;
-	public var range = 0.0;
-	public var tickMs = 0;
-	public var damage = 0;
-	public var drain: DrainProperties;
-
-	public function new(scepterXML: Xml) {
-		this.color = Std.parseInt(scepterXML.elementsNamed("Color").next().firstChild().nodeValue);
-		this.range = Std.parseFloat(scepterXML.elementsNamed("Range").next().firstChild().nodeValue);
-		this.tickMs = Std.parseInt(scepterXML.elementsNamed("TickMS").next().firstChild().nodeValue);
-		this.damage = Std.parseInt(scepterXML.elementsNamed("Damage").next().firstChild().nodeValue);
-		this.drain = new DrainProperties(scepterXML.elementsNamed("Drain").next());
-	}
-}
-
 class ShowEffectProperties {
 	public var effType = "";
 	public var radius = 0;
@@ -189,10 +140,10 @@ class ShowEffectProperties {
 	public var color = 0;
 
 	public function new(showEffXML: Xml) {
-		this.effType = showEffXML.firstChild().nodeValue;
-		this.radius = Std.parseInt(showEffXML.get("radius"));
-		this.cooldown = Std.parseInt(showEffXML.get("cooldown"));
-		this.color = Std.parseInt(showEffXML.get("color"));
+		this.effType = showEffXML.value();
+		this.radius = showEffXML.intAttribute("radius");
+		this.cooldown = showEffXML.intAttribute("cooldown");
+		this.color = showEffXML.intAttribute("color");
 	}
 }
 
@@ -201,9 +152,7 @@ class WhileMovingProperties {
 	public var flying = false;
 
 	public function new(whileMovingXML: Xml) {
-		if (whileMovingXML.elementsNamed("Z").hasNext())
-			this.z = Std.parseFloat(whileMovingXML.elementsNamed("Z").next().firstChild().nodeValue);
-
-		this.flying = whileMovingXML.elementsNamed("Flying").hasNext();
+		this.z = whileMovingXML.floatElement("Z");
+		this.flying = whileMovingXML.elementExists("Flying");
 	}
 }

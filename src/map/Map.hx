@@ -1,5 +1,6 @@
 package map;
 
+import openfl.display.Shape;
 import lime.graphics.opengl.GLUniformLocation;
 import objects.animation.Animations;
 import engine.GLTextureData;
@@ -55,6 +56,16 @@ class RenderDataSingle {
 	public var alpha: Float32 = 1.0;
 }
 
+@:structInit
+class Light {
+	public var w: Float32;
+	public var h: Float32;
+	public var x: Float32;
+	public var y: Float32;
+	public var intensity: Float32;
+	public var color: Int32;
+}
+
 @:unreflective
 class Map {
 	private static inline var TILE_UPDATE_MS = 100; // tick rate
@@ -96,6 +107,7 @@ class Map {
 	public static var vertScaleUniformLoc: GLUniformLocation;
 	public static var vertPosUniformLoc: GLUniformLocation;
 	public static var texelSizeUniformLoc: GLUniformLocation;
+	public static var colorUniformLoc: GLUniformLocation;
 	public static var alphaMultUniformLoc: GLUniformLocation;
 	public static var leftMaskUniformLoc: GLUniformLocation;
 	public static var topMaskUniformLoc: GLUniformLocation;
@@ -113,6 +125,7 @@ class Map {
 	public var gameObjects: Array<GameObject>;
 	private var goRemove: Array<GameObject>;
 	public var rdSingle: Array<RenderDataSingle>;
+	public var lights: Array<Light>;
 	public var player: Player = null;
 	public var quest: Quest = null;
 	public var lastWidth: Int16 = -1;
@@ -153,6 +166,12 @@ class Map {
 	private var frontBuffer: GLFramebuffer;
 	private var backBufferTexture: GLTexture;
 	private var frontBufferTexture: GLTexture;
+	private var screenData: GLTextureData;
+	private var screenTex: GLTexture;
+	private var lightData: GLTextureData;
+	private var lightTex: GLTexture;
+	private var bgLightColor: Int32 = -1;
+	private var bgLightIntensity: Float32 = 0.1;
 
 	public var speechBalloons: IntMap<SpeechBalloon>;
 	public var statusTexts: Array<CharacterStatusText>;
@@ -168,6 +187,7 @@ class Map {
 		this.gameObjects = [];
 		this.goRemove = [];
 		this.rdSingle = [];
+		this.lights = [];
 		this.quest = new Quest(this);
 		this.visSquares = new Vector<Square>(MAX_VISIBLE_SQUARES);
 		this.speechBalloons = new IntMap<SpeechBalloon>();
@@ -182,14 +202,15 @@ class Map {
 		this.statusTexts.push(text);
 	}
 
-	@:nonVirtual public function setProps(width: Int, height: Int, name: String, back: Int, allowPlayerTeleport: Bool, showDisplays: Bool) {
+	@:nonVirtual public function setProps(width: Int, height: Int, name: String, allowPlayerTeleport: Bool, showDisplays: Bool, bgLightColor: Int32, bgLightIntensity: Float32) {
 		this.mapWidth = width;
 		this.mapHeight = height;
 		this.squares = new Vector<Square>(this.mapWidth * this.mapHeight);
 		this.mapName = name;
-		this.back = back;
 		this.allowPlayerTeleport = allowPlayerTeleport;
 		this.showDisplays = showDisplays;
+		this.bgLightColor = bgLightColor;
+		this.bgLightIntensity = bgLightIntensity;
 	}
 
 	@:nonVirtual public function initialize() {
@@ -261,6 +282,7 @@ class Map {
 		vertScaleUniformLoc = GL.getUniformLocation(this.singleProgram, "vertScale");
 		vertPosUniformLoc = GL.getUniformLocation(this.singleProgram, "vertPos");
 		texelSizeUniformLoc = GL.getUniformLocation(this.singleProgram, "texelSize");
+		colorUniformLoc = GL.getUniformLocation(this.singleProgram, "color");
 		alphaMultUniformLoc = GL.getUniformLocation(this.singleProgram, "alphaMult");
 
 		leftMaskUniformLoc = GL.getUniformLocation(this.groundProgram, "leftMaskUV");
@@ -319,6 +341,12 @@ class Map {
 		this.c3d = Main.primaryStage3D.context3D;
 		this.c3d.configureBackBuffer(Main.stageWidth, Main.stageHeight, 0, true);
 
+		this.screenData = TextureFactory.make(new BitmapData(1, 1, false, 0xFFFFFF));
+		this.screenTex = this.screenData.texture;
+
+		this.lightData = TextureFactory.make(AssetLibrary.getImageFromSet("light", 0));
+		this.lightTex = this.lightData.texture;
+
 		this.lastWidth = Main.stageWidth;
 		this.lastHeight = Main.stageHeight;
 		RenderUtils.clipSpaceScaleX = 2 / Main.stageWidth;
@@ -334,6 +362,8 @@ class Map {
 				obj.dispose();
 		this.gameObjects = null;
 		this.goRemove = null;
+		this.rdSingle = null;
+		this.lights = null;
 
 		this.player = null;
 		this.quest = null;
@@ -546,6 +576,10 @@ class Map {
 					updateBlends(square.x, square.y, square);
 				}			
 			}
+
+			if (square.props.lightColor != -1) 
+				this.lights.push({w: Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleX * 8,
+					 h: Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleY * 8, x: square.clipX, y: square.clipY, color: square.props.lightColor, intensity: player.props.lightIntensity});
 
 			square.clipX = (square.middleX * Camera.cos + square.middleY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
 			square.clipY = (square.middleX * -Camera.sin + square.middleY * Camera.cos + Camera.csY) * RenderUtils.clipSpaceScaleY;
@@ -1227,6 +1261,9 @@ class Map {
 		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
 		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
 
+		if (obj.props.lightColor != -1)
+			this.lights.push({w: w * 8, h: h * 8, x: xBase, y: yBase, color: obj.props.lightColor, intensity: obj.props.lightIntensity});
+
 		setF32ValueAt(this.vIdx, -w + xBase);
 		setF32ValueAt(this.vIdx + 1, -h + yBase);
 		setF32ValueAt(this.vIdx + 2, obj.uValue);
@@ -1641,6 +1678,9 @@ class Map {
 		var xBase = (screenX + (action == AnimatedChar.ATTACK ? xOffset : 0)) * RenderUtils.clipSpaceScaleX;
 		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
 		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
+
+		if (player.props.lightColor != -1)
+			this.lights.push({w: w * 8, h: h * 8, x: xBase, y: yBase, color: player.props.lightColor, intensity: player.props.lightIntensity});
 
 		setF32ValueAt(this.vIdx, -w + xBase);
 		setF32ValueAt(this.vIdx + 1, -h + yBase);
@@ -2332,6 +2372,7 @@ class Map {
 
 		this.c3d.clear();
 		this.rdSingle.resize(0);
+		this.lights.resize(0);
 
 		GL.disable(GL.DEPTH_TEST);
 		GL.disable(GL.SCISSOR_TEST);
@@ -2551,8 +2592,35 @@ class Map {
 			GL.uniform4f(vertScaleUniformLoc, rd.cosX, rd.sinX, rd.sinY, rd.cosY);
 			GL.uniform2f(vertPosUniformLoc, rd.x, rd.y);
 			GL.uniform2f(texelSizeUniformLoc, rd.texelW, rd.texelH);
+			GL.uniform1i(colorUniformLoc, -1);
 			GL.uniform1f(alphaMultUniformLoc, rd.alpha);
 			GL.bindTexture(GL.TEXTURE_2D, rd.texture);
+			GL.drawElements(GL.TRIANGLES, 6, GL.UNSIGNED_SHORT, 0);
+			i++;
+		}
+
+		GL.blendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA);
+
+		if (this.bgLightColor != -1) {
+			GL.uniform4f(vertScaleUniformLoc, Main.stageWidth, 0, 0, Main.stageHeight);
+			GL.uniform2f(vertPosUniformLoc, -1, -1);
+			GL.uniform2f(texelSizeUniformLoc, 0, 0);
+			GL.uniform1i(colorUniformLoc, this.bgLightColor);
+			GL.uniform1f(alphaMultUniformLoc, this.bgLightIntensity);
+			GL.bindTexture(GL.TEXTURE_2D, this.screenTex);
+			GL.drawElements(GL.TRIANGLES, 6, GL.UNSIGNED_SHORT, 0);
+		}
+		
+		i = 0;
+		var lightsLen = this.lights.length;
+		while (i < lightsLen) {
+			var light = this.lights[i];
+			GL.uniform4f(vertScaleUniformLoc, light.w, 0, 0, light.h);
+			GL.uniform2f(vertPosUniformLoc, light.x, light.y);
+			GL.uniform2f(texelSizeUniformLoc, 0, 0);
+			GL.uniform1i(colorUniformLoc, light.color);
+			GL.uniform1f(alphaMultUniformLoc, light.intensity);
+			GL.bindTexture(GL.TEXTURE_2D, this.lightTex);
 			GL.drawElements(GL.TRIANGLES, 6, GL.UNSIGNED_SHORT, 0);
 			i++;
 		}
