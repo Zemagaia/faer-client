@@ -2,12 +2,14 @@
 
 precision lowp float;
 
-in vec2 baseUV;
-in vec2 uv;
-in vec2 leftBlendUV;
-in vec2 topBlendUV;
-in vec2 rightBlendUV;
-in vec2 bottomBlendUV;
+in BatchData {
+    vec2 baseUV;
+    vec2 uv;
+    vec2 leftBlendUV;
+    vec2 topBlendUV;
+    vec2 rightBlendUV;
+    vec2 bottomBlendUV;
+} data;
 
 layout (location = 0) out vec4 resultColor;
 
@@ -18,16 +20,16 @@ uniform vec2 bottomMaskUV;
 uniform sampler2D sampler;
 
 void main() {
-    vec4 result = texture(sampler, uv + baseUV);
+    vec4 result = texture(sampler, data.uv + data.baseUV);
 
-    if (leftBlendUV.x >= 0 && texture(sampler, leftMaskUV + baseUV).a == 1)
-        result = texture(sampler, leftBlendUV + baseUV);
-    if (topBlendUV.x >= 0 && texture(sampler, topMaskUV + baseUV).a == 1)
-        result = texture(sampler, topBlendUV + baseUV);
-    if (rightBlendUV.x >= 0 && texture(sampler, rightMaskUV + baseUV).a == 1)
-        result = texture(sampler, rightBlendUV + baseUV);
-    if (bottomBlendUV.x >= 0 && texture(sampler, bottomMaskUV + baseUV).a == 1)
-        result = texture(sampler, bottomBlendUV + baseUV);
+    if (data.leftBlendUV.x >= 0 && texture(sampler, leftMaskUV + data.baseUV).a == 1)
+        result = texture(sampler, data.leftBlendUV + data.baseUV);
+    if (data.topBlendUV.x >= 0 && texture(sampler, topMaskUV + data.baseUV).a == 1)
+        result = texture(sampler, data.topBlendUV + data.baseUV);
+    if (data.rightBlendUV.x >= 0 && texture(sampler, rightMaskUV + data.baseUV).a == 1)
+        result = texture(sampler, data.rightBlendUV + data.baseUV);
+    if (data.bottomBlendUV.x >= 0 && texture(sampler, bottomMaskUV + data.baseUV).a == 1)
+        result = texture(sampler, data.bottomBlendUV + data.baseUV);
     
     resultColor = result;    
 }

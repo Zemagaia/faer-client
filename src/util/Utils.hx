@@ -292,6 +292,7 @@ class MathUtil {
 		angle = (angle + TAU) % TAU;
 		if (angle > PI)
 			angle -= TAU;
+		return angle;
 	}
 }
 
