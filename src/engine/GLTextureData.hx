@@ -11,7 +11,7 @@ class GLTextureData {
 	public var yOffset = 0.0;
 	public var texture: GLTexture;
 
-	public function new(w: Int, h: Int, tex: BitmapData) {
+	public function new(w: Int, h: Int, tex: BitmapData, filterType: Int) {
 		this.width = tex.width;
 		this.height = tex.height;
 
@@ -25,8 +25,8 @@ class GLTextureData {
 		this.texture = GL.createTexture();
 		GL.bindTexture(GL.TEXTURE_2D, this.texture);
 		GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, w, h, 0, GL.RGBA, GL.UNSIGNED_BYTE, dataCopy);
-		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST);
-		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.NEAREST);
+		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, filterType);
+		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, filterType);
 		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, GL.CLAMP_TO_EDGE);
 		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.CLAMP_TO_EDGE);
 	}

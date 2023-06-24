@@ -1,5 +1,6 @@
 package engine;
 
+import lime.graphics.opengl.GL;
 import haxe.ds.ObjectMap;
 import engine.GLTextureData;
 import openfl.display.BitmapData;
@@ -29,7 +30,7 @@ class TextureFactory {
 		return ++value;
 	}
 
-	public static inline function make(bitmapData: BitmapData, needsPad: Bool = true) {
+	public static inline function make(bitmapData: BitmapData, needsPad: Bool = true, filterType: Int = GL.NEAREST) {
 		if (bitmapData == null)
 			return null;
 
@@ -50,7 +51,7 @@ class TextureFactory {
 		var bitmapTexture = new BitmapData(width, height, true, 0);
 		bitmapTexture.copyPixels(bitmapData, bitmapData.rect, needsPad ? new Point(xOff == 0 ? 2 : xOff, yOff == 0 ? 2 : yOff) : new Point(0, 0));
 
-		var texture = new GLTextureData(width, height, bitmapTexture);
+		var texture = new GLTextureData(width, height, bitmapTexture, filterType);
 		texture.xOffset = xOff;
 		texture.yOffset = yOff;
 

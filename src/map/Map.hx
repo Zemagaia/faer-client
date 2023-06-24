@@ -341,10 +341,10 @@ class Map {
 		this.c3d = Main.primaryStage3D.context3D;
 		this.c3d.configureBackBuffer(Main.stageWidth, Main.stageHeight, 0, true);
 
-		this.screenData = TextureFactory.make(new BitmapData(1, 1, false, 0xFFFFFF));
+		this.screenData = TextureFactory.make(new BitmapData(1, 1, false, 0xFFFFFF), false);
 		this.screenTex = this.screenData.texture;
 
-		this.lightData = TextureFactory.make(AssetLibrary.getImageFromSet("light", 0));
+		this.lightData = TextureFactory.make(AssetLibrary.getImageFromSet("light", 0), true, GL.LINEAR);
 		this.lightTex = this.lightData.texture;
 
 		this.lastWidth = Main.stageWidth;
