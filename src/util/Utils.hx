@@ -287,13 +287,11 @@ class MathUtil {
 		return Math.random() * range * 2 - range;
 	}
 
-	public static function halfBound(x: Float32) {
-		if (x < -PI)
-			return x + (Math.floor(x / -PI) + 1) * PI;
-		else if (x > PI)
-			return x - (Math.floor(x / PI) + 1) * PI;
-		else
-			return x;
+	public static function halfBound(angle: Float32) {
+		angle = angle % TAU;
+		angle = (angle + TAU) % TAU;
+		if (angle > PI)
+			angle -= TAU;
 	}
 }
 

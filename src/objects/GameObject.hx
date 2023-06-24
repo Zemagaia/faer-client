@@ -47,8 +47,8 @@ class GameObject {
 	public var screenX: Float32 = 0.0;
 	public var screenY: Float32 = 0.0;
 	public var screenYNoZ: Float32 = 0.0;
+	public var sortValue: Float32 = 0.0;
 	public var hBase: Float32 = 0.0;
-	public var sortVal: Int16 = 0;
 	public var props: ObjectProperties;
 	public var name = "";
 	public var facing: Float32 = 0.0;

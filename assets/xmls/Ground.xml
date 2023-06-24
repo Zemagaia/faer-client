@@ -790,14 +790,14 @@
         <Sink/>
         <!-- <BlendPriority>-99</BlendPriority> -->
         <LightColor>0xFFF4AA</LightColor>
-        <LightIntensity>0.001</LightIntensity>
+        <LightIntensity>0.05</LightIntensity>
     </Ground>
     <Ground type="0x7b" id="Chasm Bridge">
         <Texture><Sheet>ground</Sheet><Index>0x79</Index></Texture>
         <Speed>0.8</Speed>
         <!-- <BlendPriority>-99</BlendPriority> -->
         <LightColor>0xF59F19</LightColor>
-        <LightIntensity>0.001</LightIntensity>
+        <LightIntensity>0.05</LightIntensity>
     </Ground>
     <Ground type="0x7c" id="Chasm Ground Tile">
         <Texture><Sheet>ground</Sheet><Index>0xa8</Index></Texture>

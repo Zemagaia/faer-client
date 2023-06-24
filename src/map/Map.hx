@@ -582,7 +582,8 @@ class Map {
 
 			if (square.props.lightColor != -1) 
 				this.lights.push({w: Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleX * 8 * square.props.lightRadius,
-					 h: Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleY * 8 * square.props.lightRadius, x: square.clipX, y: square.clipY, color: square.props.lightColor, intensity: player.props.lightIntensity});
+					 h: Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleY * 8 * square.props.lightRadius, 
+					 x: square.clipX, y: square.clipY, color: square.props.lightColor, intensity: square.props.lightIntensity});
 
 			setF32ValueAt(this.vIdx, -xScaledCos - xScaledSin + square.clipX);
 			setF32ValueAt(this.vIdx + 1, yScaledSin - yScaledCos + square.clipY);
@@ -1010,8 +1011,8 @@ class Map {
 		setF32ValueAt(this.vIdx + 4, 0);
 		setF32ValueAt(this.vIdx + 5, 0);
 		setF32ValueAt(this.vIdx + 6, 0);
-		setF32ValueAt(this.vIdx + 7, 0);
-		setF32ValueAt(this.vIdx + 8, 0);
+		setF32ValueAt(this.vIdx + 7, 1.0);
+		setF32ValueAt(this.vIdx + 8, 0.1);
 		setF32ValueAt(this.vIdx + 9, -1);
 
 		setF32ValueAt(this.vIdx + 10, xScaledCos - xScaledSin + xBaseTop);
@@ -1022,8 +1023,8 @@ class Map {
 		setF32ValueAt(this.vIdx + 14, 0);
 		setF32ValueAt(this.vIdx + 15, 0);
 		setF32ValueAt(this.vIdx + 16, 0);
-		setF32ValueAt(this.vIdx + 17, 0);
-		setF32ValueAt(this.vIdx + 18, 0);
+		setF32ValueAt(this.vIdx + 17, 1.0);
+		setF32ValueAt(this.vIdx + 18, 0.1);
 		setF32ValueAt(this.vIdx + 19, -1);
 
 		setF32ValueAt(this.vIdx + 20, -xScaledCos + xScaledSin + xBaseTop);
@@ -1034,8 +1035,8 @@ class Map {
 		setF32ValueAt(this.vIdx + 24, 0);
 		setF32ValueAt(this.vIdx + 25, 0);
 		setF32ValueAt(this.vIdx + 26, 0);
-		setF32ValueAt(this.vIdx + 27, 0);
-		setF32ValueAt(this.vIdx + 28, 0);
+		setF32ValueAt(this.vIdx + 27, 1.0);
+		setF32ValueAt(this.vIdx + 28, 0.1);
 		setF32ValueAt(this.vIdx + 29, -1);
 
 		setF32ValueAt(this.vIdx + 30, xScaledCos + xScaledSin + xBaseTop);
@@ -1046,8 +1047,8 @@ class Map {
 		setF32ValueAt(this.vIdx + 34, 0);
 		setF32ValueAt(this.vIdx + 35, 0);
 		setF32ValueAt(this.vIdx + 36, 0);
-		setF32ValueAt(this.vIdx + 37, 0);
-		setF32ValueAt(this.vIdx + 38, 0);
+		setF32ValueAt(this.vIdx + 37, 1.0);
+		setF32ValueAt(this.vIdx + 38, 0.1);
 		setF32ValueAt(this.vIdx + 39, -1);
 		this.vIdx += 40;
 
@@ -1156,7 +1157,7 @@ class Map {
 				this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
 					sinX: 0, sinY: 0,
 					cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-					x: (screenX - 3) * RenderUtils.clipSpaceScaleX, y: (screenY - hBase + 50) * RenderUtils.clipSpaceScaleY,
+					x: clipX - 3 * RenderUtils.clipSpaceScaleX, y: clipY - hBase / 2 * RenderUtils.clipSpaceScaleY,
 					texelW: 0, texelH: 0,
 					texture: textureData.texture});
 
@@ -1176,7 +1177,7 @@ class Map {
 					this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
 						sinX: 0, sinY: 0,
 						cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-						x: (screenX + 8) * RenderUtils.clipSpaceScaleX, y: (screenY + 60) * RenderUtils.clipSpaceScaleY,
+						x: clipX + 8 * RenderUtils.clipSpaceScaleX, y: clipY + 70 * RenderUtils.clipSpaceScaleY,
 						texelW: 0, texelH: 0,
 						texture: textureData.texture});
 
@@ -1187,7 +1188,7 @@ class Map {
 					this.rdSingle.push({cosX: (textureData.width >> 2) * RenderUtils.clipSpaceScaleX, 
 						sinX: 0, sinY: 0,
 						cosY: (textureData.height >> 2) * RenderUtils.clipSpaceScaleY,
-						x: (screenX - 22) * RenderUtils.clipSpaceScaleX, y: (screenY + 39) * RenderUtils.clipSpaceScaleY,
+						x: clipX - 22 * RenderUtils.clipSpaceScaleX, y: clipY + 49 * RenderUtils.clipSpaceScaleY,
 						texelW: 0, texelH: 0,
 						texture: textureData.texture});	
 				}
@@ -1605,7 +1606,7 @@ class Map {
 		}
 	}
 
-	@:nonVirtual private final #if !tracing inline #end function drawPlayer(time: Int32, player: Player) {
+	@:nonVirtual private final #if !tracing inline #end function drawPlayer(time: Int32, player: Player) {		
 		var screenX = player.screenX = player.mapX * Camera.cos + player.mapY * Camera.sin + Camera.csX;
 		var screenY = player.screenYNoZ + player.mapZ * -Camera.PX_PER_TILE;
 
@@ -2437,12 +2438,13 @@ class Map {
 		while (i < this.gameObjectsLen) {
 			var obj = this.gameObjects.unsafeGet(i);
 			obj.screenYNoZ = obj.mapX * -Camera.sin + obj.mapY * Camera.cos + Camera.csY;
+			obj.sortValue = obj.screenYNoZ - (obj.props.drawOnGround ? Main.stageHeight : 0);
 			i++;
 		}
 
 		i = 0;
 
-		this.gameObjects.sort((a: GameObject, b: GameObject) -> Std.int(a.screenYNoZ - b.screenYNoZ));
+		this.gameObjects.sort((a: GameObject, b: GameObject) -> Std.int(a.sortValue - b.sortValue));
 
 		while (i < this.gameObjectsLen) {
 			var obj = this.gameObjects.unsafeGet(i);
