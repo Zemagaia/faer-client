@@ -577,12 +577,12 @@ class Map {
 				}			
 			}
 
+			square.clipX = (square.middleX * Camera.cos + square.middleY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
+			square.clipY = (square.middleX * -Camera.sin + square.middleY * Camera.cos + Camera.csY) * RenderUtils.clipSpaceScaleY;
+
 			if (square.props.lightColor != -1) 
 				this.lights.push({w: Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleX * 8,
 					 h: Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleY * 8, x: square.clipX, y: square.clipY, color: square.props.lightColor, intensity: player.props.lightIntensity});
-
-			square.clipX = (square.middleX * Camera.cos + square.middleY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
-			square.clipY = (square.middleX * -Camera.sin + square.middleY * Camera.cos + Camera.csY) * RenderUtils.clipSpaceScaleY;
 
 			setF32ValueAt(this.vIdx, -xScaledCos - xScaledSin + square.clipX);
 			setF32ValueAt(this.vIdx + 1, yScaledSin - yScaledCos + square.clipY);
