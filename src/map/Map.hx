@@ -581,8 +581,8 @@ class Map {
 			square.clipY = (square.middleX * -Camera.sin + square.middleY * Camera.cos + Camera.csY) * RenderUtils.clipSpaceScaleY;
 
 			if (square.props.lightColor != -1) 
-				this.lights.push({w: Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleX * 8,
-					 h: Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleY * 8, x: square.clipX, y: square.clipY, color: square.props.lightColor, intensity: player.props.lightIntensity});
+				this.lights.push({w: Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleX * 8 * square.props.lightRadius,
+					 h: Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleY * 8 * square.props.lightRadius, x: square.clipX, y: square.clipY, color: square.props.lightColor, intensity: player.props.lightIntensity});
 
 			setF32ValueAt(this.vIdx, -xScaledCos - xScaledSin + square.clipX);
 			setF32ValueAt(this.vIdx + 1, yScaledSin - yScaledCos + square.clipY);
@@ -1262,7 +1262,7 @@ class Map {
 		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
 
 		if (obj.props.lightColor != -1)
-			this.lights.push({w: w * 8, h: h * 8, x: xBase, y: yBase, color: obj.props.lightColor, intensity: obj.props.lightIntensity});
+			this.lights.push({w: w * 8 * obj.props.lightRadius, h: h * 8 * obj.props.lightRadius, x: xBase, y: yBase, color: obj.props.lightColor, intensity: obj.props.lightIntensity});
 
 		setF32ValueAt(this.vIdx, -w + xBase);
 		setF32ValueAt(this.vIdx + 1, -h + yBase);
@@ -1680,7 +1680,7 @@ class Map {
 		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
 
 		if (player.props.lightColor != -1)
-			this.lights.push({w: w * 8, h: h * 8, x: xBase, y: yBase, color: player.props.lightColor, intensity: player.props.lightIntensity});
+			this.lights.push({w: w * 8 * player.props.lightRadius, h: h * 8 * player.props.lightRadius, x: xBase, y: yBase, color: player.props.lightColor, intensity: player.props.lightIntensity});
 
 		setF32ValueAt(this.vIdx, -w + xBase);
 		setF32ValueAt(this.vIdx + 1, -h + yBase);

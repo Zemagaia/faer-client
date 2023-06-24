@@ -17,6 +17,7 @@ class GroundProperties {
 	public var sinking = false;
 	public var lightColor = -1;
 	public var lightIntensity = 0.1;
+	public var lightRadius = 1.0;
 
 	public function new(groundXml: Xml) {
 		this.objType = groundXml.intAttribute("type");
@@ -33,6 +34,7 @@ class GroundProperties {
 		this.sinking = groundXml.elementExists("Sinking");
 		this.lightColor = groundXml.intElement("LightColor", -1);
 		this.lightIntensity = groundXml.floatElement("LightIntensity", 0.1);
+		this.lightRadius = groundXml.floatElement("LightRadius", 1);
 
 		if (groundXml.elementExists("Animate"))
 			this.animate = new AnimateProperties(groundXml.elementsNamed("Animate").next());

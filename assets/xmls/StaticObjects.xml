@@ -81,7 +81,7 @@
         <Size>160</Size>
         <ShowEffect color="0xE54242" radius="4" cooldown="1000">Ring</ShowEffect>
         <LightColor>0xE54242</LightColor>
-        <LightIntensity>0.15</LightIntensity>
+        <LightIntensity>0.2</LightIntensity>
         <OccupySquare />
     </Object>
     <Object type="0x0106" id="Magic Shrine">
@@ -119,7 +119,7 @@
         <Size>160</Size>
         <ShowEffect color="0x4C8AED" radius="4" cooldown="1000">Ring</ShowEffect>
         <LightColor>0x4C8AED</LightColor>
-        <LightIntensity>0.15</LightIntensity>
+        <LightIntensity>0.2</LightIntensity>
         <OccupySquare />
     </Object>
     <Object type="0x107" id="Beginner Totem Object">

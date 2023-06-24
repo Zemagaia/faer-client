@@ -43,6 +43,7 @@ class ObjectProperties {
 	public var floatSine = false;
 	public var lightColor = -1;
 	public var lightIntensity = 0.1;
+	public var lightRadius = 1.0;
 	public var showEffects: Array<ShowEffectProperties> = null;
 
 	public function new(objectXml: Xml) {
@@ -82,6 +83,7 @@ class ObjectProperties {
 		this.color = objectXml.intElement("Color", 0xFFFFFF);
 		this.lightColor = objectXml.intElement("LightColor", -1);
 		this.lightIntensity = objectXml.floatElement("LightIntensity", 0.1);
+		this.lightRadius = objectXml.floatElement("LightRadius", 1);
 
 		if (objectXml.elementExists("Size"))
 			this.minSize = this.maxSize = objectXml.intElement("Size", 100);

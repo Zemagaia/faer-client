@@ -454,7 +454,7 @@ class GameSprite extends Sprite {
 
 		if (this.fpsView != null) {
 			this.fpsView.x = Main.stageWidth - this.fpsView.width - 5;
-			this.fpsView.y = this.miniMap.y + this.miniMap.decor.height + 25;
+			this.fpsView.y = this.miniMap.y + this.miniMap.decor.height / 2 + 25;
 		}
 
 		if (this.textBox != null)
