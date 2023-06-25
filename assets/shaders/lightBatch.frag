@@ -14,6 +14,8 @@ uniform sampler2D sampler;
 
 void main() {
     vec4 pixel = texture(sampler, data.uv);
+    if (pixel.a == 0.0)
+        discard;
 
     int color = int(data.color);
     pixel.a *= data.alphaMult;

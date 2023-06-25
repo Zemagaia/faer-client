@@ -1,5 +1,6 @@
 package objects;
 
+import openfl.utils.ByteArray;
 import util.Utils.MathUtil;
 import util.NativeTypes;
 import util.ConditionEffect;

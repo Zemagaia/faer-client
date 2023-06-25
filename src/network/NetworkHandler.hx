@@ -74,6 +74,7 @@ enum abstract C2SPacketId(UInt8) from UInt8 to UInt8 {
 	final ChangeGuildRank = 30;
 	final Reskin = 31;
 	final MapHello = 32;
+	final UseAbility = 33;
 }
 
 enum abstract S2CPacketId(UInt8) from UInt8 to UInt8 {
@@ -1417,6 +1418,23 @@ class NetworkHandler {
 		SoundEffectLibrary.play("error");
 
 		return false;
+	}
+
+	public static function UseAbility(abilitySlotType: UInt8, data: ByteArray) {
+		outgoingData.writeInt(Global.gameSprite.lastUpdate);
+		outgoingData.writeByte(abilitySlotType);
+		outgoingData.writeShort(data.length);
+		outgoingData.writeBytes(data);
+		sendPacket(C2SPacketId.UseAbility);
+
+		#if log_packets
+		trace(Global.gameSprite.lastUpdate, "UseAbility: time="
+			+ Global.gameSprite.lastUpdate
+			+ ", abilitySlotType="
+			+ abilitySlotType
+			+ ", angle="
+			+ angle);
+		#end
 	}
 
 	public static function teleport(objectId: Int) {

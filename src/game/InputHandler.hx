@@ -11,6 +11,7 @@ import openfl.events.MouseEvent;
 import ui.options.Options;
 import util.Utils;
 import util.Settings;
+import openfl.utils.ByteArray;
 
 class InputHandler {
 	public var isWalking = false;
@@ -22,6 +23,8 @@ class InputHandler {
 	private var rotateLeft = 0;
 	private var rotateRight = 0;
 	private var shootDown = false;
+
+	private static var abilityData = new ByteArray();
 
 	public function new(gs: GameSprite) {
 		gs.addEventListener(Event.ADDED_TO_STAGE, this.onAddedToStage);
@@ -144,9 +147,10 @@ class InputHandler {
 	private function downAction(keyCode: KeyCode, shootCheck: Bool = true) {
 		var player = Global.gameSprite.map.player;
 
+		var shootAngle = Math.atan2(Main.primaryStage.mouseY - Main.mouseYOffset + 20, Main.primaryStage.mouseX - Main.mouseXOffset);
 		if (keyCode == Settings.shoot) {
 			if (shootCheck)
-				player?.attemptAttackAngle(Math.atan2(Main.primaryStage.mouseY - Main.mouseYOffset + 20, Main.primaryStage.mouseX - Main.mouseXOffset));
+				player?.attemptAttackAngle(shootAngle);
 			else
 				return;
 
@@ -185,6 +189,24 @@ class InputHandler {
 		} else if (keyCode == Settings.interact) {
 			if (Global.currentInteractiveTarget > 0)
 				NetworkHandler.usePortal(Global.currentInteractiveTarget);
+
+			// todo redo the data part
+			// this is made only with the enigma abilities in mind
+			// its hard coded
+		} else if (keyCode == Settings.ability1) {
+			abilityData.length = 0;
+			abilityData.writeFloat(shootAngle);
+			NetworkHandler.UseAbility(0, abilityData);
+		} else if (keyCode == Settings.ability2) {
+			abilityData.length = 0;
+			NetworkHandler.UseAbility(1, abilityData);
+		} else if (keyCode == Settings.ability3) {
+			abilityData.length = 0;
+			NetworkHandler.UseAbility(2, abilityData);
+		} else if (keyCode == Settings.ultimateAbility) {
+			abilityData.length = 0;
+			abilityData.writeFloat(-1); // entityId
+			NetworkHandler.UseAbility(3, abilityData);
 		}
 
 		this.setPlayerMovement();

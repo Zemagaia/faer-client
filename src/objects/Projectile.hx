@@ -40,6 +40,7 @@ class Projectile extends GameObject {
 	public var colors: Array<UInt>;
 	public var multiHitDict: IntMap<Bool>;
 
+	private var lastDeflect: Float32 = 0.0;
 	private var heatSeekFired = false;
 	private var currentX = -1.0;
 	private var currentY = -1.0;
@@ -190,6 +191,7 @@ class Projectile extends GameObject {
 			this.size = ObjectLibrary.getSizeFromType(this.containerType) / 100;
 		this.physicalDamage = this.magicDamage = this.trueDamage = 0;
 		this.heatSeekFired = false;
+		this.lastDeflect = 0.0;
 	}
 
 	public function setDamages(physicalDmg: Int32, magicDmg: Int32, trueDmg: Int32) {
@@ -257,15 +259,7 @@ class Projectile extends GameObject {
 		return target;
 	}
 
-	private function updatePosition(elapsed: Int32, dt: Int16) {
-		var periodFactor = 0.0;
-		var amplitudeFactor = 0.0;
-		var theta = 0.0;
-		var t = 0.0;
-		var x = 0.0;
-		var y = 0.0;
-		var deflection = 0.0;
-
+	private function updatePosition(elapsed: Int32, dt: Int16, predict: Bool = false) {
 		if (this.projProps.heatSeekRadius > 0 && elapsed >= this.projProps.heatSeekDelay && !this.heatSeekFired) {
 			var target = this.findHeatSeekingTarget(this.projProps.heatSeekRadius * this.projProps.heatSeekRadius);
 			if (target != null) {
@@ -298,22 +292,21 @@ class Projectile extends GameObject {
 				}
 			}
 		}
-		
 
 		if (this.heatSeekFired) {
 			this.currentX += dist * this.cosAngle;
 			this.currentY += dist * this.sinAngle;
 		} else {
 			if (this.projProps.wavy) {
-				periodFactor = 6 * MathUtil.PI;
-				amplitudeFactor = MathUtil.PI / 64;
-				theta = this.angle + amplitudeFactor * MathUtil.sin(this.phase + periodFactor * elapsed / 1000);
+				var periodFactor = 6 * MathUtil.PI;
+				var amplitudeFactor = MathUtil.PI / 64;
+				var theta = this.angle + amplitudeFactor * MathUtil.sin(this.phase + periodFactor * elapsed / 1000);
 				this.currentX += dist * MathUtil.cos(theta);
 				this.currentY += dist * MathUtil.sin(theta);
 			} else if (this.projProps.parametric) {
-				t = elapsed / this.projProps.lifetime * 2 * MathUtil.PI;
-				x = MathUtil.sin(t) * this.bIdMod2Flip;
-				y = MathUtil.sin(2 * t) * this.bIdMod4Flip;
+				var t = elapsed / this.projProps.lifetime * 2 * MathUtil.PI;
+				var x = MathUtil.sin(t) * this.bIdMod2Flip;
+				var y = MathUtil.sin(2 * t) * this.bIdMod4Flip;
 				this.currentX += (x * this.cosAngle - y * this.sinAngle) * this.projProps.magnitude;
 				this.currentY += (x * this.sinAngle + y * this.cosAngle) * this.projProps.magnitude;
 			} else {
@@ -323,20 +316,22 @@ class Projectile extends GameObject {
 				this.currentX += dist * this.cosAngle;
 				this.currentY += dist * this.sinAngle;
 				if (this.projProps.amplitude != 0) {
-					deflection = this.projProps.amplitude * MathUtil.sin(this.phase
-						+ elapsed / this.projProps.lifetime * this.projProps.frequency * 2 * MathUtil.PI) / 10.0; // ? trollart
-					this.currentX += deflection * MathUtil.cos(this.angle + MathUtil.PI / 2);
-					this.currentY += deflection * MathUtil.sin(this.angle + MathUtil.PI / 2);
+					var deflectionTarget = this.projProps.amplitude * MathUtil.sin(this.phase
+						+ elapsed / this.projProps.lifetime * this.projProps.frequency * 2 * MathUtil.PI);
+					this.currentX += (deflectionTarget - this.lastDeflect) * MathUtil.cos(this.angle + MathUtil.PI / 2);
+					this.currentY += (deflectionTarget - this.lastDeflect) * MathUtil.sin(this.angle + MathUtil.PI / 2);
+					if (!predict)
+						this.lastDeflect = deflectionTarget;
 				}
 			}
-		}		
+		}
 	}
 
 	public function getDirectionAngle(time: Int32) {
 		var prevX = this.currentX;
 		var prevY = this.currentY;
 
-		this.updatePosition(time - this.startTime, 16);
+		this.updatePosition(time - this.startTime + 16, 16, true);
 
 		var xDelta = this.currentX - prevX;
 		var yDelta = this.currentY - prevY;

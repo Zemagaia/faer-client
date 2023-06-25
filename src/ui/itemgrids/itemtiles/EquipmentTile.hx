@@ -1,5 +1,6 @@
 package ui.itemgrids.itemtiles;
 
+import util.BitmapUtil;
 import constants.ItemConstants;
 import objects.ObjectLibrary;
 import objects.Player;
@@ -89,7 +90,7 @@ class EquipmentTile extends InteractiveItemTile {
 				sheetId = 225;
 		}
 
-		var bd: BitmapData = AssetLibrary.getImageFromSet("tieredItems", sheetId);
+		var bd = BitmapUtil.trimAlpha(AssetLibrary.getImageFromSet("tieredItems", sheetId));
 		if (bd != null) {
 			this.backgroundDetail = new Bitmap(bd);
 			this.backgroundDetail.scaleX = 4;
