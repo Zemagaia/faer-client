@@ -1428,12 +1428,13 @@ class NetworkHandler {
 		sendPacket(C2SPacketId.UseAbility);
 
 		#if log_packets
-		trace(Global.gameSprite.lastUpdate, "UseAbility: time="
+		trace(Global.gameSprite.lastUpdate,
+			"UseAbility: time="
 			+ Global.gameSprite.lastUpdate
 			+ ", abilitySlotType="
 			+ abilitySlotType
-			+ ", angle="
-			+ angle);
+			+ ", data length="
+			+ data.length);
 		#end
 	}
 
