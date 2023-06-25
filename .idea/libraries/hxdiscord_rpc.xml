@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="hxdiscord_rpc" type="Haxe">
+    <CLASSES>
+      <root url="file://$USER_HOME$/haxe/hxdiscord_rpc/git" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$USER_HOME$/haxe/hxdiscord_rpc/git/project/discord-rpc/src" />
+    </SOURCES>
+  </library>
+</component>
