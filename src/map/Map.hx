@@ -63,7 +63,7 @@ class Light {
 	public var x: Float32;
 	public var y: Float32;
 	public var intensity: Float32;
-	public var color: Int32;
+	public var color: Float32;
 }
 
 @:unreflective
@@ -144,6 +144,7 @@ class Map {
 	public var veryHighGlowProgram: GLProgram;
 	public var singleProgram: GLProgram;
 	public var groundProgram: GLProgram;
+	public var lightProgram: GLProgram;
 
 	public var singleVBO: GLBuffer;
 	public var singleIBO: GLBuffer;
@@ -157,6 +158,11 @@ class Map {
 	public var objVBOLen: Int32 = 0;
 	public var objIBO: GLBuffer;
 	public var objIBOLen: Int32 = 0;
+	public var lightVAO: GLVertexArrayObject;
+	public var lightVBO: GLBuffer;
+	public var lightVBOLen: Int32 = 0;
+	public var lightIBO: GLBuffer;
+	public var lightIBOLen: Int32 = 0;
 
 	private var i: Int32 = 0;
 	private var vIdx: Int32 = 0;
@@ -278,6 +284,7 @@ class Map {
 		this.veryHighGlowProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/base.vert"), Assets.getText("assets/shaders/baseVHighGlow.frag"));
 		this.singleProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/baseSingle.vert"), Assets.getText("assets/shaders/baseSingle.frag"));
 		this.groundProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/ground.vert"), Assets.getText("assets/shaders/ground.frag"));
+		this.lightProgram = RenderUtils.compileShaders(Assets.getText("assets/shaders/lightBatch.vert"), Assets.getText("assets/shaders/lightBatch.frag"));
 
 		vertScaleUniformLoc = GL.getUniformLocation(this.singleProgram, "vertScale");
 		vertPosUniformLoc = GL.getUniformLocation(this.singleProgram, "vertPos");
@@ -336,6 +343,21 @@ class Map {
 		GL.enableVertexAttribArray(4);
 		GL.vertexAttribPointer(4, 1, GL.FLOAT, false, 40, 36);
 		GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.objIBO);
+		GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, 0, new Int32Array([]), GL.DYNAMIC_DRAW);
+
+		this.lightVAO = GL.createVertexArray();
+		this.lightVBO = GL.createBuffer();
+		this.lightIBO = GL.createBuffer();
+
+		GL.bindBuffer(GL.ARRAY_BUFFER, this.lightVBO);
+		GL.bufferData(GL.ARRAY_BUFFER, 0, new Float32Array([]), GL.DYNAMIC_DRAW);
+		GL.enableVertexAttribArray(0);
+		GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 24, 0);
+		GL.enableVertexAttribArray(1);
+		GL.vertexAttribPointer(1, 1, GL.FLOAT, false, 24, 16);
+		GL.enableVertexAttribArray(2);
+		GL.vertexAttribPointer(2, 1, GL.FLOAT, false, 24, 20);
+		GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.lightIBO);
 		GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, 0, new Int32Array([]), GL.DYNAMIC_DRAW);
 
 		this.c3d = Main.primaryStage3D.context3D;
@@ -2612,21 +2634,88 @@ class Map {
 			GL.bindTexture(GL.TEXTURE_2D, this.screenTex);
 			GL.drawElements(GL.TRIANGLES, 6, GL.UNSIGNED_SHORT, 0);
 		}
+
+		this.vIdx = this.iIdx = 0;
 		
 		i = 0;
 		var lightsLen = this.lights.length;
-		while (i < lightsLen) {
-			var light = this.lights[i];
-			GL.uniform4f(vertScaleUniformLoc, light.w, 0, 0, light.h);
-			GL.uniform2f(vertPosUniformLoc, light.x, light.y);
-			GL.uniform2f(texelSizeUniformLoc, 0, 0);
-			GL.uniform1i(colorUniformLoc, light.color);
-			GL.uniform1f(alphaMultUniformLoc, light.intensity);
-			GL.bindTexture(GL.TEXTURE_2D, this.lightTex);
-			GL.drawElements(GL.TRIANGLES, 6, GL.UNSIGNED_SHORT, 0);
-			i++;
-		}
+		
 
+		if (lightsLen > 0) {
+			while (i < lightsLen) {
+				var light = this.lights[i];
+				setF32ValueAt(this.vIdx, light.w * -0.5 + light.x);
+				setF32ValueAt(this.vIdx + 1, light.h * -0.5 + light.y);
+				setF32ValueAt(this.vIdx + 2, 0);
+				setF32ValueAt(this.vIdx + 3, 0);
+
+				setF32ValueAt(this.vIdx + 4, light.color);
+				setF32ValueAt(this.vIdx + 5, light.intensity);
+
+				setF32ValueAt(this.vIdx + 6, light.w * 0.5 + light.x);
+				setF32ValueAt(this.vIdx + 7, light.h * -0.5 + light.y);
+				setF32ValueAt(this.vIdx + 8, 1);
+				setF32ValueAt(this.vIdx + 9, 0);
+
+				setF32ValueAt(this.vIdx + 10, light.color);
+				setF32ValueAt(this.vIdx + 11, light.intensity);
+
+				setF32ValueAt(this.vIdx + 12, light.w * -0.5 + light.x);
+				setF32ValueAt(this.vIdx + 13, light.h * 0.5 + light.y);
+				setF32ValueAt(this.vIdx + 14, 0);
+				setF32ValueAt(this.vIdx + 15, 1);
+
+				setF32ValueAt(this.vIdx + 16, light.color);
+				setF32ValueAt(this.vIdx + 17, light.intensity);
+
+				setF32ValueAt(this.vIdx + 18, light.w * 0.5 + light.x);
+				setF32ValueAt(this.vIdx + 19, light.h * 0.5 + light.y);
+				setF32ValueAt(this.vIdx + 20, 1);
+				setF32ValueAt(this.vIdx + 21, 1);
+
+				setF32ValueAt(this.vIdx + 22, light.color);
+				setF32ValueAt(this.vIdx + 23, light.intensity);
+				this.vIdx += 24;
+
+				final i4 = i * 4;
+				setI32ValueAt(this.iIdx, i4);
+				setI32ValueAt(this.iIdx + 1, 1 + i4);
+				setI32ValueAt(this.iIdx + 2, 2 + i4);
+				setI32ValueAt(this.iIdx + 3, 2 + i4);
+				setI32ValueAt(this.iIdx + 4, 1 + i4);
+				setI32ValueAt(this.iIdx + 5, 3 + i4);
+				this.iIdx += 6;
+				i++;
+			}
+
+			GL.useProgram(this.lightProgram);
+			GL.bindVertexArray(this.lightVAO);
+
+			GL.bindBuffer(GL.ARRAY_BUFFER, this.lightVBO);
+			if (this.vIdx > this.lightVBOLen) {
+				GL.bufferData(GL.ARRAY_BUFFER, this.vIdx * 4, getF32Pointer(), GL.DYNAMIC_DRAW);
+				this.lightVBOLen = this.vIdx;
+			} else
+				GL.bufferSubData(GL.ARRAY_BUFFER, 0, this.vIdx * 4, getF32Pointer());
+
+			GL.enableVertexAttribArray(0);
+			GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 24, 0);
+			GL.enableVertexAttribArray(1);
+			GL.vertexAttribPointer(1, 1, GL.FLOAT, false, 24, 16);
+			GL.enableVertexAttribArray(2);
+			GL.vertexAttribPointer(2, 1, GL.FLOAT, false, 24, 20);
+
+			GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.lightIBO);
+			if (this.iIdx > this.lightIBOLen) {
+				GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, this.iIdx * 4, getI32Pointer(), GL.DYNAMIC_DRAW);
+				this.lightIBOLen = this.iIdx;
+			} else
+				GL.bufferSubData(GL.ELEMENT_ARRAY_BUFFER, 0, this.iIdx * 4, getI32Pointer());
+
+			GL.bindTexture(GL.TEXTURE_2D, this.lightTex);
+			GL.drawElements(GL.TRIANGLES, this.iIdx, GL.UNSIGNED_INT, 0);
+		}
+		
 		this.c3d.present();
 	}
 }
