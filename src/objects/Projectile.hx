@@ -40,6 +40,8 @@ class Projectile extends GameObject {
 	public var colors: Array<UInt>;
 	public var multiHitDict: IntMap<Bool>;
 
+	private var totalAngleChange: Float32 = 0.0;
+	private var zeroVelDist: Float32 = -1.0;
 	private var lastDeflect: Float32 = 0.0;
 	private var heatSeekFired = false;
 	private var currentX = -1.0;
@@ -192,6 +194,8 @@ class Projectile extends GameObject {
 		this.physicalDamage = this.magicDamage = this.trueDamage = 0;
 		this.heatSeekFired = false;
 		this.lastDeflect = 0.0;
+		this.zeroVelDist = -1.0;
+		this.totalAngleChange = 0.0;
 	}
 
 	public function setDamages(physicalDmg: Int32, magicDmg: Int32, trueDmg: Int32) {
@@ -270,14 +274,37 @@ class Projectile extends GameObject {
 			}
 		}
 
-		if (this.projProps.angleChange != 0 && elapsed < this.projProps.angleChangeEnd && elapsed >= this.projProps.angleChangeDelay) {
-			this.angle += dt * this.projProps.angleChange / 1000.0;
-			this.cosAngle = MathUtil.cos(this.angle);
-			this.sinAngle = MathUtil.sin(this.angle);
+		var angleChange = 0.0;
+		if (this.projProps.angleChange != 0 && elapsed < this.projProps.angleChangeEnd && elapsed >= this.projProps.angleChangeDelay)
+			angleChange += dt / 1000.0 * this.projProps.angleChange;
+		trace(angleChange, this.projProps.angleChange, this.projProps.angleChangeDelay, this.projProps.angleChangeEnd, elapsed, "2");
+
+		if (this.projProps.angleChangeAccel != 0 && elapsed >= this.projProps.angleChangeAccelDelay)
+			angleChange += dt / 1000.0 * this.projProps.angleChangeAccel * (elapsed - this.projProps.angleChangeAccelDelay) / 1000.0;
+		trace(angleChange, this.projProps.angleChangeAccel, this.projProps.angleChangeAccelDelay, elapsed, "3");
+
+		if (angleChange > 0.0) {
+			var clampDt = this.projProps.angleChangeClamp - this.totalAngleChange;
+			trace(angleChange, clampDt, "4");
+			if (this.projProps.angleChangeClamp != 0) {
+				var clampedChange = Math.min(angleChange, clampDt);
+				trace(angleChange, clampDt, clampedChange, this.projProps.angleChangeClamp, this.totalAngleChange, "5");
+				if (!predict)
+					this.totalAngleChange += clampedChange;
+				this.angle += clampedChange;
+				this.cosAngle = MathUtil.cos(this.angle);
+				this.sinAngle = MathUtil.sin(this.angle);
+			} else if (clampDt == 0) {
+				trace(angleChange, clampDt, this.totalAngleChange, "6");
+				this.angle += angleChange;
+				this.cosAngle = MathUtil.cos(this.angle);
+				this.sinAngle = MathUtil.sin(this.angle);
+			}
 		}
 
 		var dist = 0.0;
-		if (this.projProps.zeroVelocityDelay == -1 || this.projProps.zeroVelocityDelay > elapsed) {
+		var usesZeroVel = this.projProps.zeroVelocityDelay != -1;
+		if (!usesZeroVel || this.projProps.zeroVelocityDelay > elapsed) {
 			var baseSpeed = this.heatSeekFired ? this.projProps.heatSeekSpeed : this.projProps.speed;
 			if (this.projProps.acceleration == 0 || elapsed < this.projProps.accelerationDelay)
 				dist = dt * baseSpeed;
@@ -291,6 +318,13 @@ class Projectile extends GameObject {
 					dist = this.projProps.acceleration > 0 ? Math.min(accelDist, clampDist) : Math.max(accelDist, clampDist);
 				}
 			}
+		} else {
+			if (this.zeroVelDist == -1.0)
+				this.zeroVelDist = PointUtil.distanceXY(this.startX, this.startY, this.currentX, this.currentY);
+
+			this.currentX = this.startX + this.zeroVelDist * this.cosAngle;
+			this.currentY = this.startY + this.zeroVelDist * this.sinAngle;
+			return;
 		}
 		
 
@@ -325,12 +359,13 @@ class Projectile extends GameObject {
 						this.lastDeflect = deflectionTarget;
 				}
 			}
-		}		
+		}
 	}
 
 	public function getDirectionAngle(time: Int32) {
 		var prevX = this.currentX;
 		var prevY = this.currentY;
+		var prevAngle = this.angle;
 
 		this.updatePosition(time - this.startTime + 16, 16, true);
 
@@ -338,6 +373,7 @@ class Projectile extends GameObject {
 		var yDelta = this.currentY - prevY;
 		this.currentX = prevX;
 		this.currentY = prevY;
+		this.angle = prevAngle;
 
 		if (xDelta == 0 && yDelta == 0)
 			return this.prevDirAngle;

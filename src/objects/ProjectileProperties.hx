@@ -11,7 +11,7 @@ class ProjectileProperties {
 	public var bulletType = 0;
 	public var objectId = "";
 	public var lifetime = 0;
-	public var speed = 0.0;
+	public var speed: Float32 = 0.0;
 	public var realSpeed = 0;
 	public var size = 0;
 	public var physicalDamage = 0;
@@ -24,19 +24,22 @@ class ProjectileProperties {
 	public var wavy = false;
 	public var parametric = false;
 	public var boomerang = false;
-	public var amplitude = 0.0;
-	public var frequency = 0.0;
-	public var magnitude = 0.0;
-	public var acceleration = 0.0;
+	public var amplitude: Float32 = 0.0;
+	public var frequency: Float32 = 0.0;
+	public var magnitude: Float32 = 0.0;
+	public var acceleration: Float32 = 0.0;
 	public var accelerationDelay = 0;
-	public var speedClamp = 0.0;
-	public var angleChange = 0.0;
+	public var speedClamp: Float32 = 0.0;
+	public var angleChange: Float32 = 0.0;
 	public var angleChangeDelay = 0;
 	public var angleChangeEnd = 0;
+	public var angleChangeAccel: Float32 = 0.0;
+	public var angleChangeAccelDelay = 0;
+	public var angleChangeClamp: Float32 = 0.0;
 	public var zeroVelocityDelay = 0;
-	public var heatSeekSpeed = 0.0;
-	public var heatSeekRadius = 0.0;
-	public var heatSeekDelay = 0;
+	public var heatSeekSpeed: Float32 = 0.0;
+	public var heatSeekRadius: Float32 = 0.0;
+	public var heatSeekDelay: Float32 = 0;
 
 	public function new(projectileXML: Xml) {
 		this.bulletType = projectileXML.intAttribute("id");
@@ -70,6 +73,9 @@ class ProjectileProperties {
 		this.angleChange = projectileXML.floatElement("AngleChange") * MathUtil.TO_RAD;
 		this.angleChangeDelay = projectileXML.intElement("AngleChangeDelay");
 		this.angleChangeEnd = projectileXML.intElement("AngleChangeEnd", MathUtil.INT_MAX);
+		this.angleChangeAccel = projectileXML.floatElement("AngleChangeAccel") * MathUtil.TO_RAD;
+		this.angleChangeAccelDelay = projectileXML.intElement("AngleChangeAccelDelay");
+		this.angleChangeClamp = projectileXML.floatElement("AngleChangeClamp") * MathUtil.TO_RAD;
 		this.zeroVelocityDelay = projectileXML.intElement("ZeroVelocityDelay", -1);
 		this.heatSeekSpeed = projectileXML.floatElement("HeatSeekStrength");
 		this.heatSeekRadius = projectileXML.floatElement("HeatSeekRadius");

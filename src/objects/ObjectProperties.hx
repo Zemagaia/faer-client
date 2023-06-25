@@ -1,5 +1,6 @@
 package objects;
 
+import map.Camera;
 import util.Utils;
 import haxe.ds.IntMap;
 
@@ -44,6 +45,7 @@ class ObjectProperties {
 	public var lightColor = -1;
 	public var lightIntensity = 0.1;
 	public var lightRadius = 1.0;
+	public var sortPriority = 0.0;
 	public var showEffects: Array<ShowEffectProperties> = null;
 
 	public function new(objectXml: Xml) {
@@ -84,6 +86,7 @@ class ObjectProperties {
 		this.lightColor = objectXml.intElement("LightColor", -1);
 		this.lightIntensity = objectXml.floatElement("LightIntensity", 0.1);
 		this.lightRadius = objectXml.floatElement("LightRadius", 1);
+		this.sortPriority = objectXml.floatElement("SortPriority") * Camera.PX_PER_TILE;
 
 		if (objectXml.elementExists("Size"))
 			this.minSize = this.maxSize = objectXml.intElement("Size", 100);

@@ -1281,13 +1281,13 @@ class Map {
 		var yBase = (screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
 		var xOffset: Float32 = 0.0;
 		if (action == AnimatedChar.ATTACK && p >= 0.5) {
-			var dir = player.animatedChar.facingToDir(player.facing);
+			var dir = obj.animatedChar.facingToDir(obj.facing);
 			if (dir == AnimatedChar.LEFT)
-				xOffset = -(texW + size);
+				xOffset = -w / 2 + size * Main.PADDING * RenderUtils.clipSpaceScaleX * 0.5;
 			else
-				xOffset = texW + size;
+				xOffset = w / 2 - size * Main.PADDING * RenderUtils.clipSpaceScaleX * 0.5;
 		}
-		var xBase = (screenX + (action == AnimatedChar.ATTACK ? xOffset : 0)) * RenderUtils.clipSpaceScaleX;
+		var xBase = screenX * RenderUtils.clipSpaceScaleX + xOffset;
 		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
 		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
 
@@ -1720,11 +1720,11 @@ class Map {
 		if (action == AnimatedChar.ATTACK && p >= 0.5) {
 			var dir = player.animatedChar.facingToDir(player.facing);
 			if (dir == AnimatedChar.LEFT)
-				xOffset = -(texW + size);
+				xOffset = -w / 2 + size * Main.PADDING * RenderUtils.clipSpaceScaleX * 0.5;
 			else
-				xOffset = texW + size;
+				xOffset = w / 2 - size * Main.PADDING * RenderUtils.clipSpaceScaleX * 0.5;
 		}
-		var xBase = (screenX + (action == AnimatedChar.ATTACK ? xOffset : 0)) * RenderUtils.clipSpaceScaleX;
+		var xBase = screenX * RenderUtils.clipSpaceScaleX + xOffset;
 		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
 		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
 

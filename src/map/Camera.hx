@@ -8,7 +8,7 @@ import util.Settings;
 
 class Camera {
 	public static inline var PX_PER_TILE: Int8 = 88;
-	public static inline var SIZE_MULT: Float32 = 5.5;//PX_PER_TILE / 16;
+	public static inline var SIZE_MULT: Float32 = 64 / (8 + Main.PADDING);
 
 	private static inline var MAX_JITTER: Float32 = 0.5;
 	private static inline var JITTER_BUILDUP_MS: Int16 = 10000;
