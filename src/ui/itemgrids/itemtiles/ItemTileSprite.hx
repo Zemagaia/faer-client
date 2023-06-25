@@ -1,5 +1,6 @@
 package ui.itemgrids.itemtiles;
 
+import util.BitmapUtil;
 import constants.ItemConstants;
 import objects.ObjectLibrary;
 import openfl.display.Bitmap;
@@ -48,7 +49,7 @@ class ItemTileSprite extends Sprite {
 				texture.draw(tempText, m);
 			}
 
-			this.itemBitmap.bitmapData = texture;
+			this.itemBitmap.bitmapData = BitmapUtil.trimAlpha(texture);
 			this.itemBitmap.x = -texture.width / 2;
 			this.itemBitmap.y = -texture.height / 2;
 			visible = true;
