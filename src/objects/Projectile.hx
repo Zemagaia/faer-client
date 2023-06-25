@@ -298,7 +298,6 @@ class Projectile extends GameObject {
 				}
 			}
 		}
-		
 
 		if (this.heatSeekFired) {
 			this.currentX += dist * this.cosAngle;
@@ -329,7 +328,7 @@ class Projectile extends GameObject {
 					this.currentY += deflection * MathUtil.sin(this.angle + MathUtil.PI / 2);
 				}
 			}
-		}		
+		}
 	}
 
 	public function getDirectionAngle(time: Int32) {
