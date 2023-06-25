@@ -800,6 +800,6 @@
         <Size>80</Size>
         <LightColor>0xe0cb99</LightColor>
         <LightIntensity>0.15</LightIntensity>
-        <LightRadius>1</LightRadius>    
+        <SortPriority>5</SortPriority>
     </Object>
 </Objects>

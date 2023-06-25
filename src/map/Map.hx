@@ -2505,7 +2505,7 @@ class Map {
 		while (i < this.gameObjectsLen) {
 			var obj: GameObject = this.gameObjects.unsafeGet(i);
 			obj.screenYNoZ = obj.mapX * -Camera.sin + obj.mapY * Camera.cos + Camera.csY;
-			obj.sortValue = obj.screenYNoZ - (obj.props.drawOnGround ? Main.stageHeight : 0);
+			obj.sortValue = obj.screenYNoZ - (obj.props.drawOnGround ? Main.stageHeight : 0) + obj.props.sortPriority;
 			i++;
 		}
 
