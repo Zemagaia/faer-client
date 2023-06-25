@@ -16,6 +16,9 @@ class SoundEffectLibrary {
 		if (sfxCache.exists(name))
 			sfxCache.get(name).play();
 
+		if (name == "")
+			return;
+
 		var sound = new AudioSource(Assets.getAudioBuffer('assets/sfx/$name.ogg'));
 		sound.gain = volume;
 		sound.play();
