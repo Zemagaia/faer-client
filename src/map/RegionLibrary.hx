@@ -17,7 +17,7 @@ class RegionLibrary {
 	}
 
 	public static function getIdFromType(objType: Int) {
-		var objectXML: Xml = xmlLibrary.get(objType);
+		var objectXML = xmlLibrary.get(objType);
 		if (objectXML == null)
 			return null;
 

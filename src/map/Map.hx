@@ -2458,7 +2458,7 @@ class Map {
 
 		var i = 0;
 		while (i < this.gameObjectsLen) {
-			var obj = this.gameObjects.unsafeGet(i);
+			var obj: GameObject = this.gameObjects.unsafeGet(i);
 			obj.screenYNoZ = obj.mapX * -Camera.sin + obj.mapY * Camera.cos + Camera.csY;
 			obj.sortValue = obj.screenYNoZ - (obj.props.drawOnGround ? Main.stageHeight : 0);
 			i++;
@@ -2469,7 +2469,7 @@ class Map {
 		this.gameObjects.sort((a: GameObject, b: GameObject) -> Std.int(a.sortValue - b.sortValue));
 
 		while (i < this.gameObjectsLen) {
-			var obj = this.gameObjects.unsafeGet(i);
+			var obj: GameObject = this.gameObjects.unsafeGet(i);
 			if (obj.curSquare?.lastVisible >= time) {
 				switch (obj.objClass) {
 					case "Wall":
@@ -2623,8 +2623,6 @@ class Map {
 			i++;
 		}
 
-		GL.blendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA);
-
 		if (this.bgLightColor != -1) {
 			GL.uniform4f(vertScaleUniformLoc, Main.stageWidth, 0, 0, Main.stageHeight);
 			GL.uniform2f(vertPosUniformLoc, -1, -1);
@@ -2639,8 +2637,6 @@ class Map {
 		
 		i = 0;
 		var lightsLen = this.lights.length;
-		
-
 		if (lightsLen > 0) {
 			while (i < lightsLen) {
 				var light = this.lights[i];
@@ -2687,6 +2683,8 @@ class Map {
 				this.iIdx += 6;
 				i++;
 			}
+
+			GL.blendFunc(GL.SRC_ALPHA, GL.ONE);
 
 			GL.useProgram(this.lightProgram);
 			GL.bindVertexArray(this.lightVAO);

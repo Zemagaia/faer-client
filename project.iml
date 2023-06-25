@@ -2,7 +2,6 @@
 <module type="HAXE_MODULE" version="4">
   <component name="HaxeModuleSettingsStorage">
     <option name="buildConfig" value="3" />
-    <option name="flexSdkName" value="air-linux" />
     <option name="openFLPath" value="$MODULE_DIR$/project.xml" />
     <option name="openFLTarget" value="Linux 64" />
     <option name="outputFolder" value="$APPLICATION_HOME_DIR$/jbr/bin" />
@@ -15,9 +14,10 @@
       <excludeFolder url="file://$MODULE_DIR$/dump" />
       <excludeFolder url="file://$MODULE_DIR$/export" />
     </content>
-    <orderEntry type="jdk" jdkName="Haxe 4.2.5" jdkType="Haxe toolkit" />
+    <orderEntry type="jdk" jdkName="Haxe" jdkType="Haxe toolkit" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Lime" level="project" />
     <orderEntry type="library" name="OpenFL" level="project" />
+    <orderEntry type="library" name="git" level="project" />
   </component>
 </module>

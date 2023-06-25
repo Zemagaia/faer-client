@@ -47,6 +47,7 @@ class SpeechBalloon {
 			case ADMIN_BUBBLE:
 				color = 0x66350A;
 		}
+
 		var sText = new SimpleText(12, color, false, 110, 50);
 		sText.setBold(true);
 		sText.setItalic(true);
