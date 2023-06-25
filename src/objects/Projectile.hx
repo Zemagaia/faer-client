@@ -326,7 +326,6 @@ class Projectile extends GameObject {
 			this.currentY = this.startY + this.zeroVelDist * this.sinAngle;
 			return;
 		}
-		
 
 		if (this.heatSeekFired) {
 			this.currentX += dist * this.cosAngle;
