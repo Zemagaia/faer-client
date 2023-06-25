@@ -49,7 +49,7 @@ class InputHandler {
 			Settings.perfStatsOpen = false;
 			Settings.save();
 		} else {
-			Global.gameSprite.addStatsView();
+			Global.gameSprite.addFpsView();
 			Global.gameSprite.lastFrameUpdate = System.getTimer();
 			Settings.perfStatsOpen = true;
 			Settings.save();

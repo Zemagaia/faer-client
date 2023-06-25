@@ -219,7 +219,7 @@ class GameSprite extends Sprite {
 		addChild(this.statsButton);
 
 		if (Settings.perfStatsOpen)
-			this.addStatsView();
+			this.addFpsView();
 		this.lastFrameUpdate = System.getTimer();
 
 		this.inited = true;
@@ -310,11 +310,11 @@ class GameSprite extends Sprite {
 		this.focus = focus;
 	}
 
-	public function addStatsView() {
+	public function addFpsView() {
 		if (this.fpsView != null)
 			return;
 
-		this.fpsView = new SimpleText(14, 0xFFFFFF);
+		this.fpsView = new SimpleText(14, 0xB3B3B3);
 		this.fpsView.cacheAsBitmap = true;
 		this.fpsView.setText("FPS: -1\nMemory: -1 MB");
 		this.fpsView.filters = [new DropShadowFilter()];
@@ -333,6 +333,7 @@ class GameSprite extends Sprite {
 			this.lastFrameUpdate = time;
 			this.fpsView.text = 'FPS: ${this.frames}\nMemory: ${Math.round((untyped __global__.__hxcpp_gc_used_bytes()) / (1024 * 1024))} MB';
 			this.fpsView.updateMetrics();
+			this.fpsView.x = Main.stageWidth - this.fpsView.width - 5;
 			this.frames = 0;
 		}
 	}
