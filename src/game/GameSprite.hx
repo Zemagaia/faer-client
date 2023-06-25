@@ -374,6 +374,8 @@ class GameSprite extends Sprite {
 			// this.map.dispose();
 			// this.miniMap.dispose();
 			Projectile.disposeBullId();
+
+			resetAbilitiesUI();
 		}
 	}
 
@@ -440,7 +442,7 @@ class GameSprite extends Sprite {
 					}
 				}
 			}
-		}		
+		}
 
 		if (this.inventory != null) {
 			this.inventory.x = Main.stageWidth - this.inventory.decor.width;
@@ -459,6 +461,21 @@ class GameSprite extends Sprite {
 
 		if (this.textBox != null)
 			this.textBox.y = Math.max(0, Main.stageHeight - this.textBox.height);
+	}
+
+	private function resetAbilitiesUI(): Void {
+		if (this.ability1Container != null && contains(this.ability1Container)) {
+			removeChild(this.ability1Container);
+		}
+		if (this.ability2Container != null && contains(this.ability2Container)) {
+			removeChild(this.ability2Container);
+		}
+		if (this.ability3Container != null && contains(this.ability3Container)) {
+			removeChild(this.ability3Container);
+		}
+		if (this.ultimateAbilityContainer != null && contains(this.ultimateAbilityContainer)) {
+			removeChild(this.ultimateAbilityContainer);
+		}
 	}
 
 	private function updatePlayerUI(player: Player) {
@@ -594,7 +611,7 @@ class GameSprite extends Sprite {
 
 					var abilProps1 = abilProps.ability1;
 					this.ability1Container = new Sprite();
-					this.ability1Container.x = this.decor.x + 37;
+					this.ability1Container.x = this.decor.x + 37 + (this.statsOpen ? (this.statsDecorTex.width - this.baseDecorTex.width) / 2 : 0);
 					this.ability1Container.y = this.decor.y + 64;
 					this.ability1Container.addChild(new Bitmap(abilProps1.icon));
 					this.ability1Container.addEventListener(MouseEvent.ROLL_OVER, this.onAbility1RollOver);
