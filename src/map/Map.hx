@@ -56,16 +56,6 @@ class RenderDataSingle {
 	public var alpha: Float32 = 1.0;
 }
 
-@:structInit
-class Light {
-	public var w: Float32;
-	public var h: Float32;
-	public var x: Float32;
-	public var y: Float32;
-	public var intensity: Float32;
-	public var color: Float32;
-}
-
 @:unreflective
 class Map {
 	private static inline var TILE_UPDATE_MS = 100; // tick rate
@@ -125,7 +115,6 @@ class Map {
 	public var gameObjects: Array<GameObject>;
 	private var goRemove: Array<GameObject>;
 	public var rdSingle: Array<RenderDataSingle>;
-	public var lights: Array<Light>;
 	public var player: Player = null;
 	public var quest: Quest = null;
 	public var lastWidth: Int16 = -1;
@@ -178,6 +167,8 @@ class Map {
 	private var lightTex: GLTexture;
 	private var bgLightColor: Int32 = -1;
 	private var bgLightIntensity: Float32 = 0.1;
+	private var lightPointer: RawPointer<Float32>;
+	private var lightIdx: Int32 = 0;
 
 	public var speechBalloons: IntMap<SpeechBalloon>;
 	public var statusTexts: Array<CharacterStatusText>;
@@ -193,11 +184,11 @@ class Map {
 		this.gameObjects = [];
 		this.goRemove = [];
 		this.rdSingle = [];
-		this.lights = [];
 		this.quest = new Quest(this);
 		this.visSquares = new Vector<Square>(MAX_VISIBLE_SQUARES);
 		this.speechBalloons = new IntMap<SpeechBalloon>();
 		this.statusTexts = [];
+		this.lightPointer = cast Stdlib.nativeMalloc(4 * 6 * 10000); // max 10000 lights too lazy
 	}
 
 	@:nonVirtual public function addSpeechBalloon(sb: SpeechBalloon) {
@@ -385,7 +376,6 @@ class Map {
 		this.gameObjects = null;
 		this.goRemove = null;
 		this.rdSingle = null;
-		this.lights = null;
 
 		this.player = null;
 		this.quest = null;
@@ -602,10 +592,27 @@ class Map {
 			square.clipX = (square.middleX * Camera.cos + square.middleY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
 			square.clipY = (square.middleX * -Camera.sin + square.middleY * Camera.cos + Camera.csY) * RenderUtils.clipSpaceScaleY;
 
-			if (square.props.lightColor != -1) 
-				this.lights.push({w: Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleX * 8 * square.props.lightRadius,
-					 h: Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleY * 8 * square.props.lightRadius, 
-					 x: square.clipX, y: square.clipY, color: square.props.lightColor, intensity: square.props.lightIntensity});
+			if (square.props.lightColor != -1) {
+				// width
+				this.lightPointer[this.lightIdx] = Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleX * 8 * square.props.lightRadius;
+
+				// height
+				this.lightPointer[this.lightIdx + 1] = Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleY * 8 * square.props.lightRadius;
+
+				// x
+				this.lightPointer[this.lightIdx + 2] = square.clipX;
+
+				// y
+				this.lightPointer[this.lightIdx + 3] = square.clipY;
+
+				// color
+				this.lightPointer[this.lightIdx + 4] = square.props.lightColor;
+
+				// intensity
+				this.lightPointer[this.lightIdx + 5] = square.props.lightIntensity;
+
+				this.lightIdx += 6;
+			}
 
 			setF32ValueAt(this.vIdx, -xScaledCos - xScaledSin + square.clipX);
 			setF32ValueAt(this.vIdx + 1, yScaledSin - yScaledCos + square.clipY);
@@ -1284,8 +1291,27 @@ class Map {
 		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
 		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
 
-		if (obj.props.lightColor != -1)
-			this.lights.push({w: w * 8 * obj.props.lightRadius, h: h * 8 * obj.props.lightRadius, x: xBase, y: yBase, color: obj.props.lightColor, intensity: obj.props.lightIntensity});
+		if (obj.props.lightColor != -1) {
+			// width
+			this.lightPointer[this.lightIdx] = w * 8 * obj.props.lightRadius;
+
+			// height
+			this.lightPointer[this.lightIdx + 1] = h * 8 * obj.props.lightRadius;
+
+			// x
+			this.lightPointer[this.lightIdx + 2] = xBase;
+
+			// y
+			this.lightPointer[this.lightIdx + 3] = yBase;
+
+			// color
+			this.lightPointer[this.lightIdx + 4] = obj.props.lightColor;
+
+			// intensity
+			this.lightPointer[this.lightIdx + 5] = obj.props.lightIntensity;
+
+			this.lightIdx += 6;
+		}
 
 		setF32ValueAt(this.vIdx, -w + xBase);
 		setF32ValueAt(this.vIdx + 1, -h + yBase);
@@ -1702,8 +1728,27 @@ class Map {
 		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
 		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
 
-		if (player.props.lightColor != -1)
-			this.lights.push({w: w * 8 * player.props.lightRadius, h: h * 8 * player.props.lightRadius, x: xBase, y: yBase, color: player.props.lightColor, intensity: player.props.lightIntensity});
+		if (player.props.lightColor != -1) {
+			// width
+			this.lightPointer[this.lightIdx] = w * 8 * player.props.lightRadius;
+
+			// height
+			this.lightPointer[this.lightIdx + 1] = h * 8 * player.props.lightRadius;
+
+			// x
+			this.lightPointer[this.lightIdx + 2] = xBase;
+
+			// y
+			this.lightPointer[this.lightIdx + 3] = yBase;
+
+			// color
+			this.lightPointer[this.lightIdx + 4] = player.props.lightColor;
+
+			// intensity
+			this.lightPointer[this.lightIdx + 5] = player.props.lightIntensity;
+
+			this.lightIdx += 6;
+		}
 
 		setF32ValueAt(this.vIdx, -w + xBase);
 		setF32ValueAt(this.vIdx + 1, -h + yBase);
@@ -2395,7 +2440,7 @@ class Map {
 
 		this.c3d.clear();
 		this.rdSingle.resize(0);
-		this.lights.resize(0);
+		this.lightIdx = 0;
 
 		GL.disable(GL.DEPTH_TEST);
 		GL.disable(GL.SCISSOR_TEST);
@@ -2636,41 +2681,48 @@ class Map {
 		this.vIdx = this.iIdx = 0;
 		
 		i = 0;
-		var lightsLen = this.lights.length;
+		var lightsLen = Math.floor(this.lightIdx / 6);
 		if (lightsLen > 0) {
 			while (i < lightsLen) {
-				var light = this.lights[i];
-				setF32ValueAt(this.vIdx, light.w * -0.5 + light.x);
-				setF32ValueAt(this.vIdx + 1, light.h * -0.5 + light.y);
+				var ptrIdx = i * 6;
+				var width = this.lightPointer[ptrIdx];
+				var height = this.lightPointer[ptrIdx + 1];
+				var x = this.lightPointer[ptrIdx + 2];
+				var y = this.lightPointer[ptrIdx + 3];
+				var color = this.lightPointer[ptrIdx + 4];
+				var intensity = this.lightPointer[ptrIdx + 5];
+
+				setF32ValueAt(this.vIdx, width * -0.5 + x);
+				setF32ValueAt(this.vIdx + 1, height * -0.5 + y);
 				setF32ValueAt(this.vIdx + 2, 0);
 				setF32ValueAt(this.vIdx + 3, 0);
 
-				setF32ValueAt(this.vIdx + 4, light.color);
-				setF32ValueAt(this.vIdx + 5, light.intensity);
+				setF32ValueAt(this.vIdx + 4, color);
+				setF32ValueAt(this.vIdx + 5, intensity);
 
-				setF32ValueAt(this.vIdx + 6, light.w * 0.5 + light.x);
-				setF32ValueAt(this.vIdx + 7, light.h * -0.5 + light.y);
+				setF32ValueAt(this.vIdx + 6, width * 0.5 + x);
+				setF32ValueAt(this.vIdx + 7, height * -0.5 + y);
 				setF32ValueAt(this.vIdx + 8, 1);
 				setF32ValueAt(this.vIdx + 9, 0);
 
-				setF32ValueAt(this.vIdx + 10, light.color);
-				setF32ValueAt(this.vIdx + 11, light.intensity);
+				setF32ValueAt(this.vIdx + 10, color);
+				setF32ValueAt(this.vIdx + 11, intensity);
 
-				setF32ValueAt(this.vIdx + 12, light.w * -0.5 + light.x);
-				setF32ValueAt(this.vIdx + 13, light.h * 0.5 + light.y);
+				setF32ValueAt(this.vIdx + 12, width * -0.5 + x);
+				setF32ValueAt(this.vIdx + 13, height * 0.5 + y);
 				setF32ValueAt(this.vIdx + 14, 0);
 				setF32ValueAt(this.vIdx + 15, 1);
 
-				setF32ValueAt(this.vIdx + 16, light.color);
-				setF32ValueAt(this.vIdx + 17, light.intensity);
+				setF32ValueAt(this.vIdx + 16, color);
+				setF32ValueAt(this.vIdx + 17, intensity);
 
-				setF32ValueAt(this.vIdx + 18, light.w * 0.5 + light.x);
-				setF32ValueAt(this.vIdx + 19, light.h * 0.5 + light.y);
+				setF32ValueAt(this.vIdx + 18, width * 0.5 + x);
+				setF32ValueAt(this.vIdx + 19, height * 0.5 + y);
 				setF32ValueAt(this.vIdx + 20, 1);
 				setF32ValueAt(this.vIdx + 21, 1);
 
-				setF32ValueAt(this.vIdx + 22, light.color);
-				setF32ValueAt(this.vIdx + 23, light.intensity);
+				setF32ValueAt(this.vIdx + 22, color);
+				setF32ValueAt(this.vIdx + 23, intensity);
 				this.vIdx += 24;
 
 				final i4 = i * 4;
