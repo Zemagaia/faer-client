@@ -686,21 +686,25 @@ class NetworkHandler {
 						trace(Global.gameSprite.lastUpdate, "InvResult: result=" + result);
 						#end
 
-						if (result != 0) {
+						if (result != 0)
 							SoundEffectLibrary.play("error");
-							// Global.gameSprite.interactPanel.redraw();
-						}
 					case MapInfo:
 						var width = data.readInt();
 						var height = data.readInt();
 						var name = data.readUTF();
-						var displayName = data.readUTF();
 						var bgLightColor = data.readInt();
 						var bgLightIntensity = data.readFloat();
 						var allowPlayerTeleport = data.readBoolean();
-						var showDisplays = data.readBoolean();
+						var usesDayNightCycle = data.readBoolean();
+						var dayLightIntensity = -1.0, nightLightIntensity = -1.0, serverTimeOffset = 0;
+						if (usesDayNightCycle) {
+							dayLightIntensity = data.readFloat();
+							nightLightIntensity = data.readFloat();
+							serverTimeOffset = data.readInt() - System.getTimer();
+						}
 
-						Global.gameSprite.map.setProps(width, height, name, allowPlayerTeleport, showDisplays, bgLightColor, bgLightIntensity);
+						Global.gameSprite.map.setProps(width, height, name, allowPlayerTeleport, bgLightColor, bgLightIntensity, dayLightIntensity,
+							nightLightIntensity, serverTimeOffset);
 
 						#if log_packets
 						trace(Global.gameSprite.lastUpdate,
@@ -710,16 +714,20 @@ class NetworkHandler {
 							+ height
 							+ ", name="
 							+ name
-							+ ", displayName="
-							+ displayName
 							+ ", bgLightColor="
 							+ bgLightColor
 							+ ", bgLightIntensity="
 							+ bgLightIntensity
 							+ ", allowPlayerTeleport="
 							+ allowPlayerTeleport
-							+ ", showDisplays="
-							+ showDisplays);
+							+ ", usesDayNightCycle="
+							+ usesDayNightCycle
+							+ ", dayLightIntensity="
+							+ dayLightIntensity
+							+ ", nightLightIntensity="
+							+ nightLightIntensity
+							+ ", serverTimeOffset="
+							+ serverTimeOffset);
 						#end
 					case NewTick:
 						if (Global.gameSprite == null)

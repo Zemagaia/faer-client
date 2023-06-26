@@ -277,25 +277,20 @@ class Projectile extends GameObject {
 		var angleChange = 0.0;
 		if (this.projProps.angleChange != 0 && elapsed < this.projProps.angleChangeEnd && elapsed >= this.projProps.angleChangeDelay)
 			angleChange += dt / 1000.0 * this.projProps.angleChange;
-		trace(angleChange, this.projProps.angleChange, this.projProps.angleChangeDelay, this.projProps.angleChangeEnd, elapsed, "2");
 
 		if (this.projProps.angleChangeAccel != 0 && elapsed >= this.projProps.angleChangeAccelDelay)
 			angleChange += dt / 1000.0 * this.projProps.angleChangeAccel * (elapsed - this.projProps.angleChangeAccelDelay) / 1000.0;
-		trace(angleChange, this.projProps.angleChangeAccel, this.projProps.angleChangeAccelDelay, elapsed, "3");
 
 		if (angleChange > 0.0) {
 			var clampDt = this.projProps.angleChangeClamp - this.totalAngleChange;
-			trace(angleChange, clampDt, "4");
 			if (this.projProps.angleChangeClamp != 0) {
 				var clampedChange = Math.min(angleChange, clampDt);
-				trace(angleChange, clampDt, clampedChange, this.projProps.angleChangeClamp, this.totalAngleChange, "5");
 				if (!predict)
 					this.totalAngleChange += clampedChange;
 				this.angle += clampedChange;
 				this.cosAngle = MathUtil.cos(this.angle);
 				this.sinAngle = MathUtil.sin(this.angle);
 			} else if (clampDt == 0) {
-				trace(angleChange, clampDt, this.totalAngleChange, "6");
 				this.angle += angleChange;
 				this.cosAngle = MathUtil.cos(this.angle);
 				this.sinAngle = MathUtil.sin(this.angle);

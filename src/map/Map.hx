@@ -61,6 +61,7 @@ class Map {
 	private static inline var TILE_UPDATE_MS = 100; // tick rate
 	private static inline var BUFFER_UPDATE_MS = 500;
 	private static inline var MAX_VISIBLE_SQUARES = 729;
+	private static inline var DAY_CYCLE_MS = 10 * 60 * 1000; // 10 minutes
 
 	public static var emptyBarU: Float32 = 0.0;
 	public static var emptyBarV: Float32 = 0.0;
@@ -109,7 +110,6 @@ class Map {
 	public var mapName = "";
 	public var back = 0;
 	public var allowPlayerTeleport = false;
-	public var showDisplays = false;
 	public var squares: Vector<Square>;
 	public var gameObjectsLen: Int32 = 0;
 	public var gameObjects: Array<GameObject>;
@@ -167,6 +167,9 @@ class Map {
 	private var lightTex: GLTexture;
 	private var bgLightColor: Int32 = -1;
 	private var bgLightIntensity: Float32 = 0.1;
+	private var dayLightIntensity: Float32 = -1.0;
+	private var nightLightIntensity: Float32 = -1.0;
+	private var serverTimeOffset: Int32 = 0;
 	private var lightPointer: RawPointer<Float32>;
 	private var lightIdx: Int32 = 0;
 
@@ -199,15 +202,18 @@ class Map {
 		this.statusTexts.push(text);
 	}
 
-	@:nonVirtual public function setProps(width: Int, height: Int, name: String, allowPlayerTeleport: Bool, showDisplays: Bool, bgLightColor: Int32, bgLightIntensity: Float32) {
+	@:nonVirtual public function setProps(width: Int32, height: Int32, name: String, allowPlayerTeleport: Bool,
+			bgLightColor: Int32, bgLightIntensity: Float32, dayLightIntensity: Float32, nightLightIntensity: Float32, serverTimeOffset: Int32) {
 		this.mapWidth = width;
 		this.mapHeight = height;
 		this.squares = new Vector<Square>(this.mapWidth * this.mapHeight);
 		this.mapName = name;
 		this.allowPlayerTeleport = allowPlayerTeleport;
-		this.showDisplays = showDisplays;
 		this.bgLightColor = bgLightColor;
 		this.bgLightIntensity = bgLightIntensity;
+		this.dayLightIntensity = dayLightIntensity;
+		this.nightLightIntensity = nightLightIntensity;
+		this.serverTimeOffset = serverTimeOffset;
 	}
 
 	@:nonVirtual public function initialize() {
@@ -2393,6 +2399,17 @@ class Map {
 		return untyped __cpp__('(uintptr_t)_i32Arr_');
 	}
 
+	@:nonVirtual private final function getLightIntensity(time: Int32) {
+		if (this.serverTimeOffset == 0)
+			return this.bgLightIntensity;
+
+		var serverTimeClamped = (time + this.serverTimeOffset) % DAY_CYCLE_MS;
+		if (serverTimeClamped <= DAY_CYCLE_MS / 2)
+			return this.nightLightIntensity + (this.dayLightIntensity - this.nightLightIntensity) * (serverTimeClamped / (DAY_CYCLE_MS / 2));
+		else
+			return this.dayLightIntensity - (this.dayLightIntensity - this.nightLightIntensity) * ((serverTimeClamped - DAY_CYCLE_MS / 2) / (DAY_CYCLE_MS / 2));
+	}
+
 	@:nonVirtual public final function draw(time: Int32) {
 		var camX = Camera.mapX, camY = Camera.mapY;
 		if (time - this.lastTileUpdate > TILE_UPDATE_MS && camX >= 0 && camY >= 0) {
@@ -2673,7 +2690,7 @@ class Map {
 			GL.uniform2f(vertPosUniformLoc, -1, -1);
 			GL.uniform2f(texelSizeUniformLoc, 0, 0);
 			GL.uniform1i(colorUniformLoc, this.bgLightColor);
-			GL.uniform1f(alphaMultUniformLoc, this.bgLightIntensity);
+			GL.uniform1f(alphaMultUniformLoc, this.getLightIntensity(time));
 			GL.bindTexture(GL.TEXTURE_2D, this.screenTex);
 			GL.drawElements(GL.TRIANGLES, 6, GL.UNSIGNED_SHORT, 0);
 		}
