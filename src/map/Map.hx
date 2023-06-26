@@ -1,5 +1,6 @@
 package map;
 
+import lime.math.Rectangle;
 import openfl.display.Shape;
 import lime.graphics.opengl.GLUniformLocation;
 import objects.animation.Animations;
@@ -359,6 +360,7 @@ class Map {
 
 		this.c3d = Main.primaryStage3D.context3D;
 		this.c3d.configureBackBuffer(Main.stageWidth, Main.stageHeight, 0, true);
+		this.c3d.setScissorRectangle(new openfl.geom.Rectangle(0, 0, Main.stageWidth, Main.stageHeight));
 
 		this.screenData = TextureFactory.make(new BitmapData(1, 1, false, 0xFFFFFF), false);
 		this.screenTex = this.screenData.texture;
@@ -2445,6 +2447,7 @@ class Map {
 		if (time - this.lastBufferUpdate > BUFFER_UPDATE_MS) {
 			if (Main.stageWidth != this.lastWidth || Main.stageHeight != this.lastHeight) {
 				this.c3d.configureBackBuffer(Main.stageWidth, Main.stageHeight, 0, false);
+				this.c3d.setScissorRectangle(new openfl.geom.Rectangle(0, 0, Main.stageWidth, Main.stageHeight));
 
 				this.lastWidth = Main.stageWidth;
 				this.lastHeight = Main.stageHeight;
@@ -2460,8 +2463,9 @@ class Map {
 		this.lightIdx = 0;
 
 		GL.disable(GL.DEPTH_TEST);
-		GL.disable(GL.SCISSOR_TEST);
+		//GL.disable(GL.SCISSOR_TEST);
 		GL.disable(GL.STENCIL_TEST);
+		GL.disable(GL.DITHER);
 
 		GL.activeTexture(GL.TEXTURE0);
 		GL.bindTexture(GL.TEXTURE_2D, Main.atlas.texture);
