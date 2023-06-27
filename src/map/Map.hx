@@ -713,12 +713,10 @@ class Map {
 
 		if (obj.animations != null) {
 			var rect = obj.animations.getTexture(time);
-			obj.uValue = rect.x / Main.ATLAS_WIDTH;
-			obj.vValue = rect.y / Main.ATLAS_WIDTH;
-			texW = rect.width;
-			obj.width = texW / Main.ATLAS_WIDTH;
-			texH = rect.height;
-			obj.height = texH / Main.ATLAS_HEIGHT;
+			if (rect != null) {
+				obj.uValue = (rect.x + 2) / Main.ATLAS_WIDTH;
+				obj.vValue = (rect.y + 2) / Main.ATLAS_WIDTH;
+			}
 		}
 		
 		var size = 8 / Main.ATLAS_WIDTH;
