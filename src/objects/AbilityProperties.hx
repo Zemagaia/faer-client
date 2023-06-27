@@ -8,6 +8,7 @@ using util.Utils.XmlUtil;
 class Ability {
 	public var icon: BitmapData;
 	public var manaCost = 0;
+	public var healthCost = 0;
 	public var cooldown = 0.0;
 	public var name = "";
 	public var description = "";
@@ -17,6 +18,7 @@ class Ability {
 			return;
 
 		this.manaCost = objectXML.intElement("ManaCost");
+		this.healthCost = objectXML.intElement("HealthCost");
 		this.cooldown = objectXML.floatElement("Cooldown");
 		this.name = objectXML.element("Name");
 		this.description = objectXML.element("Description");

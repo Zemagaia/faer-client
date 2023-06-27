@@ -44,7 +44,7 @@ class Settings {
 	public static var resetCamera = KeyCode.Z;
 	public static var perfStats = KeyCode.F3;
 	public static var options = KeyCode.Escape;
-	public static var toggleCentering = KeyCode.X;
+	public static var openStats = KeyCode.X;
 	public static var chat = KeyCode.Enter;
 	public static var chatCmd = KeyCode.Slash;
 	public static var respond = KeyCode.F2;
@@ -98,7 +98,7 @@ class Settings {
 				resetCamera = o.readByte();
 				perfStats = o.readByte();
 				options = o.readByte();
-				toggleCentering = o.readByte();
+				openStats = o.readByte();
 				chat = o.readByte();
 				chatCmd = o.readByte();
 				respond = o.readByte();
@@ -149,7 +149,7 @@ class Settings {
 			w.writeByte(resetCamera);
 			w.writeByte(perfStats);
 			w.writeByte(options);
-			w.writeByte(toggleCentering);
+			w.writeByte(openStats);
 			w.writeByte(chat);
 			w.writeByte(chatCmd);
 			w.writeByte(respond);
@@ -195,7 +195,7 @@ class Settings {
 		resetCamera = KeyCode.Z;
 		perfStats = KeyCode.F3;
 		options = KeyCode.Escape;
-		toggleCentering = KeyCode.X;
+		openStats = KeyCode.X;
 		chat = KeyCode.Enter;
 		chatCmd = KeyCode.Slash;
 		respond = KeyCode.F2;

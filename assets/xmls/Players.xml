@@ -577,6 +577,12 @@ Soul Fragments are shared between all Enigmas in the same instance.</Description
         <Sheet>abilityIcons</Sheet>
         <Index>0</Index>
       </Icon>
+      <Projectile id="0">
+          <ObjectId>Small Amethyst Slash</ObjectId>
+          <Speed>130</Speed>
+          <LifetimeMS>300</LifetimeMS>
+          <Damage>400</Damage>
+      </Projectile>
       <Name>Anomalous Burst</Name>
       <ManaCost>75</ManaCost>
       <Cooldown>10</Cooldown>

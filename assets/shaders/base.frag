@@ -15,7 +15,7 @@ layout (location = 0) out vec4 resultColor;
 uniform sampler2D sampler;
 
 void main() {
-    if (data.barThresh != -1 && data.barThresh < data.uv.x)
+    if (data.barThresh > 0 && data.barThresh < data.uv.x)
         discard;
         
     vec4 pixel = texture(sampler, data.uv);
