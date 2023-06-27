@@ -696,7 +696,9 @@ class NetworkHandler {
 						var bgLightIntensity = data.readFloat();
 						var allowPlayerTeleport = data.readBoolean();
 						var usesDayNightCycle = data.readBoolean();
-						var dayLightIntensity = -1.0, nightLightIntensity = -1.0, serverTimeOffset = 0;
+						var dayLightIntensity = -1.0,
+							nightLightIntensity = -1.0,
+							serverTimeOffset = 0;
 						if (usesDayNightCycle) {
 							dayLightIntensity = data.readFloat();
 							nightLightIntensity = data.readFloat();
@@ -1428,7 +1430,7 @@ class NetworkHandler {
 		return false;
 	}
 
-	public static function UseAbility(abilitySlotType: UInt8, data: ByteArray) {
+	public static function useAbility(abilitySlotType: UInt8, data: ByteArray) {
 		outgoingData.writeInt(Global.gameSprite.lastUpdate);
 		outgoingData.writeByte(abilitySlotType);
 		outgoingData.writeShort(data.length);

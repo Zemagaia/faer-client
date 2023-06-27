@@ -96,6 +96,7 @@ class GameObject {
 	public var ownerId = -1;
 	public var hpBar: Bitmap;
 	public var objClass = "";
+	public var lastAbilityUse = [-1, -1, -1, -1];
 
 	private var portrait: BitmapData = null;
 	private var myLastTickId: Int32 = -1;

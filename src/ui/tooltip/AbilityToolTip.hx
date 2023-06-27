@@ -24,7 +24,7 @@ class AbilityToolTip extends ToolTip {
 	private var descText: SimpleText;
 	private var line: LineBreakDesign;
 
-	public function new(iconTex: BitmapData, manaCost: Int, cooldown: Float, desc: String, name: String, abilityKey: String) {
+	public function new(iconTex: BitmapData, manaCost: Int, healthCost: Int, cooldown: Float, desc: String, name: String, abilityKey: String) {
 		super(0, 0, 0, 0);
 
 		this.icon = new Bitmap(iconTex);
@@ -47,7 +47,11 @@ class AbilityToolTip extends ToolTip {
 		this.miscText.filters = [new DropShadowFilter(0, 0, 0, 0.5, 12, 12)];
 		this.miscText.x = this.icon.width + 16;
 		this.miscText.y = this.nameText.y + this.nameText.actualHeight;
-		this.miscText.setText((manaCost != 0 ? '$manaCost Mana' : 'No Cost') + ', ${cooldown}s');
+		var costText = manaCost != 0 ? '$manaCost Mana' : '';
+		costText += (manaCost != 0 && healthCost != 0 ? ', ' : '') + (healthCost != 0 ? '$healthCost Health' : '');
+		if (costText == '')
+			costText = 'No Cost';
+		this.miscText.setText(costText + ', ${cooldown}s');
 		this.miscText.updateMetrics();
 		addChild(this.miscText);
 

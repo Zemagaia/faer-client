@@ -1,5 +1,9 @@
 package game;
 
+import sound.SoundEffectLibrary;
+import objects.AbilityProperties;
+import objects.ObjectLibrary;
+import util.NativeTypes;
 import map.Camera;
 import network.NetworkHandler;
 import lime.system.System;
@@ -144,13 +148,49 @@ class InputHandler {
 		upAction(event.keyCode);
 	}
 
+	private function sendAbility(player: Player, idx: Int32) {
+		var abilProps = ObjectLibrary.typeToAbilityProps.get(player.objectType);
+		var curAbility: Ability = null;
+		switch (idx) {
+			case 0: curAbility = abilProps.ability1;
+			case 1: curAbility = abilProps.ability2;
+			case 2: curAbility = abilProps.ability3;
+			case 3: curAbility = abilProps.ultimateAbility;
+		}
+
+		if (curAbility == null) {
+			Global.gameSprite.textBox.addText("Invalid ability", 0xFF0000);
+			SoundEffectLibrary.play("error");
+			return;
+		}
+
+		// intentionally no chat msg
+		var time = System.getTimer();
+		if (curAbility.cooldown * 1000 > time - player.lastAbilityUse[idx] ||
+			curAbility.manaCost > player.mp || curAbility.healthCost > player.hp - 1) {
+			SoundEffectLibrary.play("error");
+			return;
+		}
+
+		player.lastAbilityUse[idx] = time;
+
+		abilityData.length = 0;
+		switch (curAbility.name) {
+			case "Anomalous Burst":
+				abilityData.writeFloat(Math.atan2(Main.primaryStage.mouseY - Main.mouseYOffset + 20, Main.primaryStage.mouseX - Main.mouseXOffset));
+			case "Possession":
+				abilityData.writeInt(-1); // entityId
+		}
+
+		NetworkHandler.useAbility(idx, abilityData);
+	}
+
 	private function downAction(keyCode: KeyCode, shootCheck: Bool = true) {
 		var player = Global.gameSprite.map.player;
 
-		var shootAngle = Math.atan2(Main.primaryStage.mouseY - Main.mouseYOffset + 20, Main.primaryStage.mouseX - Main.mouseXOffset);
 		if (keyCode == Settings.shoot) {
 			if (shootCheck)
-				player?.attemptAttackAngle(shootAngle);
+				player?.attemptAttackAngle(Math.atan2(Main.primaryStage.mouseY - Main.mouseYOffset + 20, Main.primaryStage.mouseX - Main.mouseXOffset));
 			else
 				return;
 
@@ -191,25 +231,14 @@ class InputHandler {
 		} else if (keyCode == Settings.interact) {
 			if (Global.currentInteractiveTarget > 0)
 				NetworkHandler.usePortal(Global.currentInteractiveTarget);
-
-			// todo redo the data part
-			// this is made only with the enigma abilities in mind
-			// its hard coded
-		} else if (keyCode == Settings.ability1) {
-			abilityData.length = 0;
-			abilityData.writeFloat(shootAngle);
-			NetworkHandler.UseAbility(0, abilityData);
-		} else if (keyCode == Settings.ability2) {
-			abilityData.length = 0;
-			NetworkHandler.UseAbility(1, abilityData);
-		} else if (keyCode == Settings.ability3) {
-			abilityData.length = 0;
-			NetworkHandler.UseAbility(2, abilityData);
-		} else if (keyCode == Settings.ultimateAbility) {
-			abilityData.length = 0;
-			abilityData.writeFloat(-1); // entityId
-			NetworkHandler.UseAbility(3, abilityData);
-		}
+		} else if (keyCode == Settings.ability1)
+			this.sendAbility(player, 0);
+		else if (keyCode == Settings.ability2)
+			this.sendAbility(player, 1);	
+		else if (keyCode == Settings.ability3) 
+			this.sendAbility(player, 2);
+		else if (keyCode == Settings.ultimateAbility)
+			this.sendAbility(player, 3);
 
 		this.setPlayerMovement();
 	}
