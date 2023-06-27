@@ -21,7 +21,6 @@ class AbilityToolTip extends ToolTip {
 	private var icon: Bitmap;
 	private var nameText: SimpleText;
 	private var miscText: SimpleText;
-	private var cooldownText: SimpleText;
 	private var descText: SimpleText;
 	private var line: LineBreakDesign;
 

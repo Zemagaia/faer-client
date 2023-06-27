@@ -1,5 +1,7 @@
 package game;
 
+import util.TextureRedrawer;
+import ui.tooltip.StatToolTip;
 import openfl.text.TextFormatAlign;
 import ui.tooltip.AbilityToolTip;
 import objects.ObjectLibrary;
@@ -40,6 +42,73 @@ import util.PointUtil;
 import openfl.utils.ByteArray;
 
 using StringTools;
+
+class StatView extends Sprite {
+	private var statText: SimpleText;
+	private var lastValue = -1;
+	private var lastBoost = -1;
+	private var lastMax = -1;
+	private var toolTip: StatToolTip;
+
+	public function new(iconSheet: String, iconIdx: Int32, name: String, desc: String) {
+		super();
+
+		var tex = TextureRedrawer.redraw(AssetLibrary.getImageFromSet(iconSheet, iconIdx), 40, false, 0);
+		this.toolTip = new StatToolTip(tex, name, desc);
+
+		// hitbox
+		graphics.beginFill(0, 0);
+		graphics.drawRect(0, 0, 69, 26);
+		graphics.endFill();
+
+		this.statText = new SimpleText(14, 0xD9D9D9);
+		this.statText.setBold(true);
+		addChild(this.statText);
+
+		addEventListener(MouseEvent.ROLL_OVER, this.onRollOver);
+		addEventListener(MouseEvent.ROLL_OUT, this.onRollOut);
+	}
+
+	public function setBreakdownText(breakdown: String) {
+		this.toolTip.setBreakdownText(breakdown);
+	}
+
+	public function onRollOver(_: MouseEvent) {
+		if (this.toolTip != null && !stage.contains(this.toolTip)) {
+			this.toolTip.attachToTarget(this);
+			stage.addChild(this.toolTip);
+		}
+	}
+
+	public function onRollOut(_: MouseEvent) {
+		if (this.toolTip != null && this.toolTip.parent != null)
+			this.toolTip.detachFromTarget();
+	}
+
+	public function draw(value: Int32, boost: Int32, max: Int32) {
+		if (value != this.lastValue || boost != this.lastBoost || max != this.lastMax) {
+			var color = 0xD9D9D9;
+			if (value - boost >= max)
+				color = 0xFFE770;
+			else if (boost < 0)
+				color = 0xFF7070;
+			else if (boost > 0)
+				color = 0xE69865;
+
+			this.statText.setText(Std.string(value));
+			this.statText.setColor(color);
+			this.statText.updateMetrics();
+			this.statText.x = 27 + (38 - this.statText.width) / 2;
+			this.statText.y = 2 + (20 - this.statText.height) / 2;
+
+			this.toolTip.updateBreakdown(value, boost, max);
+
+			this.lastValue = value;
+			this.lastBoost = boost;
+			this.lastMax = max;
+		}
+	}
+}
 
 class GameSprite extends Sprite {
 	public var map: Map;
@@ -87,8 +156,17 @@ class GameSprite extends Sprite {
 	private var pressStatsBtnTex: BitmapData;
 	private var statsButton: Sprite;
 	private var statsButtonBitmap: Bitmap;
-	private var statsBtnHovering = false;
-	private var statsBtnPressed = false;
+	private var strView: StatView;
+	private var resView: StatView;
+	private var intView: StatView;
+	private var hstView: StatView;
+	private var witView: StatView;
+	private var spdView: StatView;
+	private var penView: StatView;
+	private var tenView: StatView;
+	private var defView: StatView;
+	private var staView: StatView;
+	private var prcView: StatView;
 	private var lastXpPerc = 0.0;
 	private var lastHpPerc = 0.0;
 	private var lastMpPerc = 0.0;
@@ -206,7 +284,7 @@ class GameSprite extends Sprite {
 		this.statsButton = new Sprite();
 		this.statsButton.cacheAsBitmap = true;
 		this.statsButton.x = this.decor.x;
-		this.statsButton.y = this.decor.y + 28;
+		this.statsButton.y = this.decor.y + 27;
 		this.statsButton.addChild(this.statsButtonBitmap);
 		this.statsButton.addEventListener(MouseEvent.ROLL_OVER, this.onStatsRollOver);
 		this.statsButton.addEventListener(MouseEvent.ROLL_OUT, this.onStatsRollOut);
@@ -218,6 +296,61 @@ class GameSprite extends Sprite {
 		this.statsButton.addEventListener(MouseEvent.RIGHT_MOUSE_UP, this.onStatsMouseUp);
 		addChild(this.statsButton);
 
+		this.strView = new StatView("misc16", 32, "Strength", "Increases your Physical Damage");
+		this.strView.x = this.decor.x + 32;
+		this.strView.y = this.decor.y + 116;
+		addChild(this.strView);
+
+		this.resView = new StatView("misc16", 57, "Resistance", "Decreases incoming Magic Damage");
+		this.resView.x = this.decor.x + 103;
+		this.resView.y = this.decor.y + 116;
+		addChild(this.resView);
+
+		this.intView = new StatView("misc16", 59, "Intelligence", "Increases mana regeneration");
+		this.intView.x = this.decor.x + 174;
+		this.intView.y = this.decor.y + 116;
+		addChild(this.intView);
+
+		this.hstView = new StatView("misc16", 58, "Haste", "Decreases ability cooldowns");
+		this.hstView.x = this.decor.x + 245;
+		this.hstView.y = this.decor.y + 116;
+		addChild(this.hstView);
+
+		this.witView = new StatView("misc16", 35, "Wit", "Increases your Magic Damage");
+		this.witView.x = this.decor.x + 32;
+		this.witView.y = this.decor.y + 144;
+		addChild(this.witView);
+
+		this.spdView = new StatView("misc16", 34, "Speed", "Increases your Move Speed");
+		this.spdView.x = this.decor.x + 103;
+		this.spdView.y = this.decor.y + 144;
+		addChild(this.spdView);
+
+		this.penView = new StatView("misc16", 38, "Penetration", "Decreases the effect of the enemy's Defense");
+		this.penView.x = this.decor.x + 174;
+		this.penView.y = this.decor.y + 144;
+		addChild(this.penView);
+
+		this.tenView = new StatView("misc16", 37, "Tenacity", "Decreases the length of Debuffs afflicting you");
+		this.tenView.x = this.decor.x + 245;
+		this.tenView.y = this.decor.y + 144;
+		addChild(this.tenView);
+
+		this.defView = new StatView("misc16", 33, "Defense", "Decreases incoming Physical Damage");
+		this.defView.x = this.decor.x + 32;
+		this.defView.y = this.decor.y + 172;
+		addChild(this.defView);
+
+		this.staView = new StatView("misc16", 36, "Stamina", "Increases health regeneration");
+		this.staView.x = this.decor.x + 103;
+		this.staView.y = this.decor.y + 172;
+		addChild(this.staView);
+
+		this.prcView = new StatView("misc16", 60, "Piercing", "Decreases the effect of the enemy's Resistance");
+		this.prcView.x = this.decor.x + 174;
+		this.prcView.y = this.decor.y + 172;
+		addChild(this.prcView);
+
 		if (Settings.perfStatsOpen)
 			this.addFpsView();
 		this.lastFrameUpdate = System.getTimer();
@@ -228,20 +361,17 @@ class GameSprite extends Sprite {
 	}
 
 	private function onStatsRollOver(_: MouseEvent) {
-		this.statsBtnHovering = true;
 		this.statsButtonBitmap.bitmapData = this.hoverStatsBtnTex;
 	}
 
-	private function onStatsMouseUp(_: MouseEvent) {
-		this.statsBtnPressed = false;
-
+	public function toggleStats() {
 		this.statsOpen = !this.statsOpen;
 		this.decor.bitmapData = this.statsOpen ? this.statsDecorTex : this.baseDecorTex;
 		this.decor.x = (Main.stageWidth - this.decor.width) / 2;
 		this.decor.y = Main.stageHeight - this.decor.height;
 
 		this.statsButton.x = this.decor.x + (this.statsOpen ? (this.statsDecorTex.width - this.baseDecorTex.width) / 2 : 0);
-		this.statsButton.y = this.decor.y + 28;
+		this.statsButton.y = this.decor.y + 27;
 
 		this.levelText.x = this.decor.x
 			+ 211
@@ -271,23 +401,54 @@ class GameSprite extends Sprite {
 		this.ultimateAbilityContainer.x = this.ability3Container.x + 44;
 		this.ultimateAbilityContainer.y = this.decor.y + 64;
 
-		if (this.statsBtnHovering)
-			this.statsButtonBitmap.bitmapData = this.hoverStatsBtnTex;
-		else
-			this.statsButtonBitmap.bitmapData = this.baseStatsBtnTex;
+		this.strView.x = this.decor.x + 32;
+		this.strView.y = this.decor.y + 116;
+
+		this.resView.x = this.decor.x + 103;
+		this.resView.y = this.decor.y + 116;
+
+		this.intView.x = this.decor.x + 174;
+		this.intView.y = this.decor.y + 116;
+
+		this.hstView.x = this.decor.x + 245;
+		this.hstView.y = this.decor.y + 116;
+
+		this.witView.x = this.decor.x + 32;
+		this.witView.y = this.decor.y + 144;
+
+		this.spdView.x = this.decor.x + 103;
+		this.spdView.y = this.decor.y + 144;
+
+		this.penView.x = this.decor.x + 174;
+		this.penView.y = this.decor.y + 144;
+
+		this.tenView.x = this.decor.x + 245;
+		this.tenView.y = this.decor.y + 144;
+
+		this.defView.x = this.decor.x + 32;
+		this.defView.y = this.decor.y + 172;
+
+		this.staView.x = this.decor.x + 103;
+		this.staView.y = this.decor.y + 172;
+
+		this.prcView.x = this.decor.x + 174;
+		this.prcView.y = this.decor.y + 172;
+
+		this.strView.visible = this.resView.visible = this.intView.visible = this.hstView.visible = 
+			this.witView.visible = this.spdView.visible = this.penView.visible = this.tenView.visible = 
+			this.defView.visible = this.staView.visible = this.prcView.visible = this.statsOpen;
+	}
+
+	private function onStatsMouseUp(_: MouseEvent) {
+		this.toggleStats();
+		this.statsButtonBitmap.bitmapData = this.baseStatsBtnTex;
 	}
 
 	private function onStatsRollOut(_: MouseEvent) {
-		this.statsBtnHovering = false;
-
-		if (this.statsBtnPressed)
-			this.statsButtonBitmap.bitmapData = this.pressStatsBtnTex;
-		else
-			this.statsButtonBitmap.bitmapData = this.baseStatsBtnTex;
+		this.statsButtonBitmap.bitmapData = this.baseStatsBtnTex;
 	}
 
 	private function onStatsMouseDown(_: MouseEvent) {
-		this.statsBtnPressed = true;
 		this.statsButtonBitmap.bitmapData = this.pressStatsBtnTex;
 	}
 
@@ -413,7 +574,7 @@ class GameSprite extends Sprite {
 
 		if (this.statsButton != null) {
 			this.statsButton.x = this.decor.x + (this.statsOpen ? (this.statsDecorTex.width - this.baseDecorTex.width) / 2 : 0);
-			this.statsButton.y = this.decor.y + 28;
+			this.statsButton.y = this.decor.y + 27;
 		}
 
 		if (this.levelText != null) {
@@ -445,6 +606,41 @@ class GameSprite extends Sprite {
 			}
 		}
 
+		if (this.statsOpen) {
+			this.strView.x = this.decor.x + 32;
+			this.strView.y = this.decor.y + 116;
+
+			this.resView.x = this.decor.x + 103;
+			this.resView.y = this.decor.y + 116;
+
+			this.intView.x = this.decor.x + 174;
+			this.intView.y = this.decor.y + 116;
+
+			this.hstView.x = this.decor.x + 245;
+			this.hstView.y = this.decor.y + 116;
+
+			this.witView.x = this.decor.x + 32;
+			this.witView.y = this.decor.y + 144;
+
+			this.spdView.x = this.decor.x + 103;
+			this.spdView.y = this.decor.y + 144;
+
+			this.penView.x = this.decor.x + 174;
+			this.penView.y = this.decor.y + 144;
+
+			this.tenView.x = this.decor.x + 245;
+			this.tenView.y = this.decor.y + 144;
+
+			this.defView.x = this.decor.x + 32;
+			this.defView.y = this.decor.y + 172;
+
+			this.staView.x = this.decor.x + 103;
+			this.staView.y = this.decor.y + 172;
+
+			this.prcView.x = this.decor.x + 174;
+			this.prcView.y = this.decor.y + 172;
+		}
+
 		if (this.inventory != null) {
 			this.inventory.x = Main.stageWidth - this.inventory.decor.width;
 			this.inventory.y = Main.stageHeight - this.inventory.decor.height;
@@ -464,19 +660,18 @@ class GameSprite extends Sprite {
 			this.textBox.y = Math.max(0, Main.stageHeight - this.textBox.height);
 	}
 
-	private function resetAbilitiesUI(): Void {
-		if (this.ability1Container != null && contains(this.ability1Container)) {
+	private function resetAbilitiesUI() {
+		if (this.ability1Container != null && contains(this.ability1Container))
 			removeChild(this.ability1Container);
-		}
-		if (this.ability2Container != null && contains(this.ability2Container)) {
+		
+		if (this.ability2Container != null && contains(this.ability2Container))
 			removeChild(this.ability2Container);
-		}
-		if (this.ability3Container != null && contains(this.ability3Container)) {
+		
+		if (this.ability3Container != null && contains(this.ability3Container))
 			removeChild(this.ability3Container);
-		}
-		if (this.ultimateAbilityContainer != null && contains(this.ultimateAbilityContainer)) {
+		
+		if (this.ultimateAbilityContainer != null && contains(this.ultimateAbilityContainer))
 			removeChild(this.ultimateAbilityContainer);
-		}
 	}
 
 	private function updatePlayerUI(player: Player) {
@@ -492,7 +687,16 @@ class GameSprite extends Sprite {
 			this.mpBarMask.x = this.mpBar.width * mpPerc;
 			this.mpBarMask.scaleX = this.mpBar.width * (1 - mpPerc) / 8;
 
+			var color = 0xD9D9D9;
+			if (player.maxMP - player.maxHPBoost >= player.maxMPMax)
+				color = 0xFFE770;
+			else if (player.maxMPBoost < 0)
+				color = 0xFF7070;
+			else if (player.maxMPBoost > 0)
+				color = 0xE69865;
+
 			this.mpBarText.setText('${player.mp}/${player.maxMP}');
+			this.mpBarText.setColor(color);
 			this.mpBarText.updateMetrics();
 			this.mpBarText.x = this.mpBarContainer.x + (180 - this.mpBarText.width) / 2;
 			this.mpBarText.y = this.mpBarContainer.y + (16 - this.mpBarText.height) / 2;
@@ -505,7 +709,16 @@ class GameSprite extends Sprite {
 			this.hpBarMask.x = this.hpBar.width * hpPerc;
 			this.hpBarMask.scaleX = this.hpBar.width * (1 - hpPerc) / 8;
 
+			var color = 0xD9D9D9;
+			if (player.maxHP - player.maxHPBoost >= player.maxHPMax)
+				color = 0xFFE770;
+			else if (player.maxHPBoost < 0)
+				color = 0xFF7070;
+			else if (player.maxHPBoost > 0)
+				color = 0xE69865;
+
 			this.hpBarText.setText('${player.hp}/${player.maxHP}');
+			this.hpBarText.setColor(color);
 			this.hpBarText.updateMetrics();
 			this.hpBarText.x = this.hpBarContainer.x + (180 - this.hpBarText.width) / 2;
 			this.hpBarText.y = this.hpBarContainer.y + (16 - this.hpBarText.height) / 2;
@@ -514,12 +727,25 @@ class GameSprite extends Sprite {
 		}
 
 		if (player.level != this.lastLevel) {
-			this.levelText.setBold(true);
 			this.levelText.setText(Std.string(player.level));
 			this.levelText.updateMetrics();
 			this.levelText.x = this.decor.x + 211 + (32 - this.levelText.width) / 2;
 			this.levelText.y = this.decor.y + 30 + (32 - this.levelText.height) / 2;
+
+			this.lastLevel = player.level;
 		}
+
+		this.strView.draw(player.strength, player.strengthBoost, player.strengthMax);
+		this.resView.draw(player.resistance, player.resistanceBoost, player.resistanceMax);
+		this.intView.draw(player.intelligence, player.intelligenceBoost, player.intelligenceMax);
+		this.hstView.draw(player.haste, player.hasteBoost, player.hasteMax);
+		this.witView.draw(player.wit, player.witBoost, player.witMax);
+		this.spdView.draw(player.speed, player.speedBoost, player.speedMax);
+		this.penView.draw(player.penetration, player.penetrationBoost, player.penetrationMax);
+		this.tenView.draw(player.tenacity, player.tenacityBoost, player.tenacityMax);
+		this.defView.draw(player.defense, player.defenseBoost, player.defenseMax);
+		this.staView.draw(player.stamina, player.staminaBoost, player.staminaMax);
+		this.prcView.draw(player.piercing, player.piercingBoost, player.piercingMax);
 	}
 
 	private function onAbility1RollOver(_: MouseEvent) {
@@ -593,9 +819,9 @@ class GameSprite extends Sprite {
 				if (!this.uiInited) {
 					this.inventory.init(player);
 
+					final className = player.props.displayId;
 					#if !disable_rpc
 					if (Main.rpcReady) {
-						final className = player.props.displayId;
 						var discordPresence = DiscordRichPresence.create();
 						discordPresence.state = 'In ${this.map.mapName}';
 						discordPresence.details = '';
@@ -607,6 +833,18 @@ class GameSprite extends Sprite {
 						Discord.UpdatePresence(cpp.RawConstPointer.addressOf(discordPresence));
 					}
 					#end
+
+					this.strView.setBreakdownText("Being a " + className + " grants you $base/$max Strength\nYou receive $boost Strength from Boosts");
+					this.resView.setBreakdownText("Being a " + className + " grants you $base/$max Resistance\nYou receive $boost Resistance from Boosts");
+					this.intView.setBreakdownText("Being a " + className + " grants you $base/$max Intelligence\nYou receive $boost Intelligence from Boosts");
+					this.hstView.setBreakdownText("Being a " + className + " grants you $base/$max Haste\nYou receive $boost Haste from Boosts");
+					this.witView.setBreakdownText("Being a " + className + " grants you $base/$max Wit\nYou receive $boost Wit from Boosts");
+					this.spdView.setBreakdownText("Being a " + className + " grants you $base/$max Speed\nYou receive $boost Speed from Boosts");
+					this.penView.setBreakdownText("Being a " + className + " grants you $base/$max Penetration\nYou receive $boost Penetration from Boosts");
+					this.tenView.setBreakdownText("Being a " + className + " grants you $base/$max Tenacity\nYou receive $boost Tenacity from Boosts");
+					this.defView.setBreakdownText("Being a " + className + " grants you $base/$max Defense\nYou receive $boost Defense from Boosts");
+					this.staView.setBreakdownText("Being a " + className + " grants you $base/$max Stamina\nYou receive $boost Stamina from Boosts");
+					this.prcView.setBreakdownText("Being a " + className + " grants you $base/$max Piercing\nYou receive $boost Piercing from Boosts");
 
 					var abilProps = ObjectLibrary.typeToAbilityProps.get(player.objectType);
 

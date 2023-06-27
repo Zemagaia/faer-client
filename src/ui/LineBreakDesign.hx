@@ -36,7 +36,7 @@ class LineBreakDesign extends Sprite {
 		// extreme jank
 		var pad = new Shape();
 		pad.graphics.beginFill(0, 0);
-		pad.graphics.drawRect(width, 0, 12, 1);
+		pad.graphics.drawRect(width, 0, 16, 1);
 		pad.graphics.endFill();
 		addChild(pad);
 	}

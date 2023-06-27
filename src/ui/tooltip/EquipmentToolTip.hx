@@ -54,42 +54,14 @@ class EquipmentToolTip extends ToolTip {
 		return html;
 	}
 
-	private static function statToName(stat: StatType) {
+	private static function statToName(stat: String) {
 		switch (stat) {
-			case MaxHP:
+			case "MaxHP":
 				return "Health";
-			case HP:
-				return "HP";
-			case Size:
-				return "Size";
-			case MaxMP:
+			case "MaxMP":
 				return "Mana";
-			case MP:
-				return "MP";
-			case Strength:
-				return "Strength";
-			case Wit:
-				return "Wit";
-			case Defense:
-				return "Defense";
-			case Resistance:
-				return "Resistance";
-			case Speed:
-				return "Speed";
-			case Haste:
-				return "Haste";
-			case Stamina:
-				return "Stamina";
-			case Intelligence:
-				return "Intelligence";
-			case Piercing:
-				return "Piercing";
-			case Penetration:
-				return "Penetration";
-			case Tenacity:
-				return "Tenacity";
 			default:
-				return "Unknown Stat";
+				return stat;
 		}
 	}
 
@@ -212,15 +184,6 @@ class EquipmentToolTip extends ToolTip {
 				this.effects.push(new Effect("Shot Effect", condEffectXML.value() + " for " + condEffectXML.attribute("duration") + " secs"));
 		}
 
-		if (this.objectXML.elementExists("Scepter")) {
-			var scepXml = this.objectXML.elementsNamed("Scepter").next();
-			var drainXml = scepXml.elementsNamed("Drain").next();
-			this.effects.push(new Effect("Tick Rate", TooltipHelper.getFormattedString(1000 / scepXml.floatElement("TickMS")) + "/s"));
-			this.effects.push(new Effect("Drain", scepXml.element("Drain") + " " + statToName(drainXml.intAttribute("stat")) + "/s"));
-			this.effects.push(new Effect("Damage", scepXml.element("Damage")));
-			this.effects.push(new Effect("Range", TooltipHelper.getFormattedString(scepXml.floatElement("Range"))));
-		}
-
 		for (activateXML in this.objectXML.elementsNamed("Activate"))
 			switch (activateXML.value()) {
 				case ActivationType.COND_EFFECT_AURA:
@@ -240,10 +203,10 @@ class EquipmentToolTip extends ToolTip {
 				case ActivationType.TELEPORT:
 					this.effects.push(new Effect("", "Teleport to Target"));
 				case ActivationType.INCREMENT_STAT:
-					var stat = activateXML.intAttribute("stat");
+					var stat = activateXML.attribute("stat");
 					var amt = activateXML.intAttribute("amount");
 					var val = "";
-					if (stat != StatType.HP && stat != StatType.MP)
+					if (stat != "MaxHP" && stat != "MaxMP")
 						val = "Permanently increases " + statToName(stat);
 					else
 						val = "+" + amt + " " + statToName(stat);
@@ -254,7 +217,7 @@ class EquipmentToolTip extends ToolTip {
 						"+"
 						+ activateXML.attribute("amount")
 						+ " "
-						+ statToName(activateXML.intAttribute("stat"))
+						+ statToName(activateXML.attribute("stat"))
 						+ " for "
 						+ activateXML.attribute("duration")
 						+ " seconds"));
@@ -263,7 +226,7 @@ class EquipmentToolTip extends ToolTip {
 						"+"
 						+ activateXML.attribute("amount")
 						+ " "
-						+ statToName(activateXML.intAttribute("stat"))
+						+ statToName(activateXML.attribute("stat"))
 						+ " for "
 						+ activateXML.attribute("duration")
 						+ " seconds"));
@@ -371,7 +334,7 @@ class EquipmentToolTip extends ToolTip {
 	}
 
 	private function compareIncrementStat(activateXML: Xml) {
-		var stat = activateXML.intAttribute("stat");
+		var stat = activateXML.attribute("stat");
 		var amount = activateXML.intAttribute("amount");
 		return (amount > -1 ? "+" + activateXML.attribute("amount") : activateXML.attribute("amount")) + " " + statToName(stat);
 	}

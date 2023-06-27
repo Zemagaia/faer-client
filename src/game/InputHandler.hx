@@ -183,9 +183,11 @@ class InputHandler {
 			options.x = (Main.stageWidth - 800) / 2;
 			options.y = (Main.stageHeight - 600) / 2;
 			Global.layers.overlay.addChild(options);
-		} else if (keyCode == Settings.toggleCentering) {
-			Settings.centerCamera = !Settings.centerCamera;
-			Settings.save();
+		} else if (keyCode == Settings.openStats) {
+			if (Global.gameSprite == null)
+				return;
+
+			Global.gameSprite.toggleStats();
 		} else if (keyCode == Settings.interact) {
 			if (Global.currentInteractiveTarget > 0)
 				NetworkHandler.usePortal(Global.currentInteractiveTarget);

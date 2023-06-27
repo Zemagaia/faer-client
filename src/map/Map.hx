@@ -2463,7 +2463,6 @@ class Map {
 		this.lightIdx = 0;
 
 		GL.disable(GL.DEPTH_TEST);
-		//GL.disable(GL.SCISSOR_TEST);
 		GL.disable(GL.STENCIL_TEST);
 		GL.disable(GL.DITHER);
 
