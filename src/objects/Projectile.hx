@@ -3,7 +3,6 @@ package objects;
 import network.NetworkHandler;
 import haxe.ds.IntMap;
 import map.Map;
-import openfl.display.BitmapData;
 import objects.particles.HitEffect;
 import util.BloodComposition;
 import util.Utils;
@@ -87,9 +86,6 @@ class Projectile extends GameObject {
 
 	override public function update(time: Int32, dt: Int16) {
 		var player: Player = null;
-		var isPlayer = false;
-		var isTargetAnEnemy = false;
-		var sendMessage = false;
 		var dead = false;
 		var elapsed = time - this.startTime;
 		if (elapsed > this.projProps.lifetime)
@@ -116,37 +112,32 @@ class Projectile extends GameObject {
 			return false;
 		}
 
-		var target = cast(this.getHit(), GameObject);
+		var target = this.getHit();
 		if (target != null) {
 			player = map.player;
-			isPlayer = player != null;
-			isTargetAnEnemy = target.props.isEnemy;
-			sendMessage = isPlayer && (this.damagesPlayers || isTargetAnEnemy && this.ownerId == player.objectId);
-			if (sendMessage) {
-				var physDmg = GameObject.physicalDamage(this.physicalDamage, target.defense, target.condition);
-				var magicDmg = GameObject.magicDamage(this.magicDamage, target.resistance, target.condition);
-				var trueDmg = GameObject.trueDamage(this.trueDamage, target.condition);
+			var physDmg = GameObject.physicalDamage(this.physicalDamage, target.defense, target.condition);
+			var magicDmg = GameObject.magicDamage(this.magicDamage, target.resistance, target.condition);
+			var trueDmg = GameObject.trueDamage(this.trueDamage, target.condition);
 
-				if (target == player) {
-					NetworkHandler.playerHit(this.bulletId, this.ownerId);
-					if (physDmg > 0)
-						target.damage(this.containerType, Std.int(physDmg * player.hitMult), this.projProps.effects, false, this, 0xB02020);
-					if (magicDmg > 0)
-						target.damage(this.containerType, Std.int(magicDmg * player.hitMult), this.projProps.effects, false, this, 0x6E15AD);
-					if (trueDmg > 0)
-						target.damage(this.containerType, Std.int(trueDmg * player.hitMult), this.projProps.effects, false, this, 0xC2C2C2);
-				} else if (target.props.isEnemy) {
-					dead = target.hp <= (physDmg + magicDmg + trueDmg);
-					NetworkHandler.enemyHit(time, this.bulletId, target.objectId, dead);
-					if (physDmg > 0)
-						target.damage(this.containerType, physDmg, this.projProps.effects, dead, this, 0xB02020);
-					if (magicDmg > 0)
-						target.damage(this.containerType, magicDmg, this.projProps.effects, dead, this, 0x6E15AD);
-					if (trueDmg > 0)
-						target.damage(this.containerType, trueDmg, this.projProps.effects, dead, this, 0xC2C2C2);
-				} else if (!this.projProps.multiHit)
-					NetworkHandler.otherHit(time, this.bulletId, this.ownerId, target.objectId);
-			}
+			trace(physDmg, magicDmg, trueDmg, target == player, target.props.isEnemy);
+			if (target == player) {
+				NetworkHandler.playerHit(this.bulletId, this.ownerId);
+				if (physDmg > 0)
+					target.damage(this.containerType, Std.int(physDmg * player.hitMult), this.projProps.effects, false, this, 0xB02020);
+				if (magicDmg > 0)
+					target.damage(this.containerType, Std.int(magicDmg * player.hitMult), this.projProps.effects, false, this, 0x6E15AD);
+				if (trueDmg > 0)
+					target.damage(this.containerType, Std.int(trueDmg * player.hitMult), this.projProps.effects, false, this, 0xC2C2C2);
+			} else if (target.props.isEnemy) {
+				dead = target.hp <= (physDmg + magicDmg + trueDmg);
+				NetworkHandler.enemyHit(time, this.bulletId, target.objectId, dead);
+				if (physDmg > 0)
+					target.damage(this.containerType, physDmg, this.projProps.effects, dead, this, 0xB02020);
+				if (magicDmg > 0)
+					target.damage(this.containerType, magicDmg, this.projProps.effects, dead, this, 0x6E15AD);
+				if (trueDmg > 0)
+					target.damage(this.containerType, trueDmg, this.projProps.effects, dead, this, 0xC2C2C2);
+			} 
 
 			if (this.projProps.multiHit)
 				this.multiHitDict.set(target.objectId, true);
@@ -173,16 +164,25 @@ class Projectile extends GameObject {
 		this.sinAngle = MathUtil.sin(this.angle);
 		this.cosAngle = MathUtil.cos(this.angle);
 		this.startTime = startTime;
-		objectId = getNewObjId(this.ownerId, this.bulletId);
+		this.objectId = getNewObjId(this.ownerId, this.bulletId);
 		this.containerProps = ObjectLibrary.propsLibrary.get(this.containerType);
 		this.projProps = this.containerProps.projectiles.get(bulletType);
-		this.props = ObjectLibrary.getPropsFromId(this.projProps.objectId);
-		var textureData: TextureData = ObjectLibrary.typeToTextureData.get(this.props.objType);
-		this.uValue = textureData.uValue;
-		this.vValue = textureData.vValue;
-		this.width = textureData.width;
-		this.height = textureData.height;
-		this.colors = BloodComposition.getColors(textureData.getTexture());
+		
+		var textureData: TextureData = ObjectLibrary.typeToTextureData.get(this.projProps.objType);
+		if (textureData.randomTextureData != null) {
+			var randTexData = textureData.randomTextureData[this.objectId % textureData.randomTextureData.length];
+			this.uValue = randTexData.uValue;
+			this.vValue = randTexData.vValue;
+			this.width = randTexData.width;
+			this.height = randTexData.height;
+			this.colors = BloodComposition.getColors(randTexData.getTexture());
+		} else {
+			this.uValue = textureData.uValue;
+			this.vValue = textureData.vValue;
+			this.width = textureData.width;
+			this.height = textureData.height;
+			this.colors = BloodComposition.getColors(textureData.getTexture());
+		}
 		this.damagesPlayers = this.containerProps.isEnemy;
 		this.damagesEnemies = !this.damagesPlayers;
 		this.sound = this.containerProps.oldSound;

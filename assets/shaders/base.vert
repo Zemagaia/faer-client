@@ -6,14 +6,14 @@ layout (location = 0) in vec4 vertUV;
 layout (location = 1) in vec2 texelSize;
 layout (location = 2) in vec2 colors;
 layout (location = 3) in float flashStrength;
-layout (location = 4) in float barThresh;
+layout (location = 4) in float alphaMult;
 
 out BatchData {
     vec2 uv;
     vec2 texelSize;
     vec2 colors;
     float flashStrength;
-    float barThresh;
+    float alphaMult;
 } data;
 
 void main() {
@@ -22,5 +22,5 @@ void main() {
     data.texelSize = texelSize;
     data.colors = colors;
     data.flashStrength = flashStrength;
-    data.barThresh = barThresh;
+    data.alphaMult = alphaMult;
 }

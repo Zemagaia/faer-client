@@ -16,10 +16,7 @@ class EquipmentTile extends InteractiveItemTile {
 
 	public var backgroundDetail: Bitmap;
 	public var slotType = 0;
-
-	private var minManaUsage = 0;
-	private var minHealthUsage = 0;
-
+	
 	public function new(id: Int, parentGrid: ItemGrid, isInteractive: Bool) {
 		super(id, parentGrid, isInteractive);
 	}
@@ -29,12 +26,10 @@ class EquipmentTile extends InteractiveItemTile {
 	}
 
 	override public function setItem(itemId: Int) {
-		var itemChanged: Bool = super.setItem(itemId);
-		if (itemChanged) {
+		var itemChanged = super.setItem(itemId);
+		if (itemChanged)
 			this.backgroundDetail.visible = itemSprite.itemId <= 0;
-			this.updateMinMana();
-		}
-
+		
 		return itemChanged;
 	}
 
@@ -102,27 +97,5 @@ class EquipmentTile extends InteractiveItemTile {
 		}
 
 		this.slotType = slotType;
-	}
-
-	public function updateDim(player: Player) {
-		itemSprite.setDim(this.minManaUsage > 0 && player != null && player.mp < this.minManaUsage || this.minHealthUsage > 0 && player != null
-			&& player.hp < this.minHealthUsage);
-	}
-
-	private function updateMinMana() {
-		var itemDataXML: Xml = null;
-		if (itemSprite.itemId > 0) {
-			itemDataXML = ObjectLibrary.xmlLibrary.get(itemSprite.itemId);
-			if (itemDataXML != null) {
-				this.minManaUsage = itemDataXML.elementsNamed("MpCost")
-					.hasNext() ? Std.parseInt(itemDataXML.elementsNamed("MpCost").next().firstChild().nodeValue) : 0;
-				this.minHealthUsage = itemDataXML.elementsNamed("HpCost")
-					.hasNext() ? Std.parseInt(itemDataXML.elementsNamed("HpCost").next().firstChild().nodeValue) : 0;
-				return;
-			}
-		}
-
-		this.minManaUsage = 0;
-		this.minHealthUsage = 0;
 	}
 }

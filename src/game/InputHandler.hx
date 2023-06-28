@@ -152,10 +152,14 @@ class InputHandler {
 		var abilProps = ObjectLibrary.typeToAbilityProps.get(player.objectType);
 		var curAbility: Ability = null;
 		switch (idx) {
-			case 0: curAbility = abilProps.ability1;
-			case 1: curAbility = abilProps.ability2;
-			case 2: curAbility = abilProps.ability3;
-			case 3: curAbility = abilProps.ultimateAbility;
+			case 0:
+				curAbility = abilProps.ability1;
+			case 1:
+				curAbility = abilProps.ability2;
+			case 2:
+				curAbility = abilProps.ability3;
+			case 3:
+				curAbility = abilProps.ultimateAbility;
 		}
 
 		if (curAbility == null) {
@@ -166,8 +170,9 @@ class InputHandler {
 
 		// intentionally no chat msg
 		var time = System.getTimer();
-		if (curAbility.cooldown * 1000 > time - player.lastAbilityUse[idx] ||
-			curAbility.manaCost > player.mp || curAbility.healthCost > player.hp - 1) {
+		if (curAbility.cooldown * 1000 > time - player.lastAbilityUse[idx]
+			|| curAbility.manaCost > player.mp
+			|| curAbility.healthCost > player.hp - 1) {
 			SoundEffectLibrary.play("error");
 			return;
 		}
@@ -177,7 +182,43 @@ class InputHandler {
 		abilityData.length = 0;
 		switch (curAbility.name) {
 			case "Anomalous Burst":
-				abilityData.writeFloat(Math.atan2(Main.primaryStage.mouseY - Main.mouseYOffset + 20, Main.primaryStage.mouseX - Main.mouseXOffset));
+				var attackAngle = Math.atan2(Main.primaryStage.mouseY - Main.mouseYOffset + 20, Main.primaryStage.mouseX - Main.mouseXOffset);
+				var numProjs = 6 + Math.floor(player.speed / 30);
+				var arcGap = 24 * MathUtil.TO_RAD;
+
+				var attackAngleLeft = attackAngle - MathUtil.PI_DIV_2;
+				var leftProjs = Math.ceil(numProjs / 2);
+				var leftAngle = attackAngleLeft - arcGap * (leftProjs - 1);
+				for (i in 0...leftProjs) {
+					var bulletId = player.nextBulletId;
+					player.nextBulletId = (player.nextBulletId + 1) % 128;
+					var proj = Global.projPool.get();
+					proj.reset(player.objectType, 0, 0, bulletId, leftAngle, time);
+					proj.setDamages(750 + Std.int(player.strength * 0.75), 0, 0);
+					if (i == 0 && proj.sound != null)
+						SoundEffectLibrary.play(proj.sound, 0.75, false);
+					player.map.addGameObject(cast proj, player.mapX + MathUtil.cos(attackAngleLeft) * 0.25,
+						player.mapY + MathUtil.sin(attackAngleLeft) * 0.25);
+					leftAngle += arcGap;
+				}
+
+				var attackAngleRight = attackAngle + MathUtil.PI_DIV_2;
+				var rightProjs = numProjs - leftProjs;
+				var rightAngle = attackAngleRight - arcGap * (rightProjs - 1);
+				for (i in 0...rightProjs) {
+					var bulletId = player.nextBulletId;
+					player.nextBulletId = (player.nextBulletId + 1) % 128;
+					var proj = Global.projPool.get();
+					proj.reset(player.objectType, 0, 0, bulletId, rightAngle, time);
+					proj.setDamages(750 + Std.int(player.strength * 0.75), 0, 0);
+					if (i == 0 && proj.sound != null)
+						SoundEffectLibrary.play(proj.sound, 0.75, false);
+					player.map.addGameObject(cast proj, player.mapX + MathUtil.cos(attackAngleRight) * 0.25,
+						player.mapY + MathUtil.sin(attackAngleRight) * 0.25);
+					rightAngle += arcGap;
+				}
+
+				abilityData.writeFloat(attackAngle);
 			case "Possession":
 				abilityData.writeInt(-1); // entityId
 		}
@@ -211,8 +252,6 @@ class InputHandler {
 			this.rotateRight = 1;
 		else if (keyCode == Settings.resetCamera)
 			Camera.angleRad = 0;
-		else if (keyCode == Settings.useAbility)
-			player?.useAltWeapon(Main.primaryStage.mouseX - Main.mouseXOffset, Main.primaryStage.mouseY - Main.mouseYOffset, UseType.START_USE);
 		else if (keyCode == Settings.perfStats)
 			this.togglePerformanceStats();
 		else if (keyCode == Settings.goToHub)
@@ -234,8 +273,8 @@ class InputHandler {
 		} else if (keyCode == Settings.ability1)
 			this.sendAbility(player, 0);
 		else if (keyCode == Settings.ability2)
-			this.sendAbility(player, 1);	
-		else if (keyCode == Settings.ability3) 
+			this.sendAbility(player, 1);
+		else if (keyCode == Settings.ability3)
 			this.sendAbility(player, 2);
 		else if (keyCode == Settings.ultimateAbility)
 			this.sendAbility(player, 3);

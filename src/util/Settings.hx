@@ -27,7 +27,7 @@ class Settings {
 	public static inline var SERVER_CHAT_NAME = "";
 	public static inline var TERMS_OF_USE_URL = "https://to.do/tos";
 	public static inline var PRIVACY_POLICY_URL = "https://to.do/privacy";
-	public static inline var SETTINGS_VERSION: UInt8 = 0;
+	public static inline var SETTINGS_VERSION: UInt8 = 1;
 
 	public static var moveLeft = KeyCode.A;
 	public static var moveRight = KeyCode.D;
@@ -36,7 +36,6 @@ class Settings {
 	public static var rotateLeft = KeyCode.Q;
 	public static var rotateRight = KeyCode.E;
 	public static var shoot = KeyCode.Mouse1;
-	public static var useAbility = KeyCode.Mouse2;
 	public static var interact = KeyCode.R;
 	public static var goToHub = KeyCode.Tab;
 	public static var chatUp = KeyCode.PageUp;
@@ -90,7 +89,6 @@ class Settings {
 				rotateLeft = o.readByte();
 				rotateRight = o.readByte();
 				shoot = o.readByte();
-				useAbility = o.readByte();
 				interact = o.readByte();
 				goToHub = o.readByte();
 				chatUp = o.readByte();
@@ -141,7 +139,6 @@ class Settings {
 			w.writeByte(rotateLeft);
 			w.writeByte(rotateRight);
 			w.writeByte(shoot);
-			w.writeByte(useAbility);
 			w.writeByte(interact);
 			w.writeByte(goToHub);
 			w.writeByte(chatUp);
@@ -187,7 +184,6 @@ class Settings {
 		rotateLeft = KeyCode.Q;
 		rotateRight = KeyCode.E;
 		shoot = KeyCode.Mouse1;
-		useAbility = KeyCode.Mouse2;
 		interact = KeyCode.R;
 		goToHub = KeyCode.Tab;
 		chatUp = KeyCode.PageUp;

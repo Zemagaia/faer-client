@@ -297,56 +297,67 @@ class GameSprite extends Sprite {
 		addChild(this.statsButton);
 
 		this.strView = new StatView("misc16", 32, "Strength", "Increases your Physical Damage");
+		this.strView.visible = false;
 		this.strView.x = this.decor.x + 32;
 		this.strView.y = this.decor.y + 116;
 		addChild(this.strView);
 
 		this.resView = new StatView("misc16", 57, "Resistance", "Decreases incoming Magic Damage");
+		this.resView.visible = false;
 		this.resView.x = this.decor.x + 103;
 		this.resView.y = this.decor.y + 116;
 		addChild(this.resView);
 
 		this.intView = new StatView("misc16", 59, "Intelligence", "Increases mana regeneration");
+		this.intView.visible = false;
 		this.intView.x = this.decor.x + 174;
 		this.intView.y = this.decor.y + 116;
 		addChild(this.intView);
 
 		this.hstView = new StatView("misc16", 58, "Haste", "Decreases ability cooldowns");
+		this.hstView.visible = false;
 		this.hstView.x = this.decor.x + 245;
 		this.hstView.y = this.decor.y + 116;
 		addChild(this.hstView);
 
 		this.witView = new StatView("misc16", 35, "Wit", "Increases your Magic Damage");
+		this.witView.visible = false;
 		this.witView.x = this.decor.x + 32;
 		this.witView.y = this.decor.y + 144;
 		addChild(this.witView);
 
 		this.spdView = new StatView("misc16", 34, "Speed", "Increases your Move Speed");
+		this.spdView.visible = false;
 		this.spdView.x = this.decor.x + 103;
 		this.spdView.y = this.decor.y + 144;
 		addChild(this.spdView);
 
 		this.penView = new StatView("misc16", 38, "Penetration", "Decreases the effect of the enemy's Defense");
+		this.penView.visible = false;
 		this.penView.x = this.decor.x + 174;
 		this.penView.y = this.decor.y + 144;
 		addChild(this.penView);
 
 		this.tenView = new StatView("misc16", 37, "Tenacity", "Decreases the length of Debuffs afflicting you");
+		this.tenView.visible = false;
 		this.tenView.x = this.decor.x + 245;
 		this.tenView.y = this.decor.y + 144;
 		addChild(this.tenView);
 
 		this.defView = new StatView("misc16", 33, "Defense", "Decreases incoming Physical Damage");
+		this.defView.visible = false;
 		this.defView.x = this.decor.x + 32;
 		this.defView.y = this.decor.y + 172;
 		addChild(this.defView);
 
 		this.staView = new StatView("misc16", 36, "Stamina", "Increases health regeneration");
+		this.staView.visible = false;
 		this.staView.x = this.decor.x + 103;
 		this.staView.y = this.decor.y + 172;
 		addChild(this.staView);
 
 		this.prcView = new StatView("misc16", 60, "Piercing", "Decreases the effect of the enemy's Resistance");
+		this.prcView.visible = false;
 		this.prcView.x = this.decor.x + 174;
 		this.prcView.y = this.decor.y + 172;
 		addChild(this.prcView);

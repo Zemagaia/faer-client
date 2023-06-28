@@ -36,8 +36,6 @@ class ObjectProperties {
 	public var whileMoving: WhileMovingProperties = null;
 	public var oldSound = "";
 	public var projectiles: IntMap<ProjectileProperties>;
-	public var angleCorrection = 0.0;
-	public var rotation = 0.0;
 	public var floating = false;
 	public var floatTime = 0;
 	public var floatHeight = 0.0;
@@ -105,9 +103,6 @@ class ObjectProperties {
 		this.showEffects = new Array<ShowEffectProperties>();
 		for (xml in objectXml.elementsNamed("ShowEffect"))
 			this.showEffects.push(new ShowEffectProperties(xml));
-
-		this.angleCorrection = objectXml.floatElement("AngleCorrection") * (MathUtil.PI / 4);
-		this.rotation = objectXml.floatElement("Rotation");
 
 		for (xml in objectXml.elementsNamed("BloodProb"))
 			this.bloodProb = xml.intValue();

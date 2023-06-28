@@ -7,7 +7,7 @@ in BatchData {
     vec2 texelSize;
     vec2 colors;
     float flashStrength;
-    float barThresh;
+    float alphaMult;
 } data;
 
 layout (location = 0) out vec4 resultColor;
@@ -15,10 +15,9 @@ layout (location = 0) out vec4 resultColor;
 uniform sampler2D sampler;
 
 void main() {
-    if (data.barThresh > 0 && data.barThresh < data.uv.x)
-        discard;
-        
     vec4 pixel = texture(sampler, data.uv);
+    if (data.alphaMult >= 0)
+        pixel.a *= data.alphaMult;
 
     if (pixel.a == 0.0) {
         uint glowColor = uint(data.colors.x);
@@ -32,7 +31,7 @@ void main() {
                 pixel = vec4(((glowColor >> 16) & 0xFF) / 255.0,
                                 ((glowColor >> 8) & 0xFF) / 255.0, 
                                 (glowColor & 0xFF) / 255.0, 1.0);
-            } else if (data.barThresh != -2) { // turbo hacky
+            } else if (data.alphaMult != -2) { // turbo hacky
                 float sum = 0.0;
                 for (int i = 0; i < 9; i++) {
                     float uvY = data.uv.y + data.texelSize.y * float(i - 4.5);

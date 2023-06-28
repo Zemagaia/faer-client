@@ -23,6 +23,7 @@ class ConditionEffect {
 	public static inline var ARMOR_BROKEN = 11;
 	public static inline var HIDDEN = 12;
 	public static inline var TARGETED = 13;
+	public static inline var INVISIBLE = 14;
 
 	public static inline var DEAD_BIT = 1 << DEAD - 1;
 	public static inline var WEAK_BIT = 1 << WEAK - 1;
@@ -37,6 +38,7 @@ class ConditionEffect {
 	public static inline var ARMOR_BROKEN_BIT = 1 << ARMOR_BROKEN - 1;
 	public static inline var HIDDEN_BIT = 1 << HIDDEN - 1;
 	public static inline var TARGETED_BIT = 1 << TARGETED - 1;
+	public static inline var INVISIBLE_BIT = 1 << INVISIBLE - 1;
 
 	public static var effects: Array<ConditionEffect> = [
 		new ConditionEffect("Nothing"),
@@ -51,7 +53,8 @@ class ConditionEffect {
 		new ConditionEffect("Invulnerable"),
 		new ConditionEffect("Armored"),
 		new ConditionEffect("Armor Broken"),
-		new ConditionEffect("Hidden")
+		new ConditionEffect("Hidden"),
+		new ConditionEffect("Invisible")
 	];
 
 	public static var effectRects: Array<Rect>;
@@ -75,7 +78,8 @@ class ConditionEffect {
 			AssetLibrary.getRectFromSet("conditions", 11),
 			AssetLibrary.getRectFromSet("conditions", 3),
 			AssetLibrary.getRectFromSet("conditions", 0),
-			AssetLibrary.getRectFromSet("conditions", 9)
+			AssetLibrary.getRectFromSet("conditions", 9),
+			null,
 		];
 	}
 

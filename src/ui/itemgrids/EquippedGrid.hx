@@ -24,16 +24,13 @@ class EquippedGrid extends ItemGrid {
 
 	override public function setItems(items: Array<Int32>, itemIndexOffset: Int = 0) {
 		var numItems = 0;
-		var i = 0;
 		if (items != null) {
 			numItems = items.length;
 			for (i in 0...this.tiles.length) {
-				if (i + itemIndexOffset < numItems) {
+				if (i + itemIndexOffset < numItems)
 					this.tiles[i].setItem(items[i + itemIndexOffset]);
-				} else {
+				else
 					this.tiles[i].setItem(-1);
-				}
-				this.tiles[i].updateDim(curPlayer);
 			}
 		}
 	}

@@ -221,6 +221,7 @@ class Player extends GameObject {
 			this.needsBlinkingClear = true;
 		}
 	}*/
+
 	public function getPortrait(sizeMult: Float32 = 1, animCharOverride: AnimatedChar = null) {
 		var image: MaskedImage = null;
 		var size = 0;
@@ -245,7 +246,6 @@ class Player extends GameObject {
 	}
 
 	public function setGuildName(guildName: String) {
-		var player: Player = null;
 		var isFellowGuild = false;
 		this.guildName = guildName;
 		var myPlayer = map?.player;
@@ -420,61 +420,6 @@ class Player extends GameObject {
 		return square == null || square.tileType == 0xFF || square.obj != null && square.obj.props.fullOccupy;
 	}
 
-	public function useAltWeapon(xS: Float32, yS: Float32, useType: Int32) {
-		var now = 0;
-		var cooldown = 0;
-		if (map == null || this.objectType == ObjectLibrary.idToType.get("Warlock"))
-			return false;
-
-		var itemType = equipment[1];
-		if (itemType == -1)
-			return false;
-
-		var objectXML = ObjectLibrary.xmlLibrary.get(itemType);
-		if (objectXML == null)
-			return false;
-
-		var angle = Camera.angleRad;
-		var cosAngle = MathUtil.cos(angle), sinAngle = MathUtil.sin(angle);
-		xS /= Camera.PX_PER_TILE;
-		yS /= Camera.PX_PER_TILE;
-		var targetX = xS * cosAngle + yS * sinAngle;
-		var targetY = xS * -sinAngle + yS * cosAngle;
-
-		for (activateXML in objectXML.elementsNamed("Activate"))
-			if (activateXML.value() == ActivationType.TELEPORT && !this.isValidPosition(targetX, targetY)) {
-				SoundEffectLibrary.play("error");
-				return false;
-			}
-
-		now = System.getTimer();
-		if (useType == UseType.START_USE) {
-			if (now < this.nextAltAttack) {
-				SoundEffectLibrary.play("error");
-				return false;
-			}
-
-			var mpCost: Int32 = objectXML.intElement("MpCost"),
-				hpCost: Int32 = objectXML.intElement("HpCost");
-			if (mpCost > this.mp || hpCost > this.hp) {
-				SoundEffectLibrary.play("no_mana");
-				return false;
-			}
-
-			cooldown = 500;
-			if (objectXML.elementExists("Cooldown"))
-				cooldown = objectXML.intElement("Cooldown") * 1000;
-
-			if (objectXML.elementExists("Sound"))
-				SoundEffectLibrary.play(objectXML.element("Sound"));
-
-			this.nextAltAttack = now + cooldown;
-			NetworkHandler.useItem(now, objectId, 1, itemType, targetX, targetY, useType);
-		}
-
-		return true;
-	}
-
 	public function attemptAttackAngle(angle: Float32) {
 		this.shoot(Camera.angleRad + angle);
 	}
@@ -511,7 +456,7 @@ class Player extends GameObject {
 		return moveSpeed * this.moveMultiplier * (Global.gameSprite.inputHandler.isWalking ? 0.5 : 1);
 	}
 
-	private function strMult() {
+	public function strMult() {
 		if (isWeak())
 			return MIN_STRENGTH_MULT;
 
@@ -522,7 +467,7 @@ class Player extends GameObject {
 		return strMult * this.damageMult;
 	}
 
-	private function witMult() {
+	public function witMult() {
 		var witMult = MIN_WIT_MULT + this.wit / 75 * (MAX_WIT_MULT - MIN_WIT_MULT);
 		return witMult * this.damageMult;
 	}
@@ -534,6 +479,7 @@ class Player extends GameObject {
 		mask = image.mask;
 		this.isDefaultAnimatedChar = true;
 	}*/
+
 	private function shoot(angle: Float32) {
 		if (map == null)
 			return;
