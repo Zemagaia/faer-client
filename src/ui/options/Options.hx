@@ -141,7 +141,6 @@ class Options extends Sprite {
 		this.addOption(new KeyMapper("moveRight", "Move Right", "This key will move character to the right"));
 		this.addOption(new KeyMapper("rotateLeft", "Rotate Left", "This key will rotate the camera to the left"));
 		this.addOption(new KeyMapper("rotateRight", "Rotate Right", "This key will rotate the camera to the right"));
-		this.addOption(new KeyMapper("useAbility", "Use Ability", "This key will activate your ability"));
 		this.addOption(new KeyMapper("resetCamera", "Reset Camera Angle", "This key will reset the camera angle to the default position"));
 		this.addOption(new KeyMapper("perfStats", "Toggle Performance Display", "This key will toggle a display of fps and memory usage"));
 		this.addOption(new KeyMapper("openStats", "Toggle Stats Display", "This key will toggle the stats display"));

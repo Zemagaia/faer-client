@@ -1296,6 +1296,7 @@ class Map {
 		var xBase = screenX * RenderUtils.clipSpaceScaleX + xOffset;
 		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
 		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
+		var alphaMult: Float32 = ((obj.condition & ConditionEffect.INVISIBLE_BIT) != 0 ? 0.6 : -1);
 
 		if (obj.props.lightColor != -1) {
 			// width
@@ -1329,7 +1330,7 @@ class Map {
 		setF32ValueAt(this.vIdx + 6, obj.glowColor);
 		setF32ValueAt(this.vIdx + 7, obj.flashColor);
 		setF32ValueAt(this.vIdx + 8, flashStrength);
-		setF32ValueAt(this.vIdx + 9, -1);
+		setF32ValueAt(this.vIdx + 9, alphaMult);
 
 		setF32ValueAt(this.vIdx + 10, w + xBase);
 		setF32ValueAt(this.vIdx + 11, -h + yBase);
@@ -1341,7 +1342,7 @@ class Map {
 		setF32ValueAt(this.vIdx + 16, obj.glowColor);
 		setF32ValueAt(this.vIdx + 17, obj.flashColor);
 		setF32ValueAt(this.vIdx + 18, flashStrength);
-		setF32ValueAt(this.vIdx + 19, -1);
+		setF32ValueAt(this.vIdx + 19, alphaMult);
 
 		setF32ValueAt(this.vIdx + 20, -w + xBase);
 		setF32ValueAt(this.vIdx + 21, h + yBase);
@@ -1353,7 +1354,7 @@ class Map {
 		setF32ValueAt(this.vIdx + 26, obj.glowColor);
 		setF32ValueAt(this.vIdx + 27, obj.flashColor);
 		setF32ValueAt(this.vIdx + 28, flashStrength);
-		setF32ValueAt(this.vIdx + 29, -1);
+		setF32ValueAt(this.vIdx + 29, alphaMult);
 
 		setF32ValueAt(this.vIdx + 30, w + xBase);
 		setF32ValueAt(this.vIdx + 31, h + yBase);
@@ -1365,7 +1366,7 @@ class Map {
 		setF32ValueAt(this.vIdx + 36, obj.glowColor);
 		setF32ValueAt(this.vIdx + 37, obj.flashColor);
 		setF32ValueAt(this.vIdx + 38, flashStrength);
-		setF32ValueAt(this.vIdx + 39, -1);
+		setF32ValueAt(this.vIdx + 39, alphaMult);
 		this.vIdx += 40;
 
 		final i4 = this.i * 4;
@@ -1390,8 +1391,6 @@ class Map {
 			if (obj.hp >= 0 && obj.hp < obj.maxHP) {
 				var scaledBarW: Float32 = hpBarW / Main.ATLAS_WIDTH;
 				var scaledBarH: Float32 = hpBarH / Main.ATLAS_HEIGHT;
-				var barThreshU: Float32 = hpBarU + scaledBarW;
-				barThreshU *= (obj.hp / obj.maxHP) * (1 - 4/24) + (obj.hp / obj.maxHP) * (2/24); // account for decor
 				w = hpBarW * RenderUtils.clipSpaceScaleX;
 				h = hpBarH * RenderUtils.clipSpaceScaleY;
 				yBase = (screenY + yPos - (hpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
@@ -1457,7 +1456,11 @@ class Map {
 				this.iIdx += 6;
 				this.i++;
 
-				setF32ValueAt(this.vIdx, -w + xBase);
+				var hpPerc = 1 / (obj.hp / obj.maxHP);
+				var hpPercOffset = (1 - obj.hp / obj.maxHP) * hpBarW * RenderUtils.clipSpaceScaleX;
+				w /= hpPerc;
+
+				setF32ValueAt(this.vIdx, -w + xBase - hpPercOffset);
 				setF32ValueAt(this.vIdx + 1, -h + yBase);
 				setF32ValueAt(this.vIdx + 2, hpBarU);
 				setF32ValueAt(this.vIdx + 3, hpBarV);
@@ -1467,11 +1470,11 @@ class Map {
 				setF32ValueAt(this.vIdx + 6, 0);
 				setF32ValueAt(this.vIdx + 7, 0);
 				setF32ValueAt(this.vIdx + 8, 0);
-				setF32ValueAt(this.vIdx + 9, barThreshU);
+				setF32ValueAt(this.vIdx + 9, -1);
 
-				setF32ValueAt(this.vIdx + 10, w + xBase);
+				setF32ValueAt(this.vIdx + 10, w + xBase - hpPercOffset);
 				setF32ValueAt(this.vIdx + 11, -h + yBase);
-				setF32ValueAt(this.vIdx + 12, hpBarU + scaledBarW);
+				setF32ValueAt(this.vIdx + 12, hpBarU + scaledBarW / hpPerc);
 				setF32ValueAt(this.vIdx + 13, hpBarV);
 
 				setF32ValueAt(this.vIdx + 14, texelW);
@@ -1479,9 +1482,9 @@ class Map {
 				setF32ValueAt(this.vIdx + 16, 0);
 				setF32ValueAt(this.vIdx + 17, 0);
 				setF32ValueAt(this.vIdx + 18, 0);
-				setF32ValueAt(this.vIdx + 19, barThreshU);
+				setF32ValueAt(this.vIdx + 19, -1);
 
-				setF32ValueAt(this.vIdx + 20, -w + xBase);
+				setF32ValueAt(this.vIdx + 20, -w + xBase - hpPercOffset);
 				setF32ValueAt(this.vIdx + 21, h + yBase);
 				setF32ValueAt(this.vIdx + 22, hpBarU);
 				setF32ValueAt(this.vIdx + 23, hpBarV + scaledBarH);
@@ -1491,11 +1494,11 @@ class Map {
 				setF32ValueAt(this.vIdx + 26, 0);
 				setF32ValueAt(this.vIdx + 27, 0);
 				setF32ValueAt(this.vIdx + 28, 0);
-				setF32ValueAt(this.vIdx + 29, barThreshU);
+				setF32ValueAt(this.vIdx + 29, -1);
 
-				setF32ValueAt(this.vIdx + 30, w + xBase);
+				setF32ValueAt(this.vIdx + 30, w + xBase - hpPercOffset);
 				setF32ValueAt(this.vIdx + 31, h + yBase);
-				setF32ValueAt(this.vIdx + 32, hpBarU + scaledBarW);
+				setF32ValueAt(this.vIdx + 32, hpBarU + scaledBarW / hpPerc);
 				setF32ValueAt(this.vIdx + 33, hpBarV + scaledBarH);
 
 				setF32ValueAt(this.vIdx + 34, texelW);
@@ -1503,7 +1506,7 @@ class Map {
 				setF32ValueAt(this.vIdx + 36, 0);
 				setF32ValueAt(this.vIdx + 37, 0);
 				setF32ValueAt(this.vIdx + 38, 0);
-				setF32ValueAt(this.vIdx + 39, barThreshU);
+				setF32ValueAt(this.vIdx + 39, -1);
 				this.vIdx += 40;
 
 				final i4 = this.i * 4;
@@ -1733,6 +1736,7 @@ class Map {
 		var xBase = screenX * RenderUtils.clipSpaceScaleX + xOffset;
 		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
 		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
+		var alphaMult: Float32 = ((player.condition & ConditionEffect.INVISIBLE_BIT) != 0 ? 0.6 : -1);
 
 		if (player.props.lightColor != -1) {
 			// width
@@ -1766,7 +1770,7 @@ class Map {
 		setF32ValueAt(this.vIdx + 6, player.glowColor);
 		setF32ValueAt(this.vIdx + 7, player.flashColor);
 		setF32ValueAt(this.vIdx + 8, flashStrength);
-		setF32ValueAt(this.vIdx + 9, -1);
+		setF32ValueAt(this.vIdx + 9, alphaMult);
 
 		setF32ValueAt(this.vIdx + 10, w + xBase);
 		setF32ValueAt(this.vIdx + 11, -h + yBase);
@@ -1778,7 +1782,7 @@ class Map {
 		setF32ValueAt(this.vIdx + 16, player.glowColor);
 		setF32ValueAt(this.vIdx + 17, player.flashColor);
 		setF32ValueAt(this.vIdx + 18, flashStrength);
-		setF32ValueAt(this.vIdx + 19, -1);
+		setF32ValueAt(this.vIdx + 19, alphaMult);
 
 		setF32ValueAt(this.vIdx + 20, -w + xBase);
 		setF32ValueAt(this.vIdx + 21, h + yBase);
@@ -1790,7 +1794,7 @@ class Map {
 		setF32ValueAt(this.vIdx + 26, player.glowColor);
 		setF32ValueAt(this.vIdx + 27, player.flashColor);
 		setF32ValueAt(this.vIdx + 28, flashStrength);
-		setF32ValueAt(this.vIdx + 29, -1);
+		setF32ValueAt(this.vIdx + 29, alphaMult);
 
 		setF32ValueAt(this.vIdx + 30, w + xBase);
 		setF32ValueAt(this.vIdx + 31, h + yBase);
@@ -1802,7 +1806,7 @@ class Map {
 		setF32ValueAt(this.vIdx + 36, player.glowColor);
 		setF32ValueAt(this.vIdx + 37, player.flashColor);
 		setF32ValueAt(this.vIdx + 38, flashStrength);
-		setF32ValueAt(this.vIdx + 39, -1);
+		setF32ValueAt(this.vIdx + 39, alphaMult);
 		this.vIdx += 40;
 
 		final i4 = this.i * 4;
@@ -1830,8 +1834,6 @@ class Map {
 			if (player.hp >= 0 && player.hp < player.maxHP) {
 				var scaledBarW: Float32 = hpBarW / Main.ATLAS_WIDTH;
 				var scaledBarH: Float32 = hpBarH / Main.ATLAS_HEIGHT;
-				var barThreshU: Float32 = hpBarU + scaledBarW;
-				barThreshU *= (player.hp / player.maxHP) * (1 - 4/24) + (player.hp / player.maxHP) * (2/24); // account for decor
 				w = hpBarW * RenderUtils.clipSpaceScaleX;
 				h = hpBarH * RenderUtils.clipSpaceScaleY;
 				yBase = (screenY + yPos - (hpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
@@ -1897,7 +1899,11 @@ class Map {
 				this.iIdx += 6;
 				this.i++;
 
-				setF32ValueAt(this.vIdx, -w + xBase);
+				var hpPerc = 1 / (player.hp / player.maxHP);
+				var hpPercOffset = (1 - player.hp / player.maxHP) * hpBarW * RenderUtils.clipSpaceScaleX;
+				w /= hpPerc;
+
+				setF32ValueAt(this.vIdx, -w + xBase - hpPercOffset);
 				setF32ValueAt(this.vIdx + 1, -h + yBase);
 				setF32ValueAt(this.vIdx + 2, hpBarU);
 				setF32ValueAt(this.vIdx + 3, hpBarV);
@@ -1907,11 +1913,11 @@ class Map {
 				setF32ValueAt(this.vIdx + 6, 0);
 				setF32ValueAt(this.vIdx + 7, 0);
 				setF32ValueAt(this.vIdx + 8, 0);
-				setF32ValueAt(this.vIdx + 9, barThreshU);
+				setF32ValueAt(this.vIdx + 9, -1);
 
-				setF32ValueAt(this.vIdx + 10, w + xBase);
+				setF32ValueAt(this.vIdx + 10, w + xBase - hpPercOffset);
 				setF32ValueAt(this.vIdx + 11, -h + yBase);
-				setF32ValueAt(this.vIdx + 12, hpBarU + scaledBarW);
+				setF32ValueAt(this.vIdx + 12, hpBarU + scaledBarW / hpPerc);
 				setF32ValueAt(this.vIdx + 13, hpBarV);
 
 				setF32ValueAt(this.vIdx + 14, texelW);
@@ -1919,9 +1925,9 @@ class Map {
 				setF32ValueAt(this.vIdx + 16, 0);
 				setF32ValueAt(this.vIdx + 17, 0);
 				setF32ValueAt(this.vIdx + 18, 0);
-				setF32ValueAt(this.vIdx + 19, barThreshU);
+				setF32ValueAt(this.vIdx + 19, -1);
 
-				setF32ValueAt(this.vIdx + 20, -w + xBase);
+				setF32ValueAt(this.vIdx + 20, -w + xBase - hpPercOffset);
 				setF32ValueAt(this.vIdx + 21, h + yBase);
 				setF32ValueAt(this.vIdx + 22, hpBarU);
 				setF32ValueAt(this.vIdx + 23, hpBarV + scaledBarH);
@@ -1931,11 +1937,11 @@ class Map {
 				setF32ValueAt(this.vIdx + 26, 0);
 				setF32ValueAt(this.vIdx + 27, 0);
 				setF32ValueAt(this.vIdx + 28, 0);
-				setF32ValueAt(this.vIdx + 29, barThreshU);
+				setF32ValueAt(this.vIdx + 29, -1);
 
-				setF32ValueAt(this.vIdx + 30, w + xBase);
+				setF32ValueAt(this.vIdx + 30, w + xBase - hpPercOffset);
 				setF32ValueAt(this.vIdx + 31, h + yBase);
-				setF32ValueAt(this.vIdx + 32, hpBarU + scaledBarW);
+				setF32ValueAt(this.vIdx + 32, hpBarU + scaledBarW / hpPerc);
 				setF32ValueAt(this.vIdx + 33, hpBarV + scaledBarH);
 
 				setF32ValueAt(this.vIdx + 34, texelW);
@@ -1943,7 +1949,7 @@ class Map {
 				setF32ValueAt(this.vIdx + 36, 0);
 				setF32ValueAt(this.vIdx + 37, 0);
 				setF32ValueAt(this.vIdx + 38, 0);
-				setF32ValueAt(this.vIdx + 39, barThreshU);
+				setF32ValueAt(this.vIdx + 39, -1);
 				this.vIdx += 40;
 
 				final i4 = this.i * 4;
@@ -1962,8 +1968,6 @@ class Map {
 			if (player.mp >= 0 && player.mp < player.maxMP) {
 				var scaledBarW: Float32 = mpBarW / Main.ATLAS_WIDTH;
 				var scaledBarH: Float32 = mpBarH / Main.ATLAS_HEIGHT;
-				var barThreshU: Float32 = mpBarU + scaledBarW;
-				barThreshU *= (player.mp / player.maxMP) * (1 - 4/24) + (player.mp / player.maxMP) * (2/24); // account for decor
 				w = mpBarW * RenderUtils.clipSpaceScaleX;
 				h = mpBarH * RenderUtils.clipSpaceScaleY;
 				yBase = (screenY + yPos - (mpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
@@ -2029,7 +2033,11 @@ class Map {
 				this.iIdx += 6;
 				this.i++;
 
-				setF32ValueAt(this.vIdx, -w + xBase);
+				var mpPerc = 1 / (player.mp / player.maxMP);
+				var mpPercOffset = (1 - player.mp / player.maxMP) * mpBarW * RenderUtils.clipSpaceScaleX;
+				w /= mpPerc;
+
+				setF32ValueAt(this.vIdx, -w + xBase - mpPercOffset);
 				setF32ValueAt(this.vIdx + 1, -h + yBase);
 				setF32ValueAt(this.vIdx + 2, mpBarU);
 				setF32ValueAt(this.vIdx + 3, mpBarV);
@@ -2039,11 +2047,11 @@ class Map {
 				setF32ValueAt(this.vIdx + 6, 0);
 				setF32ValueAt(this.vIdx + 7, 0);
 				setF32ValueAt(this.vIdx + 8, 0);
-				setF32ValueAt(this.vIdx + 9, barThreshU);
+				setF32ValueAt(this.vIdx + 9, -1);
 
-				setF32ValueAt(this.vIdx + 10, w + xBase);
+				setF32ValueAt(this.vIdx + 10, w + xBase - mpPercOffset);
 				setF32ValueAt(this.vIdx + 11, -h + yBase);
-				setF32ValueAt(this.vIdx + 12, mpBarU + scaledBarW);
+				setF32ValueAt(this.vIdx + 12, mpBarU + scaledBarW / mpPerc);
 				setF32ValueAt(this.vIdx + 13, mpBarV);
 
 				setF32ValueAt(this.vIdx + 14, texelW);
@@ -2051,9 +2059,9 @@ class Map {
 				setF32ValueAt(this.vIdx + 16, 0);
 				setF32ValueAt(this.vIdx + 17, 0);
 				setF32ValueAt(this.vIdx + 18, 0);
-				setF32ValueAt(this.vIdx + 19, barThreshU);
+				setF32ValueAt(this.vIdx + 19, -1);
 
-				setF32ValueAt(this.vIdx + 20, -w + xBase);
+				setF32ValueAt(this.vIdx + 20, -w + xBase - mpPercOffset);
 				setF32ValueAt(this.vIdx + 21, h + yBase);
 				setF32ValueAt(this.vIdx + 22, mpBarU);
 				setF32ValueAt(this.vIdx + 23, mpBarV + scaledBarH);
@@ -2063,11 +2071,11 @@ class Map {
 				setF32ValueAt(this.vIdx + 26, 0);
 				setF32ValueAt(this.vIdx + 27, 0);
 				setF32ValueAt(this.vIdx + 28, 0);
-				setF32ValueAt(this.vIdx + 29, barThreshU);
+				setF32ValueAt(this.vIdx + 29, -1);
 
-				setF32ValueAt(this.vIdx + 30, w + xBase);
+				setF32ValueAt(this.vIdx + 30, w + xBase - mpPercOffset);
 				setF32ValueAt(this.vIdx + 31, h + yBase);
-				setF32ValueAt(this.vIdx + 32, mpBarU + scaledBarW);
+				setF32ValueAt(this.vIdx + 32, mpBarU + scaledBarW / mpPerc);
 				setF32ValueAt(this.vIdx + 33, mpBarV + scaledBarH);
 
 				setF32ValueAt(this.vIdx + 34, texelW);
@@ -2075,7 +2083,7 @@ class Map {
 				setF32ValueAt(this.vIdx + 36, 0);
 				setF32ValueAt(this.vIdx + 37, 0);
 				setF32ValueAt(this.vIdx + 38, 0);
-				setF32ValueAt(this.vIdx + 39, barThreshU);
+				setF32ValueAt(this.vIdx + 39, -1);
 				this.vIdx += 40;
 
 				final i4 = this.i * 4;
@@ -2216,14 +2224,36 @@ class Map {
 		final xBase = screenX * RenderUtils.clipSpaceScaleX;
 		final texelW = 2 / Main.ATLAS_WIDTH / size;
 		final texelH = 2 / Main.ATLAS_HEIGHT / size;
-		final rotation = proj.props.rotation;
-		final angle = proj.getDirectionAngle(time) + proj.props.angleCorrection + (rotation == 0 ? 0 : time / rotation) - Camera.angleRad;
+		final rotation = proj.projProps.rotation;
+		final angle = proj.getDirectionAngle(time) + proj.projProps.angleCorrection + (rotation == 0 ? 0 : time / rotation) - Camera.angleRad;
 		final cosAngle = MathUtil.cos(angle);
 		final sinAngle = MathUtil.sin(angle);
 		final xScaledCos = cosAngle * w * RenderUtils.clipSpaceScaleX * 0.5;
 		final xScaledSin = sinAngle * h * RenderUtils.clipSpaceScaleX * 0.5;
 		final yScaledCos = cosAngle * w * RenderUtils.clipSpaceScaleY * 0.5;
 		final yScaledSinInv = -sinAngle * h * RenderUtils.clipSpaceScaleY * 0.5;
+
+		if (proj.projProps.lightColor != -1) {
+			// width
+			this.lightPointer[this.lightIdx] = w * RenderUtils.clipSpaceScaleX * 0.5 * 8 * proj.projProps.lightRadius;
+
+			// height
+			this.lightPointer[this.lightIdx + 1] = h * RenderUtils.clipSpaceScaleY * 0.5 * 8 * proj.projProps.lightRadius;
+
+			// x
+			this.lightPointer[this.lightIdx + 2] = xBase;
+
+			// y
+			this.lightPointer[this.lightIdx + 3] = yBase;
+
+			// color
+			this.lightPointer[this.lightIdx + 4] = proj.projProps.lightColor;
+
+			// intensity
+			this.lightPointer[this.lightIdx + 5] = proj.projProps.lightIntensity;
+
+			this.lightIdx += 6;
+		}
 
 		setF32ValueAt(this.vIdx, -xScaledCos + xScaledSin + xBase);
 		setF32ValueAt(this.vIdx + 1, yScaledSinInv + -yScaledCos + yBase);

@@ -13,16 +13,16 @@ class Ability {
 	public var name = "";
 	public var description = "";
 
-	public function new(objectXML: Xml) { 
-		if (objectXML == null)
+	public function new(objectXml: Xml) { 
+		if (objectXml == null)
 			return;
 
-		this.manaCost = objectXML.intElement("ManaCost");
-		this.healthCost = objectXML.intElement("HealthCost");
-		this.cooldown = objectXML.floatElement("Cooldown");
-		this.name = objectXML.element("Name");
-		this.description = objectXML.element("Description");
-		var iconXml = objectXML.elementsNamed("Icon").next();
+		this.manaCost = objectXml.intElement("ManaCost");
+		this.healthCost = objectXml.intElement("HealthCost");
+		this.cooldown = objectXml.floatElement("Cooldown");
+		this.name = objectXml.element("Name");
+		this.description = objectXml.element("Description");
+		var iconXml = objectXml.elementsNamed("Icon").next();
 		this.icon = AssetLibrary.getImageFromSet(iconXml.element("Sheet"), iconXml.intElement("Index"));
 	}
 }
@@ -33,10 +33,10 @@ class AbilityProperties {
 	public var ability3: Ability;
 	public var ultimateAbility: Ability;
 
-	public function new(objectXML: Xml) {
-		this.ability1 = new Ability(objectXML.elementsNamed("Ability1").next());
-		this.ability2 = new Ability(objectXML.elementsNamed("Ability2").next());
-		this.ability3 = new Ability(objectXML.elementsNamed("Ability3").next());
-		this.ultimateAbility = new Ability(objectXML.elementsNamed("UltimateAbility").next());
+	public function new(objectXml: Xml) {
+		this.ability1 = new Ability(objectXml.elementsNamed("Ability1").next());
+		this.ability2 = new Ability(objectXml.elementsNamed("Ability2").next());
+		this.ability3 = new Ability(objectXml.elementsNamed("Ability3").next());
+		this.ultimateAbility = new Ability(objectXml.elementsNamed("UltimateAbility").next());
 	}
 }

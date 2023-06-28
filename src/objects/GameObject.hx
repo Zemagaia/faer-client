@@ -108,7 +108,7 @@ class GameObject {
 	public var yBase: Float32 = 0.0;
 	public var yBaseNoZ: Float32 = 0.0;
 
-	private var nextBulletId: Int8 = 1;
+	public var nextBulletId: Int8 = 1;
 	private var sizeMult: Float32 = 1.0;
 
 	public var icons: Array<BitmapData> = null;
