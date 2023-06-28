@@ -68,7 +68,7 @@ class LoginView extends Sprite {
 
 		this.forgotPassword = new ClickableText(16, true, "Forgot password?");
 		this.forgotPassword.addEventListener(MouseEvent.CLICK, this.onForgotClick);
-		this.forgotPassword.x = this.passwordInput.x + this.passwordInput.width - this.forgotPassword.width;
+		this.forgotPassword.x = (Main.stageWidth - this.forgotPassword.width) / 2;
 		this.forgotPassword.y = this.passwordInput.y + this.passwordInput.height + 5;
 		addChild(this.forgotPassword);
 

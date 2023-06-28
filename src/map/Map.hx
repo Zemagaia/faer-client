@@ -2461,10 +2461,10 @@ class Map {
 						continue;
 
 					this.visSquares[visIdx++] = square;
-					#if debug
-					if (visIdx > MAX_VISIBLE_SQUARES)
-						throw new Exception("Client sees more tiles than it should");
-					#end
+					// #if debug
+					// if (visIdx > MAX_VISIBLE_SQUARES)
+					// 	throw new Exception("Client sees more tiles than it should");
+					// #end
 					square.lastVisible = time + TILE_UPDATE_MS;
 				}
 
