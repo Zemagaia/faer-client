@@ -71,7 +71,9 @@ class StatToolTip extends ToolTip {
 		this.breakdownText.filters = [new DropShadowFilter(0, 0, 0, 0.5, 12, 12)];
 		this.breakdownText.x = 10;
 		this.breakdownText.y = this.line.y + 14;
-		addChild(this.breakdownText);
+
+		if (!contains(this.breakdownText)) // this is needeed otherwise it will start to stack xd
+			addChild(this.breakdownText);
 	}
 
 	public function updateBreakdown(value: Int32, boost: Int32, max: Int32) {

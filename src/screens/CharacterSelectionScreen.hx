@@ -125,14 +125,6 @@ class CharacterSelectionScreen extends Sprite {
 		this.characterRectList.y = 80;
 		addChild(this.characterRectList);
 
-		if (Global.playerModel.isAdmin()) {
-			this.editorButton = new TextButton(22, "Editor");
-			this.editorButton.addEventListener(MouseEvent.CLICK, this.onEditorClicked);
-			this.editorButton.x = this.characterRectList.x + this.characterRectList.width - this.editorButton.width;
-			this.editorButton.y = 425;
-			addChild(this.editorButton);
-		}
-
 		this.goldDecor = new Bitmap(Assets.getBitmapData("assets/ui/screens/charSelect/currencyAndGuildViewer.png"));
 		this.goldDecor.x = this.characterRectList.x;
 		this.goldDecor.y = 35;
@@ -296,6 +288,14 @@ class CharacterSelectionScreen extends Sprite {
 		this.logOutButton.y = this.loginDecor.y + (52 - this.logOutButton.height) / 2 + 157;
 		this.logOutButton.addEventListener(MouseEvent.CLICK, this.onLogOutClicked);
 		addChild(this.logOutButton);
+
+		if (Global.playerModel.isAdmin()) {
+			this.editorButton = new TextButton(22, "Editor");
+			this.editorButton.addEventListener(MouseEvent.CLICK, this.onEditorClicked);
+			this.editorButton.x = this.loginDecor.x + (this.loginDecor.width - this.editorButton.width) / 2;
+			this.editorButton.y = this.loginDecor.y + (48 - this.editorButton.height * 2);
+			addChild(this.editorButton);
+		}
 	}
 
 	private function onLogOutClicked(_: MouseEvent) {

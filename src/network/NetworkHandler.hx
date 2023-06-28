@@ -259,6 +259,7 @@ class NetworkHandler {
 		readLen = 65535;
 	}
 
+	// todo figure out how to stop server.address and server.port from being null
 	public static function connect() {
 		Global.gameSprite?.disconnect();
 		socket.connect(server.address, server.port);
@@ -1426,7 +1427,6 @@ class NetworkHandler {
 		}
 
 		SoundEffectLibrary.play("error");
-
 		return false;
 	}
 
