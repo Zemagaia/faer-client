@@ -38,6 +38,7 @@ class Projectile extends GameObject {
 	public var phase = 0.0;
 	public var colors: Array<UInt>;
 	public var multiHitDict: IntMap<Bool>;
+	public var alphaMult = 1.0;
 
 	private var totalAngleChange: Float32 = 0.0;
 	private var zeroVelDist: Float32 = -1.0;
@@ -119,7 +120,6 @@ class Projectile extends GameObject {
 			var magicDmg = GameObject.magicDamage(this.magicDamage, target.resistance, target.condition);
 			var trueDmg = GameObject.trueDamage(this.trueDamage, target.condition);
 
-			trace(physDmg, magicDmg, trueDmg, target == player, target.props.isEnemy);
 			if (target == player) {
 				NetworkHandler.playerHit(this.bulletId, this.ownerId);
 				if (physDmg > 0)
@@ -196,6 +196,7 @@ class Projectile extends GameObject {
 		this.lastDeflect = 0.0;
 		this.zeroVelDist = -1.0;
 		this.totalAngleChange = 0.0;
+		this.alphaMult = 1.0;
 	}
 
 	public function setDamages(physicalDmg: Int32, magicDmg: Int32, trueDmg: Int32) {

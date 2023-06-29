@@ -236,47 +236,66 @@ class InputHandler {
 				return;
 
 			this.shootDown = true;
-		} else if (keyCode == Settings.walk)
+		} 
+		
+		if (keyCode == Settings.walk)
 			this.isWalking = true;
-		else if (keyCode == Settings.moveUp)
+		
+		if (keyCode == Settings.moveUp)
 			this.moveUp = 1;
-		else if (keyCode == Settings.moveDown)
+		
+		if (keyCode == Settings.moveDown)
 			this.moveDown = 1;
-		else if (keyCode == Settings.moveLeft)
+		
+		if (keyCode == Settings.moveLeft)
 			this.moveLeft = 1;
-		else if (keyCode == Settings.moveRight)
+		
+		if (keyCode == Settings.moveRight)
 			this.moveRight = 1;
-		else if (keyCode == Settings.rotateLeft)
+		
+		if (keyCode == Settings.rotateLeft)
 			this.rotateLeft = 1;
-		else if (keyCode == Settings.rotateRight)
+		
+		if (keyCode == Settings.rotateRight)
 			this.rotateRight = 1;
-		else if (keyCode == Settings.resetCamera)
+		
+		if (keyCode == Settings.resetCamera)
 			Camera.angleRad = 0;
-		else if (keyCode == Settings.perfStats)
+		
+		if (keyCode == Settings.perfStats)
 			this.togglePerformanceStats();
-		else if (keyCode == Settings.goToHub)
+		
+		if (keyCode == Settings.goToHub)
 			NetworkHandler.escape();
-		else if (keyCode == Settings.options) {
+		
+		if (keyCode == Settings.options) {
 			this.clearInput();
 			var options = new Options(Global.gameSprite);
 			options.x = (Main.stageWidth - 800) / 2;
 			options.y = (Main.stageHeight - 600) / 2;
 			Global.layers.overlay.addChild(options);
-		} else if (keyCode == Settings.openStats) {
+		} 
+		
+		if (keyCode == Settings.openStats) {
 			if (Global.gameSprite == null)
 				return;
 
 			Global.gameSprite.toggleStats();
-		} else if (keyCode == Settings.interact) {
-			if (Global.currentInteractiveTarget > 0)
-				NetworkHandler.usePortal(Global.currentInteractiveTarget);
-		} else if (keyCode == Settings.ability1)
+		} 
+		
+		if (keyCode == Settings.interact && Global.currentInteractiveTarget > 0)
+			NetworkHandler.usePortal(Global.currentInteractiveTarget);
+		
+		if (keyCode == KeyCode.Number1)//Settings.ability1)
 			this.sendAbility(player, 0);
-		else if (keyCode == Settings.ability2)
+		
+		if (keyCode == KeyCode.Number2)//Settings.ability2)
 			this.sendAbility(player, 1);
-		else if (keyCode == Settings.ability3)
+		
+		if (keyCode == KeyCode.Number3)//Settings.ability3)
 			this.sendAbility(player, 2);
-		else if (keyCode == Settings.ultimateAbility)
+		
+		if (keyCode == KeyCode.Number4)//Settings.ultimateAbility)
 			this.sendAbility(player, 3);
 
 		this.setPlayerMovement();
@@ -285,19 +304,26 @@ class InputHandler {
 	private function upAction(keyCode: KeyCode) {
 		if (keyCode == Settings.shoot)
 			this.shootDown = false;
-		else if (keyCode == Settings.walk)
+		
+		if (keyCode == Settings.walk)
 			this.isWalking = false;
-		else if (keyCode == Settings.moveUp)
+		
+		if (keyCode == Settings.moveUp)
 			this.moveUp = 0;
-		else if (keyCode == Settings.moveDown)
+		
+		if (keyCode == Settings.moveDown)
 			this.moveDown = 0;
-		else if (keyCode == Settings.moveLeft)
+		
+		if (keyCode == Settings.moveLeft)
 			this.moveLeft = 0;
-		else if (keyCode == Settings.moveRight)
+		
+		if (keyCode == Settings.moveRight)
 			this.moveRight = 0;
-		else if (keyCode == Settings.rotateLeft)
+		
+		if (keyCode == Settings.rotateLeft)
 			this.rotateLeft = 0;
-		else if (keyCode == Settings.rotateRight)
+		
+		if (keyCode == Settings.rotateRight)
 			this.rotateRight = 0;
 
 		this.setPlayerMovement();

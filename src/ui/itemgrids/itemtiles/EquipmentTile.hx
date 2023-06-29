@@ -16,7 +16,7 @@ class EquipmentTile extends InteractiveItemTile {
 
 	public var backgroundDetail: Bitmap;
 	public var slotType = 0;
-	
+
 	public function new(id: Int, parentGrid: ItemGrid, isInteractive: Bool) {
 		super(id, parentGrid, isInteractive);
 	}
@@ -29,7 +29,7 @@ class EquipmentTile extends InteractiveItemTile {
 		var itemChanged = super.setItem(itemId);
 		if (itemChanged)
 			this.backgroundDetail.visible = itemSprite.itemId <= 0;
-		
+
 		return itemChanged;
 	}
 
@@ -44,8 +44,10 @@ class EquipmentTile extends InteractiveItemTile {
 	public function setType(slotType: Int) {
 		var sheetId: Int = 16; // empty, todo
 		switch (slotType) {
-			case ItemConstants.ACCESSORY_TYPE:
-				sheetId = 241;
+			case ItemConstants.BOOTS_TYPE:
+				sheetId = 161;
+			case ItemConstants.RELIC_TYPE:
+				sheetId = 12;
 
 			case ItemConstants.ANY_WEAPON_TYPE:
 				sheetId = 48;
@@ -55,8 +57,6 @@ class EquipmentTile extends InteractiveItemTile {
 				sheetId = 65;
 			case ItemConstants.STAFF_TYPE:
 				sheetId = 81;
-			case ItemConstants.SCEPTER_TYPE:
-				sheetId = 161;
 
 			case ItemConstants.ANY_ARMOR_TYPE:
 				sheetId = 49;
@@ -66,23 +66,6 @@ class EquipmentTile extends InteractiveItemTile {
 				sheetId = 17;
 			case ItemConstants.ROBE_TYPE:
 				sheetId = 97;
-
-			case ItemConstants.ANY_ABILITY_TYPE:
-				sheetId = 50;
-			case ItemConstants.FLASK_TYPE:
-				sheetId = 113;
-			case ItemConstants.BLOODSTONE_TYPE:
-				sheetId = 129;
-			case ItemConstants.TOTEM_TYPE:
-				sheetId = 145;
-			case ItemConstants.HELM_TYPE:
-				sheetId = 177;
-			case ItemConstants.BULWARK_TYPE:
-				sheetId = 193;
-			case ItemConstants.CLOCK_TYPE:
-				sheetId = 209;
-			case ItemConstants.CAGE_TYPE:
-				sheetId = 225;
 		}
 
 		var bd = BitmapUtil.trimAlpha(AssetLibrary.getImageFromSet("tieredItems", sheetId));

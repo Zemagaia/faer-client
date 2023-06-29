@@ -175,7 +175,6 @@ class ObjectLibrary {
 
 	public static function slotsMatching(slot1: Int, slot2: Int) {
 		if (genericMatch(ItemConstants.WEAPON_TYPES, ItemConstants.ANY_WEAPON_TYPE, slot1, slot2)
-			|| genericMatch(ItemConstants.ABILITY_TYPES, ItemConstants.ANY_ABILITY_TYPE, slot1, slot2)
 			|| genericMatch(ItemConstants.ARMOR_TYPES, ItemConstants.ANY_ARMOR_TYPE, slot1, slot2))
 			return true;
 

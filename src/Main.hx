@@ -67,7 +67,7 @@ class Main extends Sprite {
 		handlers.disconnected = cpp.Function.fromStaticFunction(onDisconnected);
 		Discord.Initialize("1095646272171552811", cpp.RawPointer.addressOf(handlers), 1, null);
 		#end
-
+		
 		refreshCursor();
 
 		ConditionEffect.initRects();

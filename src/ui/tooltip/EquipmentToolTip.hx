@@ -67,10 +67,12 @@ class EquipmentToolTip extends ToolTip {
 
 	public static function slotTypeToName(itemType: Int) {
 		switch (itemType) {
-			case ItemConstants.ACCESSORY_TYPE:
-				return "Ring";
+			case ItemConstants.BOOTS_TYPE:
+				return "Boots";
 			case ItemConstants.CONSUMABLE_TYPE:
 				return "Consumable";
+			case ItemConstants.RELIC_TYPE:
+				return "Relic";
 
 			case ItemConstants.SWORD_TYPE:
 				return "Sword";
@@ -78,8 +80,6 @@ class EquipmentToolTip extends ToolTip {
 				return "Bow";
 			case ItemConstants.STAFF_TYPE:
 				return "Staff";
-			case ItemConstants.SCEPTER_TYPE:
-				return "Scepter";
 
 			case ItemConstants.VEST_TYPE:
 				return "Vest";
@@ -87,21 +87,6 @@ class EquipmentToolTip extends ToolTip {
 				return "Hide";
 			case ItemConstants.ROBE_TYPE:
 				return "Robe";
-
-			case ItemConstants.FLASK_TYPE:
-				return "Flask";
-			case ItemConstants.BLOODSTONE_TYPE:
-				return "Bloodstone";
-			case ItemConstants.TOTEM_TYPE:
-				return "Totem";
-			case ItemConstants.HELM_TYPE:
-				return "Helm";
-			case ItemConstants.BULWARK_TYPE:
-				return "Bulwark";
-			case ItemConstants.CLOCK_TYPE:
-				return "Clock";
-			case ItemConstants.CAGE_TYPE:
-				return "Cage";
 
 			default:
 				return "Unknown";

@@ -149,10 +149,10 @@ class Options extends Sprite {
 	}
 
 	private function addHotKeysOptions() {
-		this.addOption(new KeyMapper("ability1", "Use First Ability", "This key will use your class's first ability"));
-		this.addOption(new KeyMapper("ability2", "Use Second Ability", "This key will use your class's second ability"));
-		this.addOption(new KeyMapper("ability3", "Use Third Ability", "This key will use your class's third ability"));
-		this.addOption(new KeyMapper("ultimateAbility", "Use Ultimate Ability", "This key will use your class's ultimate ability"));
+		//this.addOption(new KeyMapper("ability1", "Use First Ability", "This key will use your class's first ability"));
+		//this.addOption(new KeyMapper("ability2", "Use Second Ability", "This key will use your class's second ability"));
+		//this.addOption(new KeyMapper("ability3", "Use Third Ability", "This key will use your class's third ability"));
+		//this.addOption(new KeyMapper("ultimateAbility", "Use Ultimate Ability", "This key will use your class's ultimate ability"));
 		this.addOption(new KeyMapper("goToHub", "Escape To Hub", "This key will instantly teleport you to the Hub (if not in combat)"));
 		this.addOption(new KeyMapper("options", "Show Options", "This key will bring up the options screen"));
 		this.addOption(new KeyMapper("switchTabs", "Switch Tabs", "This key will switch from available tabs"));
