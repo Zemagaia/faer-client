@@ -185,8 +185,8 @@ enum abstract StatType(UInt8) from UInt8 to UInt8 {
 	final Wit = 39;
 	final Resistance = 40;
 	final Intelligence = 41;
-	final Piercing = 42;
-	final Penetration = 43;
+	final Penetration = 42;
+	final Piercing = 43;
 	final Haste = 44;
 	final Tenacity = 45;
 	final HPBonus = 46;
@@ -198,8 +198,8 @@ enum abstract StatType(UInt8) from UInt8 to UInt8 {
 	final WitBonus = 52;
 	final ResistanceBonus = 53;
 	final IntelligenceBonus = 54;
-	final PiercingBonus = 55;
-	final PenetrationBonus = 56;
+	final PenetrationBonus = 55;
+	final PiercingBonus = 56;
 	final HasteBonus = 57;
 	final TenacityBonus = 58;
 	final Condition = 59;
