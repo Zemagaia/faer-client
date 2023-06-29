@@ -176,7 +176,6 @@ enum abstract StatType(UInt8) from UInt8 to UInt8 {
 	final Gold = 30;
 	final Crowns = 31;
 	final OwnerAccountId = 32;
-
 	final MaxHP = 33;
 	final MaxMP = 34;
 	final Strength = 35;
@@ -190,21 +189,19 @@ enum abstract StatType(UInt8) from UInt8 to UInt8 {
 	final Penetration = 43;
 	final Haste = 44;
 	final Tenacity = 45;
-
 	final HPBonus = 46;
 	final MPBonus = 47;
 	final StrengthBonus = 48;
 	final DefenseBonus = 49;
 	final SpeedBonus = 50;
 	final StaminaBonus = 51;
-	final PenetrationBonus = 52;
+	final WitBonus = 52;
 	final ResistanceBonus = 53;
-	final HasteBonus = 54;
-	final IntelligenceBonus = 55;
-	final PiercingBonus = 56;
-	final WitBonus = 57;
+	final IntelligenceBonus = 54;
+	final PiercingBonus = 55;
+	final PenetrationBonus = 56;
+	final HasteBonus = 57;
 	final TenacityBonus = 58;
-	
 	final Condition = 59;
 	final Texture1 = 60;
 	final Texture2 = 61;
