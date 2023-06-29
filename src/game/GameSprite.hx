@@ -99,7 +99,7 @@ class StatView extends Sprite {
 			this.statText.setColor(color);
 			this.statText.updateMetrics();
 			this.statText.x = 27 + (38 - this.statText.width) / 2;
-			this.statText.y = 2 + (20 - this.statText.height) / 2;
+			this.statText.y = 2 + (34 - this.statText.height) / 2;
 
 			this.toolTip.updateBreakdown(value, boost, max);
 
@@ -445,9 +445,7 @@ class GameSprite extends Sprite {
 		this.prcView.x = this.decor.x + 174;
 		this.prcView.y = this.decor.y + 179;
 
-		this.strView.visible = this.resView.visible = this.intView.visible = this.hstView.visible = 
-			this.witView.visible = this.spdView.visible = this.penView.visible = this.tenView.visible = 
-			this.defView.visible = this.staView.visible = this.prcView.visible = this.statsOpen;
+		this.strView.visible = this.resView.visible = this.intView.visible = this.hstView.visible = this.witView.visible = this.spdView.visible = this.penView.visible = this.tenView.visible = this.defView.visible = this.staView.visible = this.prcView.visible = this.statsOpen;
 	}
 
 	private function onStatsMouseUp(_: MouseEvent) {
@@ -674,13 +672,13 @@ class GameSprite extends Sprite {
 	private function resetAbilitiesUI() {
 		if (this.ability1Container != null && contains(this.ability1Container))
 			removeChild(this.ability1Container);
-		
+
 		if (this.ability2Container != null && contains(this.ability2Container))
 			removeChild(this.ability2Container);
-		
+
 		if (this.ability3Container != null && contains(this.ability3Container))
 			removeChild(this.ability3Container);
-		
+
 		if (this.ultimateAbilityContainer != null && contains(this.ultimateAbilityContainer))
 			removeChild(this.ultimateAbilityContainer);
 	}
@@ -867,8 +865,8 @@ class GameSprite extends Sprite {
 					this.ability1Container.addEventListener(MouseEvent.ROLL_OVER, this.onAbility1RollOver);
 					this.ability1Container.addEventListener(MouseEvent.ROLL_OUT, this.onAbility1RollOut);
 					addChild(this.ability1Container);
-					this.ability1Tooltip = new AbilityToolTip(abilProps1.icon, abilProps1.manaCost, abilProps1.healthCost, abilProps1.cooldown, abilProps1.description,
-						abilProps1.name, '1');
+					this.ability1Tooltip = new AbilityToolTip(abilProps1.icon, abilProps1.manaCost, abilProps1.healthCost, abilProps1.cooldown,
+						abilProps1.description, abilProps1.name, '1');
 
 					var abilProps2 = abilProps.ability2;
 					this.ability2Container = new Sprite();
@@ -878,8 +876,8 @@ class GameSprite extends Sprite {
 					this.ability2Container.addEventListener(MouseEvent.ROLL_OVER, this.onAbility2RollOver);
 					this.ability2Container.addEventListener(MouseEvent.ROLL_OUT, this.onAbility2RollOut);
 					addChild(this.ability2Container);
-					this.ability2Tooltip = new AbilityToolTip(abilProps2.icon, abilProps2.manaCost, abilProps2.healthCost, abilProps2.cooldown, abilProps2.description,
-						abilProps2.name, '2');
+					this.ability2Tooltip = new AbilityToolTip(abilProps2.icon, abilProps2.manaCost, abilProps2.healthCost, abilProps2.cooldown,
+						abilProps2.description, abilProps2.name, '2');
 
 					var abilProps3 = abilProps.ability3;
 					this.ability3Container = new Sprite();
@@ -889,8 +887,8 @@ class GameSprite extends Sprite {
 					this.ability3Container.addEventListener(MouseEvent.ROLL_OVER, this.onAbility3RollOver);
 					this.ability3Container.addEventListener(MouseEvent.ROLL_OUT, this.onAbility3RollOut);
 					addChild(this.ability3Container);
-					this.ability3Tooltip = new AbilityToolTip(abilProps3.icon, abilProps3.manaCost, abilProps3.healthCost, abilProps3.cooldown, abilProps3.description,
-						abilProps3.name, '3');
+					this.ability3Tooltip = new AbilityToolTip(abilProps3.icon, abilProps3.manaCost, abilProps3.healthCost, abilProps3.cooldown,
+						abilProps3.description, abilProps3.name, '3');
 
 					var ultimateAbilProps = abilProps.ultimateAbility;
 					this.ultimateAbilityContainer = new Sprite();
@@ -900,8 +898,8 @@ class GameSprite extends Sprite {
 					this.ultimateAbilityContainer.addEventListener(MouseEvent.ROLL_OVER, this.onUltimateAbilityRollOver);
 					this.ultimateAbilityContainer.addEventListener(MouseEvent.ROLL_OUT, this.onUltimateAbilityRollOut);
 					addChild(this.ultimateAbilityContainer);
-					this.ultimateAbilityTooltip = new AbilityToolTip(ultimateAbilProps.icon, ultimateAbilProps.manaCost, ultimateAbilProps.healthCost, ultimateAbilProps.cooldown,
-						ultimateAbilProps.description, ultimateAbilProps.name, '4');
+					this.ultimateAbilityTooltip = new AbilityToolTip(ultimateAbilProps.icon, ultimateAbilProps.manaCost, ultimateAbilProps.healthCost,
+						ultimateAbilProps.cooldown, ultimateAbilProps.description, ultimateAbilProps.name, '4');
 
 					this.uiInited = true;
 				}
