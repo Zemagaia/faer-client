@@ -1,5 +1,6 @@
 package;
 
+import util.NativeTypes.Float32;
 #if !disable_rpc
 import hxdiscord_rpc.Discord;
 import hxdiscord_rpc.Types;
@@ -29,6 +30,9 @@ class Main extends Sprite {
 	public static inline final PADDING = 2;
 	public static inline final ATLAS_WIDTH = 1024;
 	public static inline final ATLAS_HEIGHT = 1024;
+	// have to pre calc, otherwise it just inlines the division... moron lang
+	public static inline final BASE_TEXEL_W: Float32 = 0.0009765625;
+	public static inline final BASE_TEXEL_H: Float32 = 0.0009765625;
 
 	public static var mouseXOffset: Int = 0;
 	public static var mouseYOffset: Int = 0;
@@ -67,7 +71,7 @@ class Main extends Sprite {
 		handlers.disconnected = cpp.Function.fromStaticFunction(onDisconnected);
 		Discord.Initialize("1095646272171552811", cpp.RawPointer.addressOf(handlers), 1, null);
 		#end
-		
+
 		refreshCursor();
 
 		ConditionEffect.initRects();

@@ -114,7 +114,9 @@ class Map {
 	public var squares: Vector<Square>;
 	public var gameObjectsLen: Int32 = 0;
 	public var gameObjects: Array<GameObject>;
+
 	private var goRemove: Array<GameObject>;
+
 	public var rdSingle: Array<RenderDataSingle>;
 	public var player: Player = null;
 	public var quest: Quest = null;
@@ -154,10 +156,6 @@ class Map {
 	public var lightIBO: GLBuffer;
 	public var lightIBOLen: Int32 = 0;
 
-	private var i: Int32 = 0;
-	private var vIdx: Int32 = 0;
-	private var iIdx: Int32 = 0;
-
 	private var backBuffer: GLFramebuffer;
 	private var frontBuffer: GLFramebuffer;
 	private var backBufferTexture: GLTexture;
@@ -171,8 +169,6 @@ class Map {
 	private var dayLightIntensity: Float32 = -1.0;
 	private var nightLightIntensity: Float32 = -1.0;
 	private var serverTimeOffset: Int32 = 0;
-	private var lightPointer: RawPointer<Float32>;
-	private var lightIdx: Int32 = 0;
 
 	public var speechBalloons: IntMap<SpeechBalloon>;
 	public var statusTexts: Array<CharacterStatusText>;
@@ -192,7 +188,6 @@ class Map {
 		this.visSquares = new Vector<Square>(MAX_VISIBLE_SQUARES);
 		this.speechBalloons = new IntMap<SpeechBalloon>();
 		this.statusTexts = [];
-		this.lightPointer = cast Stdlib.nativeMalloc(4 * 6 * 10000); // max 10000 lights too lazy
 	}
 
 	@:nonVirtual public function addSpeechBalloon(sb: SpeechBalloon) {
@@ -203,8 +198,8 @@ class Map {
 		this.statusTexts.push(text);
 	}
 
-	@:nonVirtual public function setProps(width: Int32, height: Int32, name: String, allowPlayerTeleport: Bool,
-			bgLightColor: Int32, bgLightIntensity: Float32, dayLightIntensity: Float32, nightLightIntensity: Float32, serverTimeOffset: Int32) {
+	@:nonVirtual public function setProps(width: Int32, height: Int32, name: String, allowPlayerTeleport: Bool, bgLightColor: Int32,
+			bgLightIntensity: Float32, dayLightIntensity: Float32, nightLightIntensity: Float32, serverTimeOffset: Int32) {
 		this.mapWidth = width;
 		this.mapHeight = height;
 		this.squares = new Vector<Square>(this.mapWidth * this.mapHeight);
@@ -381,6 +376,7 @@ class Map {
 		if (this.gameObjects != null)
 			for (obj in this.gameObjects)
 				obj.dispose();
+
 		this.gameObjects = null;
 		this.goRemove = null;
 		this.rdSingle = null;
@@ -399,7 +395,7 @@ class Map {
 				this.goRemove.push(go);
 			i++;
 		}
-		
+
 		i = 0;
 
 		while (i < this.goRemove.length) {
@@ -579,1854 +575,67 @@ class Map {
 		return square;
 	}
 
-	@:nonVirtual private final #if !tracing inline #end function drawSquares(time: Int32) {
-		final xScaledCos = Camera.xScaledCos;
-		final yScaledCos = Camera.yScaledCos;
-		final xScaledSin = Camera.xScaledSin;
-		final yScaledSin = Camera.yScaledSin;
-
-		while (this.i < this.visSquareLen) {
-			final square = this.visSquares[this.i];
-
-			if (square.animations != null) {
-				var rect = square.animations.getTexture(time);
-				if (rect != null) {
-					square.baseU = (rect.x + 2) / Main.ATLAS_WIDTH;
-					square.baseV = (rect.y + 2) / Main.ATLAS_WIDTH;
-					updateBlends(square.x, square.y, square);
-				}			
-			}
-
-			square.clipX = (square.middleX * Camera.cos + square.middleY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
-			square.clipY = (square.middleX * -Camera.sin + square.middleY * Camera.cos + Camera.csY) * RenderUtils.clipSpaceScaleY;
-
-			if (square.props.lightColor != -1) {
-				// width
-				this.lightPointer[this.lightIdx] = Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleX * 8 * square.props.lightRadius;
-
-				// height
-				this.lightPointer[this.lightIdx + 1] = Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleY * 8 * square.props.lightRadius;
-
-				// x
-				this.lightPointer[this.lightIdx + 2] = square.clipX;
-
-				// y
-				this.lightPointer[this.lightIdx + 3] = square.clipY;
-
-				// color
-				this.lightPointer[this.lightIdx + 4] = square.props.lightColor;
-
-				// intensity
-				this.lightPointer[this.lightIdx + 5] = square.props.lightIntensity;
-
-				this.lightIdx += 6;
-			}
-
-			setF32ValueAt(this.vIdx, -xScaledCos - xScaledSin + square.clipX);
-			setF32ValueAt(this.vIdx + 1, yScaledSin - yScaledCos + square.clipY);
-			setF32ValueAt(this.vIdx + 2, 0);
-			setF32ValueAt(this.vIdx + 3, 0);
-
-			setF32ValueAt(this.vIdx + 4, square.leftBlendU);
-			setF32ValueAt(this.vIdx + 5, square.leftBlendV);
-			setF32ValueAt(this.vIdx + 6, square.topBlendU);
-			setF32ValueAt(this.vIdx + 7, square.topBlendV);
-
-			setF32ValueAt(this.vIdx + 8, square.rightBlendU);
-			setF32ValueAt(this.vIdx + 9, square.rightBlendV);
-			setF32ValueAt(this.vIdx + 10, square.bottomBlendU);
-			setF32ValueAt(this.vIdx + 11, square.bottomBlendV);
-
-			setF32ValueAt(this.vIdx + 12, square.baseU);
-			setF32ValueAt(this.vIdx + 13, square.baseV);
-
-			setF32ValueAt(this.vIdx + 14, xScaledCos - xScaledSin + square.clipX);
-			setF32ValueAt(this.vIdx + 15, -yScaledSin - yScaledCos + square.clipY);
-			setF32ValueAt(this.vIdx + 16, 8 / Main.ATLAS_WIDTH);
-			setF32ValueAt(this.vIdx + 17, 0);
-
-			setF32ValueAt(this.vIdx + 18, square.leftBlendU);
-			setF32ValueAt(this.vIdx + 19, square.leftBlendV);
-			setF32ValueAt(this.vIdx + 20, square.topBlendU);
-			setF32ValueAt(this.vIdx + 21, square.topBlendV);
-
-			setF32ValueAt(this.vIdx + 22, square.rightBlendU);
-			setF32ValueAt(this.vIdx + 23, square.rightBlendV);
-			setF32ValueAt(this.vIdx + 24, square.bottomBlendU);
-			setF32ValueAt(this.vIdx + 25, square.bottomBlendV);
-
-			setF32ValueAt(this.vIdx + 26, square.baseU);
-			setF32ValueAt(this.vIdx + 27, square.baseV);
-
-			setF32ValueAt(this.vIdx + 28, -xScaledCos + xScaledSin + square.clipX);
-			setF32ValueAt(this.vIdx + 29, yScaledSin + yScaledCos + square.clipY);
-			setF32ValueAt(this.vIdx + 30, 0);
-			setF32ValueAt(this.vIdx + 31, 8 / Main.ATLAS_WIDTH);
-
-			setF32ValueAt(this.vIdx + 32, square.leftBlendU);
-			setF32ValueAt(this.vIdx + 33, square.leftBlendV);
-			setF32ValueAt(this.vIdx + 34, square.topBlendU);
-			setF32ValueAt(this.vIdx + 35, square.topBlendV);
-
-			setF32ValueAt(this.vIdx + 36, square.rightBlendU);
-			setF32ValueAt(this.vIdx + 37, square.rightBlendV);
-			setF32ValueAt(this.vIdx + 38, square.bottomBlendU);
-			setF32ValueAt(this.vIdx + 39, square.bottomBlendV);
-
-			setF32ValueAt(this.vIdx + 40, square.baseU);
-			setF32ValueAt(this.vIdx + 41, square.baseV);
-
-			setF32ValueAt(this.vIdx + 42, xScaledCos + xScaledSin + square.clipX);
-			setF32ValueAt(this.vIdx + 43, -yScaledSin + yScaledCos + square.clipY);
-			setF32ValueAt(this.vIdx + 44, 8 / Main.ATLAS_WIDTH);
-			setF32ValueAt(this.vIdx + 45, 8 / Main.ATLAS_WIDTH);
-
-			setF32ValueAt(this.vIdx + 46, square.leftBlendU);
-			setF32ValueAt(this.vIdx + 47, square.leftBlendV);
-			setF32ValueAt(this.vIdx + 48, square.topBlendU);
-			setF32ValueAt(this.vIdx + 49, square.topBlendV);
-
-			setF32ValueAt(this.vIdx + 50, square.rightBlendU);
-			setF32ValueAt(this.vIdx + 51, square.rightBlendV);
-			setF32ValueAt(this.vIdx + 52, square.bottomBlendU);
-			setF32ValueAt(this.vIdx + 53, square.bottomBlendV);
-
-			setF32ValueAt(this.vIdx + 54, square.baseU);
-			setF32ValueAt(this.vIdx + 55, square.baseV);
-			this.vIdx += 56;
-
-			final i4: UInt32 = this.i * 4;
-			setI32ValueAt(this.iIdx, i4);
-			setI32ValueAt(this.iIdx + 1, 1 + i4);
-			setI32ValueAt(this.iIdx + 2, 2 + i4);
-			setI32ValueAt(this.iIdx + 3, 2 + i4);
-			setI32ValueAt(this.iIdx + 4, 1 + i4);
-			setI32ValueAt(this.iIdx + 5, 3 + i4);
-			this.iIdx += 6;
-			this.i++;
-		}
-	}
-
-	@:nonVirtual private final #if !tracing inline #end function drawWall(time: Int32, obj: GameObject) {
-		var texW = obj.width * Main.ATLAS_WIDTH,
-			texH = obj.height * Main.ATLAS_HEIGHT;
-
-		if (obj.animations != null) {
-			var rect = obj.animations.getTexture(time);
-			if (rect != null) {
-				obj.uValue = (rect.x + 2) / Main.ATLAS_WIDTH;
-				obj.vValue = (rect.y + 2) / Main.ATLAS_WIDTH;
-			}
-		}
-		
-		var size = 8 / Main.ATLAS_WIDTH;
-		var objX = obj.mapX;
-		var objY = obj.mapY;
-		var xBaseTop = (objX * Camera.cos + objY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
-		var yBaseTop = (objX * -Camera.sin + objY * Camera.cos + Camera.csY - Camera.PX_PER_TILE) * RenderUtils.clipSpaceScaleY;
-		var xBase = (objX * Camera.cos + objY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
-		var yBase = (objX * -Camera.sin + objY * Camera.cos + Camera.csY) * RenderUtils.clipSpaceScaleY;
-
-		if (obj.props.isEnemy) {
-			obj.hBase = size * Camera.SIZE_MULT;
-			obj.screenX = xBaseTop;
-			obj.screenYNoZ = yBaseTop;
-		}
-		
-		var xScaledCos = Camera.xScaledCos;
-		var yScaledCos = Camera.yScaledCos;
-		var xScaledSin = Camera.xScaledSin;
-		var yScaledSin = Camera.yScaledSin;
-
-		final floorX = Math.floor(objX);
-		final floorY = Math.floor(objY);
-
-		var boundAngle = MathUtil.halfBound(Camera.angleRad);
-		if (boundAngle >= MathUtil.PI_DIV_2 && boundAngle <= MathUtil.PI || boundAngle >= -MathUtil.PI && boundAngle <= -MathUtil.PI_DIV_2) {
-			var topSquare = validPos(floorX, floorY - 1) ? this.squares[(floorY - 1) * this.mapWidth + floorX] : null;
-			var topSqNull = topSquare == null;
-			if (topSqNull || topSquare.obj == null || topSquare.obj.objClass != "Wall") {
-				var uValue: Float32 = 0.0, vValue: Float32 = 0.0;
-				if (topSqNull || topSquare.tileType == 0xFF) {
-					uValue = wallBackfaceU;
-					vValue = wallBackfaceV;
-				} else {
-					uValue = obj.uValue;
-					vValue = obj.vValue;
-				}
-
-				setF32ValueAt(this.vIdx, -xScaledCos + xScaledSin + xBaseTop - xScaledSin * 2);
-				setF32ValueAt(this.vIdx + 1, yScaledSin + yScaledCos + yBaseTop - yScaledCos * 2);
-				setF32ValueAt(this.vIdx + 2, uValue);
-				setF32ValueAt(this.vIdx + 3, vValue);
-
-				setF32ValueAt(this.vIdx + 4, 0);
-				setF32ValueAt(this.vIdx + 5, 0);
-				setF32ValueAt(this.vIdx + 6, 0);
-				setF32ValueAt(this.vIdx + 7, 1.0);
-				setF32ValueAt(this.vIdx + 8, 0.25);
-				setF32ValueAt(this.vIdx + 9, -1);
-
-				setF32ValueAt(this.vIdx + 10, xScaledCos + xScaledSin + xBaseTop - xScaledSin * 2);
-				setF32ValueAt(this.vIdx + 11, -yScaledSin + yScaledCos + yBaseTop - yScaledCos * 2);
-				setF32ValueAt(this.vIdx + 12, uValue + size);
-				setF32ValueAt(this.vIdx + 13, vValue);
-
-				setF32ValueAt(this.vIdx + 14, 0);
-				setF32ValueAt(this.vIdx + 15, 0);
-				setF32ValueAt(this.vIdx + 16, 0);
-				setF32ValueAt(this.vIdx + 17, 1.0);
-				setF32ValueAt(this.vIdx + 18, 0.25);
-				setF32ValueAt(this.vIdx + 19, -1);
-
-				setF32ValueAt(this.vIdx + 20, -xScaledCos + xScaledSin + xBase - xScaledSin * 2);
-				setF32ValueAt(this.vIdx + 21, yScaledSin + yScaledCos + yBase - yScaledCos * 2);
-				setF32ValueAt(this.vIdx + 22, uValue);
-				setF32ValueAt(this.vIdx + 23, vValue + size);
-
-				setF32ValueAt(this.vIdx + 24, 0);
-				setF32ValueAt(this.vIdx + 25, 0);
-				setF32ValueAt(this.vIdx + 26, 0);
-				setF32ValueAt(this.vIdx + 27, 1.0);
-				setF32ValueAt(this.vIdx + 28, 0.25);
-				setF32ValueAt(this.vIdx + 29, -1);
-
-				setF32ValueAt(this.vIdx + 30, xScaledCos + xScaledSin + xBase - xScaledSin * 2);
-				setF32ValueAt(this.vIdx + 31, -yScaledSin + yScaledCos + yBase - yScaledCos * 2);
-				setF32ValueAt(this.vIdx + 32, uValue + size);
-				setF32ValueAt(this.vIdx + 33, vValue + size);
-
-				setF32ValueAt(this.vIdx + 34, 0);
-				setF32ValueAt(this.vIdx + 35, 0);
-				setF32ValueAt(this.vIdx + 36, 0);
-				setF32ValueAt(this.vIdx + 37, 1.0);
-				setF32ValueAt(this.vIdx + 38, 0.25);
-				setF32ValueAt(this.vIdx + 39, -1);
-				this.vIdx += 40;
-
-				final i4 = this.i * 4;
-				setI32ValueAt(this.iIdx, i4);
-				setI32ValueAt(this.iIdx + 1, 1 + i4);
-				setI32ValueAt(this.iIdx + 2, 2 + i4);
-				setI32ValueAt(this.iIdx + 3, 2 + i4);
-				setI32ValueAt(this.iIdx + 4, 1 + i4);
-				setI32ValueAt(this.iIdx + 5, 3 + i4);
-				this.iIdx += 6;
-				this.i++;
-			}
-		}
-		
-		if (boundAngle <= MathUtil.PI_DIV_2 && boundAngle >= -MathUtil.PI_DIV_2) {
-			var bottomSquare = validPos(floorX, floorY + 1) ? this.squares[(floorY + 1) * this.mapWidth + floorX] : null;
-			var bottomSqNull = bottomSquare == null;
-			if (bottomSqNull || bottomSquare.obj == null || bottomSquare.obj.objClass != "Wall") {
-				var uValue: Float32 = 0.0, vValue: Float32 = 0.0;
-				if (bottomSqNull || bottomSquare.tileType == 0xFF) {
-					uValue = wallBackfaceU;
-					vValue = wallBackfaceV;
-				} else {
-					uValue = obj.uValue;
-					vValue = obj.vValue;
-				}
-
-				setF32ValueAt(this.vIdx, -xScaledCos + xScaledSin + xBaseTop);
-				setF32ValueAt(this.vIdx + 1, yScaledSin + yScaledCos + yBaseTop);
-				setF32ValueAt(this.vIdx + 2, uValue);
-				setF32ValueAt(this.vIdx + 3, vValue);
-
-				setF32ValueAt(this.vIdx + 4, 0);
-				setF32ValueAt(this.vIdx + 5, 0);
-				setF32ValueAt(this.vIdx + 6, 0);
-				setF32ValueAt(this.vIdx + 7, 1.0);
-				setF32ValueAt(this.vIdx + 8, 0.25);
-				setF32ValueAt(this.vIdx + 9, -1);
-
-				setF32ValueAt(this.vIdx + 10, xScaledCos + xScaledSin + xBaseTop);
-				setF32ValueAt(this.vIdx + 11, -yScaledSin + yScaledCos + yBaseTop);
-				setF32ValueAt(this.vIdx + 12, uValue + size);
-				setF32ValueAt(this.vIdx + 13, vValue);
-
-				setF32ValueAt(this.vIdx + 14, 0);
-				setF32ValueAt(this.vIdx + 15, 0);
-				setF32ValueAt(this.vIdx + 16, 0);
-				setF32ValueAt(this.vIdx + 17, 1.0);
-				setF32ValueAt(this.vIdx + 18, 0.25);
-				setF32ValueAt(this.vIdx + 19, -1);
-
-				setF32ValueAt(this.vIdx + 20, -xScaledCos + xScaledSin + xBase);
-				setF32ValueAt(this.vIdx + 21, yScaledSin + yScaledCos + yBase);
-				setF32ValueAt(this.vIdx + 22, uValue);
-				setF32ValueAt(this.vIdx + 23, vValue + size);
-
-				setF32ValueAt(this.vIdx + 24, 0);
-				setF32ValueAt(this.vIdx + 25, 0);
-				setF32ValueAt(this.vIdx + 26, 0);
-				setF32ValueAt(this.vIdx + 27, 1.0);
-				setF32ValueAt(this.vIdx + 28, 0.25);
-				setF32ValueAt(this.vIdx + 29, -1);
-
-				setF32ValueAt(this.vIdx + 30, xScaledCos + xScaledSin + xBase);
-				setF32ValueAt(this.vIdx + 31, -yScaledSin + yScaledCos + yBase);
-				setF32ValueAt(this.vIdx + 32, uValue + size);
-				setF32ValueAt(this.vIdx + 33, vValue + size);
-
-				setF32ValueAt(this.vIdx + 34, 0);
-				setF32ValueAt(this.vIdx + 35, 0);
-				setF32ValueAt(this.vIdx + 36, 0);
-				setF32ValueAt(this.vIdx + 37, 1.0);
-				setF32ValueAt(this.vIdx + 38, 0.25);
-				setF32ValueAt(this.vIdx + 39, -1);
-				this.vIdx += 40;
-
-				final i4 = this.i * 4;
-				setI32ValueAt(this.iIdx, i4);
-				setI32ValueAt(this.iIdx + 1, 1 + i4);
-				setI32ValueAt(this.iIdx + 2, 2 + i4);
-				setI32ValueAt(this.iIdx + 3, 2 + i4);
-				setI32ValueAt(this.iIdx + 4, 1 + i4);
-				setI32ValueAt(this.iIdx + 5, 3 + i4);
-				this.iIdx += 6;
-				this.i++;
-			}
-		}
-
-		if (boundAngle >= 0 && boundAngle <= MathUtil.PI) {
-			var leftSquare = validPos(floorX - 1, floorY) ? this.squares[floorY * this.mapWidth + floorX - 1] : null;
-			var leftSqNull = leftSquare == null;
-			if (leftSqNull || leftSquare.obj == null || leftSquare.obj.objClass != "Wall") {
-				var uValue: Float32 = 0.0, vValue: Float32 = 0.0;
-				if (leftSqNull || leftSquare.tileType == 0xFF) {
-					uValue = wallBackfaceU;
-					vValue = wallBackfaceV;
-				} else {
-					uValue = obj.uValue;
-					vValue = obj.vValue;
-				}
-
-				setF32ValueAt(this.vIdx, -xScaledCos - xScaledSin + xBaseTop);
-				setF32ValueAt(this.vIdx + 1, yScaledSin - yScaledCos + yBaseTop);
-				setF32ValueAt(this.vIdx + 2, uValue);
-				setF32ValueAt(this.vIdx + 3, vValue);
-
-				setF32ValueAt(this.vIdx + 4, 0);
-				setF32ValueAt(this.vIdx + 5, 0);
-				setF32ValueAt(this.vIdx + 6, 0);
-				setF32ValueAt(this.vIdx + 7, 1.0);
-				setF32ValueAt(this.vIdx + 8, 0.25);
-				setF32ValueAt(this.vIdx + 9, -1);
-
-				setF32ValueAt(this.vIdx + 10, -xScaledCos + xScaledSin + xBaseTop);
-				setF32ValueAt(this.vIdx + 11, yScaledSin + yScaledCos + yBaseTop);
-				setF32ValueAt(this.vIdx + 12, uValue + size);
-				setF32ValueAt(this.vIdx + 13, vValue);
-
-				setF32ValueAt(this.vIdx + 14, 0);
-				setF32ValueAt(this.vIdx + 15, 0);
-				setF32ValueAt(this.vIdx + 16, 0);
-				setF32ValueAt(this.vIdx + 17, 1.0);
-				setF32ValueAt(this.vIdx + 18, 0.25);
-				setF32ValueAt(this.vIdx + 19, -1);
-
-				setF32ValueAt(this.vIdx + 20, -xScaledCos + xScaledSin + xBase - xScaledSin * 2);
-				setF32ValueAt(this.vIdx + 21, yScaledSin + yScaledCos + yBase - yScaledCos * 2);
-				setF32ValueAt(this.vIdx + 22, uValue);
-				setF32ValueAt(this.vIdx + 23, vValue + size);
-
-				setF32ValueAt(this.vIdx + 24, 0);
-				setF32ValueAt(this.vIdx + 25, 0);
-				setF32ValueAt(this.vIdx + 26, 0);
-				setF32ValueAt(this.vIdx + 27, 1.0);
-				setF32ValueAt(this.vIdx + 28, 0.25);
-				setF32ValueAt(this.vIdx + 29, -1);
-
-				setF32ValueAt(this.vIdx + 30, -xScaledCos + xScaledSin + xBase);
-				setF32ValueAt(this.vIdx + 31, yScaledSin + yScaledCos + yBase);
-				setF32ValueAt(this.vIdx + 32, uValue + size);
-				setF32ValueAt(this.vIdx + 33, vValue + size);
-
-				setF32ValueAt(this.vIdx + 34, 0);
-				setF32ValueAt(this.vIdx + 35, 0);
-				setF32ValueAt(this.vIdx + 36, 0);
-				setF32ValueAt(this.vIdx + 37, 1.0);
-				setF32ValueAt(this.vIdx + 38, 0.25);
-				setF32ValueAt(this.vIdx + 39, -1);
-				this.vIdx += 40;
-
-				final i4 = this.i * 4;
-				setI32ValueAt(this.iIdx, i4);
-				setI32ValueAt(this.iIdx + 1, 1 + i4);
-				setI32ValueAt(this.iIdx + 2, 2 + i4);
-				setI32ValueAt(this.iIdx + 3, 2 + i4);
-				setI32ValueAt(this.iIdx + 4, 1 + i4);
-				setI32ValueAt(this.iIdx + 5, 3 + i4);
-				this.iIdx += 6;
-				this.i++;
-			}
-		}
-		
-		if (boundAngle <= 0 && boundAngle >= -MathUtil.PI) {
-			var rightSquare = validPos(floorX + 1, floorY) ? this.squares[floorY * this.mapWidth + floorX + 1] : null;
-			var rightSqNull = rightSquare == null;
-			if (rightSqNull || rightSquare.obj == null || rightSquare.obj.objClass != "Wall") {
-				var uValue: Float32 = 0.0, vValue: Float32 = 0.0;
-				if (rightSqNull || rightSquare.tileType == 0xFF) {
-					uValue = wallBackfaceU;
-					vValue = wallBackfaceV;
-				} else {
-					uValue = obj.uValue;
-					vValue = obj.vValue;
-				}
-
-				setF32ValueAt(this.vIdx, xScaledCos - xScaledSin + xBaseTop);
-				setF32ValueAt(this.vIdx + 1, -yScaledSin - yScaledCos + yBaseTop);
-				setF32ValueAt(this.vIdx + 2, uValue);
-				setF32ValueAt(this.vIdx + 3, vValue);
-
-				setF32ValueAt(this.vIdx + 4, 0);
-				setF32ValueAt(this.vIdx + 5, 0);
-				setF32ValueAt(this.vIdx + 6, 0);
-				setF32ValueAt(this.vIdx + 7, 1.0);
-				setF32ValueAt(this.vIdx + 8, 0.25);
-				setF32ValueAt(this.vIdx + 9, -1);
-
-				setF32ValueAt(this.vIdx + 10, xScaledCos + xScaledSin + xBaseTop);
-				setF32ValueAt(this.vIdx + 11, -yScaledSin + yScaledCos + yBaseTop);
-				setF32ValueAt(this.vIdx + 12, uValue + size);
-				setF32ValueAt(this.vIdx + 13, vValue);
-
-				setF32ValueAt(this.vIdx + 14, 0);
-				setF32ValueAt(this.vIdx + 15, 0);
-				setF32ValueAt(this.vIdx + 16, 0);
-				setF32ValueAt(this.vIdx + 17, 1.0);
-				setF32ValueAt(this.vIdx + 18, 0.25);
-				setF32ValueAt(this.vIdx + 19, -1);
-
-				setF32ValueAt(this.vIdx + 20, xScaledCos + xScaledSin + xBase - xScaledSin * 2);
-				setF32ValueAt(this.vIdx + 21, -yScaledSin + yScaledCos + yBase - yScaledCos * 2);
-				setF32ValueAt(this.vIdx + 22, uValue);
-				setF32ValueAt(this.vIdx + 23, vValue + size);
-
-				setF32ValueAt(this.vIdx + 24, 0);
-				setF32ValueAt(this.vIdx + 25, 0);
-				setF32ValueAt(this.vIdx + 26, 0);
-				setF32ValueAt(this.vIdx + 27, 1.0);
-				setF32ValueAt(this.vIdx + 28, 0.25);
-				setF32ValueAt(this.vIdx + 29, -1);
-
-				setF32ValueAt(this.vIdx + 30, xScaledCos + xScaledSin + xBase);
-				setF32ValueAt(this.vIdx + 31, -yScaledSin + yScaledCos + yBase);
-				setF32ValueAt(this.vIdx + 32, uValue + size);
-				setF32ValueAt(this.vIdx + 33, vValue + size);
-
-				setF32ValueAt(this.vIdx + 34, 0);
-				setF32ValueAt(this.vIdx + 35, 0);
-				setF32ValueAt(this.vIdx + 36, 0);
-				setF32ValueAt(this.vIdx + 37, 1.0);
-				setF32ValueAt(this.vIdx + 38, 0.25);
-				setF32ValueAt(this.vIdx + 39, -1);
-				this.vIdx += 40;
-
-				final i4 = this.i * 4;
-				setI32ValueAt(this.iIdx, i4);
-				setI32ValueAt(this.iIdx + 1, 1 + i4);
-				setI32ValueAt(this.iIdx + 2, 2 + i4);
-				setI32ValueAt(this.iIdx + 3, 2 + i4);
-				setI32ValueAt(this.iIdx + 4, 1 + i4);
-				setI32ValueAt(this.iIdx + 5, 3 + i4);
-				this.iIdx += 6;
-				this.i++;
-			}
-		}
-
-		setF32ValueAt(this.vIdx, -xScaledCos - xScaledSin + xBaseTop);
-		setF32ValueAt(this.vIdx + 1, yScaledSin - yScaledCos + yBaseTop);
-		setF32ValueAt(this.vIdx + 2, obj.topUValue);
-		setF32ValueAt(this.vIdx + 3, obj.topVValue);
-
-		setF32ValueAt(this.vIdx + 4, 0);
-		setF32ValueAt(this.vIdx + 5, 0);
-		setF32ValueAt(this.vIdx + 6, 0);
-		setF32ValueAt(this.vIdx + 7, 1.0);
-		setF32ValueAt(this.vIdx + 8, 0.1);
-		setF32ValueAt(this.vIdx + 9, -1);
-
-		setF32ValueAt(this.vIdx + 10, xScaledCos - xScaledSin + xBaseTop);
-		setF32ValueAt(this.vIdx + 11, -yScaledSin - yScaledCos + yBaseTop);
-		setF32ValueAt(this.vIdx + 12, obj.topUValue + size);
-		setF32ValueAt(this.vIdx + 13, obj.topVValue);
-
-		setF32ValueAt(this.vIdx + 14, 0);
-		setF32ValueAt(this.vIdx + 15, 0);
-		setF32ValueAt(this.vIdx + 16, 0);
-		setF32ValueAt(this.vIdx + 17, 1.0);
-		setF32ValueAt(this.vIdx + 18, 0.1);
-		setF32ValueAt(this.vIdx + 19, -1);
-
-		setF32ValueAt(this.vIdx + 20, -xScaledCos + xScaledSin + xBaseTop);
-		setF32ValueAt(this.vIdx + 21, yScaledSin + yScaledCos + yBaseTop);
-		setF32ValueAt(this.vIdx + 22, obj.topUValue);
-		setF32ValueAt(this.vIdx + 23, obj.topVValue + size);
-
-		setF32ValueAt(this.vIdx + 24, 0);
-		setF32ValueAt(this.vIdx + 25, 0);
-		setF32ValueAt(this.vIdx + 26, 0);
-		setF32ValueAt(this.vIdx + 27, 1.0);
-		setF32ValueAt(this.vIdx + 28, 0.1);
-		setF32ValueAt(this.vIdx + 29, -1);
-
-		setF32ValueAt(this.vIdx + 30, xScaledCos + xScaledSin + xBaseTop);
-		setF32ValueAt(this.vIdx + 31, -yScaledSin + yScaledCos + yBaseTop);
-		setF32ValueAt(this.vIdx + 32, obj.topUValue + size);
-		setF32ValueAt(this.vIdx + 33, obj.topVValue + size);
-
-		setF32ValueAt(this.vIdx + 34, 0);
-		setF32ValueAt(this.vIdx + 35, 0);
-		setF32ValueAt(this.vIdx + 36, 0);
-		setF32ValueAt(this.vIdx + 37, 1.0);
-		setF32ValueAt(this.vIdx + 38, 0.1);
-		setF32ValueAt(this.vIdx + 39, -1);
-		this.vIdx += 40;
-
-		final i4 = this.i * 4;
-		setI32ValueAt(this.iIdx, i4);
-		setI32ValueAt(this.iIdx + 1, 1 + i4);
-		setI32ValueAt(this.iIdx + 2, 2 + i4);
-		setI32ValueAt(this.iIdx + 3, 2 + i4);
-		setI32ValueAt(this.iIdx + 4, 1 + i4);
-		setI32ValueAt(this.iIdx + 5, 3 + i4);
-		this.iIdx += 6;
-		this.i++;
-	}
-
-	@:nonVirtual private final #if !tracing inline #end function drawGameObject(time: Int32, obj: GameObject) {
-		var screenX = obj.screenX = obj.mapX * Camera.cos + obj.mapY * Camera.sin + Camera.csX;
-		var screenY = obj.screenYNoZ + obj.mapZ * -Camera.PX_PER_TILE;
-
-		var texW = obj.width * Main.ATLAS_WIDTH,
-			texH = obj.height * Main.ATLAS_HEIGHT;
-
-		var size = Camera.SIZE_MULT * obj.size;
-		var hBase = obj.hBase = size * texH;
-
-		if (obj.props.drawOnGround && obj.curSquare != null) {
-			final xScaledCos = Camera.xScaledCos;
-			final yScaledCos = Camera.yScaledCos;
-			final xScaledSin = Camera.xScaledSin;
-			final yScaledSin = Camera.yScaledSin;
-			final clipX = obj.curSquare.clipX;
-			final clipY = obj.curSquare.clipY;
-
-			setF32ValueAt(this.vIdx, -xScaledCos - xScaledSin + clipX);
-			setF32ValueAt(this.vIdx + 1, yScaledSin - yScaledCos + clipY);
-			setF32ValueAt(this.vIdx + 2, obj.uValue);
-			setF32ValueAt(this.vIdx + 3, obj.vValue);
-
-			setF32ValueAt(this.vIdx + 4, 0);
-			setF32ValueAt(this.vIdx + 5, 0);
-			setF32ValueAt(this.vIdx + 6, 0);
-			setF32ValueAt(this.vIdx + 7, 0);
-			setF32ValueAt(this.vIdx + 8, 0);
-			setF32ValueAt(this.vIdx + 9, -1);
-
-			setF32ValueAt(this.vIdx + 10, xScaledCos - xScaledSin + clipX);
-			setF32ValueAt(this.vIdx + 11, -yScaledSin - yScaledCos + clipY);
-			setF32ValueAt(this.vIdx + 12, obj.uValue + obj.width);
-			setF32ValueAt(this.vIdx + 13, obj.vValue);
-
-			setF32ValueAt(this.vIdx + 14, 0);
-			setF32ValueAt(this.vIdx + 15, 0);
-			setF32ValueAt(this.vIdx + 16, 0);
-			setF32ValueAt(this.vIdx + 17, 0);
-			setF32ValueAt(this.vIdx + 18, 0);
-			setF32ValueAt(this.vIdx + 19, -1);
-
-			setF32ValueAt(this.vIdx + 20, -xScaledCos + xScaledSin + clipX);
-			setF32ValueAt(this.vIdx + 21, yScaledSin + yScaledCos + clipY);
-			setF32ValueAt(this.vIdx + 22, obj.uValue);
-			setF32ValueAt(this.vIdx + 23, obj.vValue + obj.height);
-
-			setF32ValueAt(this.vIdx + 24, 0);
-			setF32ValueAt(this.vIdx + 25, 0);
-			setF32ValueAt(this.vIdx + 26, 0);
-			setF32ValueAt(this.vIdx + 27, 0);
-			setF32ValueAt(this.vIdx + 28, 0);
-			setF32ValueAt(this.vIdx + 29, -1);
-
-			setF32ValueAt(this.vIdx + 30, xScaledCos + xScaledSin + clipX);
-			setF32ValueAt(this.vIdx + 31, -yScaledSin + yScaledCos + clipY);
-			setF32ValueAt(this.vIdx + 32, obj.uValue + obj.width);
-			setF32ValueAt(this.vIdx + 33, obj.vValue + obj.height);
-
-			setF32ValueAt(this.vIdx + 34, 0);
-			setF32ValueAt(this.vIdx + 35, 0);
-			setF32ValueAt(this.vIdx + 36, 0);
-			setF32ValueAt(this.vIdx + 37, 0);
-			setF32ValueAt(this.vIdx + 38, 0);
-			setF32ValueAt(this.vIdx + 39, -1);
-			this.vIdx += 40;
-
-			final i4: UInt32 = this.i * 4;
-			setI32ValueAt(this.iIdx, i4);
-			setI32ValueAt(this.iIdx + 1, 1 + i4);
-			setI32ValueAt(this.iIdx + 2, 2 + i4);
-			setI32ValueAt(this.iIdx + 3, 2 + i4);
-			setI32ValueAt(this.iIdx + 4, 1 + i4);
-			setI32ValueAt(this.iIdx + 5, 3 + i4);
-			this.iIdx += 6;
-			this.i++;
-
-			var isPortal = obj.objClass == "Portal";
-			if ((obj.props.showName || isPortal) && obj.name != null && obj.name != "") {
-				if (obj.nameTex == null) {
-					obj.nameText = new SimpleText(16, 0xFFFFFF);
-					obj.nameText.setBold(true);
-					obj.nameText.text = obj.name;
-					obj.nameText.updateMetrics();
-
-					obj.nameTex = new BitmapData(Std.int(obj.nameText.width + 20), 64, true, 0);
-					obj.nameTex.draw(obj.nameText, new Matrix(1, 0, 0, 1, 12, 0));
-					obj.nameTex.applyFilter(obj.nameTex, obj.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
-				}
-				
-				var textureData = TextureFactory.make(obj.nameTex);
-				this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
-					sinX: 0, sinY: 0,
-					cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-					x: clipX - 3 * RenderUtils.clipSpaceScaleX, y: clipY - hBase / 2 * RenderUtils.clipSpaceScaleY,
-					texelW: 0, texelH: 0,
-					texture: textureData.texture});
-
-				if (isPortal && Global.currentInteractiveTarget == obj.objectId) {
-					if (obj.enterTex == null) {
-						var enterText = new SimpleText(16, 0xFFFFFF);
-						enterText.setBold(true);
-						enterText.text = "Enter";
-						enterText.updateMetrics();
-
-						obj.enterTex = new BitmapData(Std.int(enterText.width + 20), 64, true, 0);
-						obj.enterTex.draw(enterText, new Matrix(1, 0, 0, 1, 12, 0));
-						obj.enterTex.applyFilter(obj.enterTex, obj.enterTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
-					}
-					
-					var textureData = TextureFactory.make(obj.enterTex);
-					this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
-						sinX: 0, sinY: 0,
-						cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-						x: clipX + 8 * RenderUtils.clipSpaceScaleX, y: clipY + 70 * RenderUtils.clipSpaceScaleY,
-						texelW: 0, texelH: 0,
-						texture: textureData.texture});
-
-					if (obj.enterKeyTex == null)
-						obj.enterKeyTex = AssetLibrary.getImageFromSet("keyIndicators", KeyCodeUtil.charCodeIconIndices[Settings.interact]);
-
-					var textureData = TextureFactory.make(obj.enterKeyTex);
-					this.rdSingle.push({cosX: (textureData.width >> 2) * RenderUtils.clipSpaceScaleX, 
-						sinX: 0, sinY: 0,
-						cosY: (textureData.height >> 2) * RenderUtils.clipSpaceScaleY,
-						x: clipX - 22 * RenderUtils.clipSpaceScaleX, y: clipY + 49 * RenderUtils.clipSpaceScaleY,
-						texelW: 0, texelH: 0,
-						texture: textureData.texture});	
-				}
-			}
-
-			return;
-		}
-
-		var rect: Rect = null;
-		var action = AnimatedChar.STAND;
-		var p: Float32 = 0.0;
-		if (obj.animatedChar != null) {
-			if (time < obj.attackStart + GameObject.ATTACK_PERIOD) {
-				if (!obj.props.dontFaceAttacks)
-					obj.facing = obj.attackAngle;
-
-				p = (time - obj.attackStart) % GameObject.ATTACK_PERIOD / GameObject.ATTACK_PERIOD;
-				action = AnimatedChar.ATTACK;
-			} else if (obj.moveVec.x != 0 || obj.moveVec.y != 0) {
-				var walkPer = Std.int(0.5 / obj.moveVec.length);
-				walkPer += 400 - walkPer % 400;
-				if (obj.moveVec.x > GameObject.ZERO_LIMIT
-					|| obj.moveVec.x < GameObject.NEGATIVE_ZERO_LIMIT
-					|| obj.moveVec.y > GameObject.ZERO_LIMIT
-					|| obj.moveVec.y < GameObject.NEGATIVE_ZERO_LIMIT) {
-					obj.facing = Math.atan2(obj.moveVec.y, obj.moveVec.x);
-					action = AnimatedChar.WALK;
-				} else
-					action = AnimatedChar.STAND;
-
-				p = time % walkPer / walkPer;
-			}
-
-			rect = obj.animatedChar.rectFromFacing(obj.facing, action, p);
-		} else if (obj.animations != null)
-			rect = obj.animations.getTexture(time);
-
-		if (rect != null) {
-			obj.uValue = rect.x / Main.ATLAS_WIDTH;
-			obj.vValue = rect.y / Main.ATLAS_WIDTH;
-			texW = rect.width;
-			obj.width = texW / Main.ATLAS_WIDTH;
-			texH = rect.height;
-			obj.height = texH / Main.ATLAS_HEIGHT;
-		}
-
-		var sink: Float32 = 1.0;
-		if (obj.curSquare != null && !(obj.flying || obj.curSquare.obj != null && obj.curSquare.obj.props.protectFromSink))
-			sink += obj.curSquare.sink + obj.sinkLevel;
-
-		var flashStrength: Float32 = 0.0;
-		if (obj.flashPeriodMs > 0) {
-			if (obj.flashRepeats != -1 && time > obj.flashStartTime + obj.flashPeriodMs * obj.flashRepeats)
-				obj.flashRepeats = obj.flashStartTime = obj.flashPeriodMs = obj.flashColor = 0;
-			else
-				flashStrength = MathUtil.sin((time - obj.flashStartTime) % obj.flashPeriodMs / obj.flashPeriodMs * MathUtil.PI) * 0.5;
-		}
-
-		var w = size * texW * RenderUtils.clipSpaceScaleX * 0.5;
-		var h = hBase * RenderUtils.clipSpaceScaleY * 0.5 / sink;
-		var yBase = (screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
-		var xOffset: Float32 = 0.0;
-		if (action == AnimatedChar.ATTACK && p >= 0.5) {
-			var dir = obj.animatedChar.facingToDir(obj.facing);
-			if (dir == AnimatedChar.LEFT)
-				xOffset = -w / 2 + size * Main.PADDING * RenderUtils.clipSpaceScaleX * 0.5;
-			else
-				xOffset = w / 2 - size * Main.PADDING * RenderUtils.clipSpaceScaleX * 0.5;
-		}
-		var xBase = screenX * RenderUtils.clipSpaceScaleX + xOffset;
-		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
-		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
-		var alphaMult: Float32 = ((obj.condition & ConditionEffect.INVISIBLE_BIT) != 0 ? 0.6 : -1);
-
-		if (obj.props.lightColor != -1) {
-			// width
-			this.lightPointer[this.lightIdx] = w * 8 * obj.props.lightRadius;
-
-			// height
-			this.lightPointer[this.lightIdx + 1] = h * 8 * obj.props.lightRadius;
-
-			// x
-			this.lightPointer[this.lightIdx + 2] = xBase;
-
-			// y
-			this.lightPointer[this.lightIdx + 3] = yBase;
-
-			// color
-			this.lightPointer[this.lightIdx + 4] = obj.props.lightColor;
-
-			// intensity
-			this.lightPointer[this.lightIdx + 5] = obj.props.lightIntensity;
-
-			this.lightIdx += 6;
-		}
-
-		setF32ValueAt(this.vIdx, -w + xBase);
-		setF32ValueAt(this.vIdx + 1, -h + yBase);
-		setF32ValueAt(this.vIdx + 2, obj.uValue);
-		setF32ValueAt(this.vIdx + 3, obj.vValue);
-
-		setF32ValueAt(this.vIdx + 4, texelW);
-		setF32ValueAt(this.vIdx + 5, texelH);
-		setF32ValueAt(this.vIdx + 6, obj.glowColor);
-		setF32ValueAt(this.vIdx + 7, obj.flashColor);
-		setF32ValueAt(this.vIdx + 8, flashStrength);
-		setF32ValueAt(this.vIdx + 9, alphaMult);
-
-		setF32ValueAt(this.vIdx + 10, w + xBase);
-		setF32ValueAt(this.vIdx + 11, -h + yBase);
-		setF32ValueAt(this.vIdx + 12, obj.uValue + obj.width);
-		setF32ValueAt(this.vIdx + 13, obj.vValue);
-
-		setF32ValueAt(this.vIdx + 14, texelW);
-		setF32ValueAt(this.vIdx + 15, texelH);
-		setF32ValueAt(this.vIdx + 16, obj.glowColor);
-		setF32ValueAt(this.vIdx + 17, obj.flashColor);
-		setF32ValueAt(this.vIdx + 18, flashStrength);
-		setF32ValueAt(this.vIdx + 19, alphaMult);
-
-		setF32ValueAt(this.vIdx + 20, -w + xBase);
-		setF32ValueAt(this.vIdx + 21, h + yBase);
-		setF32ValueAt(this.vIdx + 22, obj.uValue);
-		setF32ValueAt(this.vIdx + 23, obj.vValue + obj.height / sink);
-
-		setF32ValueAt(this.vIdx + 24, texelW);
-		setF32ValueAt(this.vIdx + 25, texelH);
-		setF32ValueAt(this.vIdx + 26, obj.glowColor);
-		setF32ValueAt(this.vIdx + 27, obj.flashColor);
-		setF32ValueAt(this.vIdx + 28, flashStrength);
-		setF32ValueAt(this.vIdx + 29, alphaMult);
-
-		setF32ValueAt(this.vIdx + 30, w + xBase);
-		setF32ValueAt(this.vIdx + 31, h + yBase);
-		setF32ValueAt(this.vIdx + 32, obj.uValue + obj.width);
-		setF32ValueAt(this.vIdx + 33, obj.vValue + obj.height / sink);
-
-		setF32ValueAt(this.vIdx + 34, texelW);
-		setF32ValueAt(this.vIdx + 35, texelH);
-		setF32ValueAt(this.vIdx + 36, obj.glowColor);
-		setF32ValueAt(this.vIdx + 37, obj.flashColor);
-		setF32ValueAt(this.vIdx + 38, flashStrength);
-		setF32ValueAt(this.vIdx + 39, alphaMult);
-		this.vIdx += 40;
-
-		final i4 = this.i * 4;
-		setI32ValueAt(this.iIdx, i4);
-		setI32ValueAt(this.iIdx + 1, 1 + i4);
-		setI32ValueAt(this.iIdx + 2, 2 + i4);
-		setI32ValueAt(this.iIdx + 3, 2 + i4);
-		setI32ValueAt(this.iIdx + 4, 1 + i4);
-		setI32ValueAt(this.iIdx + 5, 3 + i4);
-		this.iIdx += 6;
-		this.i++;
-
-		var yPos: Int32 = 15 + (sink != 0 ? 5 : 0);
-		if (obj.props == null || !obj.props.noMiniMap) {
-			xBase = screenX * RenderUtils.clipSpaceScaleX;
-
-			if (obj.hp > obj.maxHP)
-				obj.maxHP = obj.hp;
-
-			var scaledEmptyBarW: Float32 = emptyBarW / Main.ATLAS_WIDTH;
-			var scaledEmptyBarH: Float32 = emptyBarH / Main.ATLAS_HEIGHT;
-			if (obj.hp >= 0 && obj.hp < obj.maxHP) {
-				var scaledBarW: Float32 = hpBarW / Main.ATLAS_WIDTH;
-				var scaledBarH: Float32 = hpBarH / Main.ATLAS_HEIGHT;
-				w = hpBarW * RenderUtils.clipSpaceScaleX;
-				h = hpBarH * RenderUtils.clipSpaceScaleY;
-				yBase = (screenY + yPos - (hpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
-				texelW = 0.5 / Main.ATLAS_WIDTH;
-				texelH = 0.5 / Main.ATLAS_HEIGHT;
-
-				setF32ValueAt(this.vIdx, -w + xBase);
-				setF32ValueAt(this.vIdx + 1, -h + yBase);
-				setF32ValueAt(this.vIdx + 2, emptyBarU);
-				setF32ValueAt(this.vIdx + 3, emptyBarV);
-
-				setF32ValueAt(this.vIdx + 4, texelW);
-				setF32ValueAt(this.vIdx + 5, texelH);
-				setF32ValueAt(this.vIdx + 6, 0);
-				setF32ValueAt(this.vIdx + 7, 0);
-				setF32ValueAt(this.vIdx + 8, 0);
-				setF32ValueAt(this.vIdx + 9, -1);
-
-				setF32ValueAt(this.vIdx + 10, w + xBase);
-				setF32ValueAt(this.vIdx + 11, -h + yBase);
-				setF32ValueAt(this.vIdx + 12, emptyBarU + scaledEmptyBarW);
-				setF32ValueAt(this.vIdx + 13, emptyBarV);
-
-				setF32ValueAt(this.vIdx + 14, texelW);
-				setF32ValueAt(this.vIdx + 15, texelH);
-				setF32ValueAt(this.vIdx + 16, 0);
-				setF32ValueAt(this.vIdx + 17, 0);
-				setF32ValueAt(this.vIdx + 18, 0);
-				setF32ValueAt(this.vIdx + 19, -1);
-
-				setF32ValueAt(this.vIdx + 20, -w + xBase);
-				setF32ValueAt(this.vIdx + 21, h + yBase);
-				setF32ValueAt(this.vIdx + 22, emptyBarU);
-				setF32ValueAt(this.vIdx + 23, emptyBarV + scaledEmptyBarH);
-
-				setF32ValueAt(this.vIdx + 24, texelW);
-				setF32ValueAt(this.vIdx + 25, texelH);
-				setF32ValueAt(this.vIdx + 26, 0);
-				setF32ValueAt(this.vIdx + 27, 0);
-				setF32ValueAt(this.vIdx + 28, 0);
-				setF32ValueAt(this.vIdx + 29, -1);
-
-				setF32ValueAt(this.vIdx + 30, w + xBase);
-				setF32ValueAt(this.vIdx + 31, h + yBase);
-				setF32ValueAt(this.vIdx + 32, emptyBarU + scaledEmptyBarW);
-				setF32ValueAt(this.vIdx + 33, emptyBarV + scaledEmptyBarH);
-
-				setF32ValueAt(this.vIdx + 34, texelW);
-				setF32ValueAt(this.vIdx + 35, texelH);
-				setF32ValueAt(this.vIdx + 36, 0);
-				setF32ValueAt(this.vIdx + 37, 0);
-				setF32ValueAt(this.vIdx + 38, 0);
-				setF32ValueAt(this.vIdx + 39, -1);
-				this.vIdx += 40;
-
-				final i4 = this.i * 4;
-				setI32ValueAt(this.iIdx, i4);
-				setI32ValueAt(this.iIdx + 1, 1 + i4);
-				setI32ValueAt(this.iIdx + 2, 2 + i4);
-				setI32ValueAt(this.iIdx + 3, 2 + i4);
-				setI32ValueAt(this.iIdx + 4, 1 + i4);
-				setI32ValueAt(this.iIdx + 5, 3 + i4);
-				this.iIdx += 6;
-				this.i++;
-
-				var hpPerc = 1 / (obj.hp / obj.maxHP);
-				var hpPercOffset = (1 - obj.hp / obj.maxHP) * hpBarW * RenderUtils.clipSpaceScaleX;
-				w /= hpPerc;
-
-				setF32ValueAt(this.vIdx, -w + xBase - hpPercOffset);
-				setF32ValueAt(this.vIdx + 1, -h + yBase);
-				setF32ValueAt(this.vIdx + 2, hpBarU);
-				setF32ValueAt(this.vIdx + 3, hpBarV);
-
-				setF32ValueAt(this.vIdx + 4, texelW);
-				setF32ValueAt(this.vIdx + 5, texelH);
-				setF32ValueAt(this.vIdx + 6, 0);
-				setF32ValueAt(this.vIdx + 7, 0);
-				setF32ValueAt(this.vIdx + 8, 0);
-				setF32ValueAt(this.vIdx + 9, -1);
-
-				setF32ValueAt(this.vIdx + 10, w + xBase - hpPercOffset);
-				setF32ValueAt(this.vIdx + 11, -h + yBase);
-				setF32ValueAt(this.vIdx + 12, hpBarU + scaledBarW / hpPerc);
-				setF32ValueAt(this.vIdx + 13, hpBarV);
-
-				setF32ValueAt(this.vIdx + 14, texelW);
-				setF32ValueAt(this.vIdx + 15, texelH);
-				setF32ValueAt(this.vIdx + 16, 0);
-				setF32ValueAt(this.vIdx + 17, 0);
-				setF32ValueAt(this.vIdx + 18, 0);
-				setF32ValueAt(this.vIdx + 19, -1);
-
-				setF32ValueAt(this.vIdx + 20, -w + xBase - hpPercOffset);
-				setF32ValueAt(this.vIdx + 21, h + yBase);
-				setF32ValueAt(this.vIdx + 22, hpBarU);
-				setF32ValueAt(this.vIdx + 23, hpBarV + scaledBarH);
-
-				setF32ValueAt(this.vIdx + 24, texelW);
-				setF32ValueAt(this.vIdx + 25, texelH);
-				setF32ValueAt(this.vIdx + 26, 0);
-				setF32ValueAt(this.vIdx + 27, 0);
-				setF32ValueAt(this.vIdx + 28, 0);
-				setF32ValueAt(this.vIdx + 29, -1);
-
-				setF32ValueAt(this.vIdx + 30, w + xBase - hpPercOffset);
-				setF32ValueAt(this.vIdx + 31, h + yBase);
-				setF32ValueAt(this.vIdx + 32, hpBarU + scaledBarW / hpPerc);
-				setF32ValueAt(this.vIdx + 33, hpBarV + scaledBarH);
-
-				setF32ValueAt(this.vIdx + 34, texelW);
-				setF32ValueAt(this.vIdx + 35, texelH);
-				setF32ValueAt(this.vIdx + 36, 0);
-				setF32ValueAt(this.vIdx + 37, 0);
-				setF32ValueAt(this.vIdx + 38, 0);
-				setF32ValueAt(this.vIdx + 39, -1);
-				this.vIdx += 40;
-
-				final i4 = this.i * 4;
-				setI32ValueAt(this.iIdx, i4);
-				setI32ValueAt(this.iIdx + 1, 1 + i4);
-				setI32ValueAt(this.iIdx + 2, 2 + i4);
-				setI32ValueAt(this.iIdx + 3, 2 + i4);
-				setI32ValueAt(this.iIdx + 4, 1 + i4);
-				setI32ValueAt(this.iIdx + 5, 3 + i4);
-				this.iIdx += 6;
-				this.i++;
-
-				yPos += 20;
-			}
-		}
-
-		if (obj.condition > 0) {
-			var len = 0;
-			for (i in 0...32)
-				if (obj.condition & (1 << i) != 0)
-					len++;
-
-			len >>= 1;
-			for (i in 0...32)
-				if (obj.condition & (1 << i) != 0) {
-					var rect = ConditionEffect.effectRects[i];
-					if (rect == null)
-						continue;
-
-					var scaledW: Float32 = rect.width / Main.ATLAS_WIDTH;
-					var scaledH: Float32 = rect.height / Main.ATLAS_HEIGHT;
-					var scaledU: Float32 = rect.x / Main.ATLAS_WIDTH;
-					var scaledV: Float32 = rect.y / Main.ATLAS_HEIGHT;
-					w = rect.width * RenderUtils.clipSpaceScaleX;
-					h = rect.height * RenderUtils.clipSpaceScaleY;
-					xBase = (screenX - rect.width * len + i * rect.width) * RenderUtils.clipSpaceScaleX;
-					yBase = (screenY + yPos - (rect.height / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
-					texelW = 0.5 / Main.ATLAS_WIDTH;
-					texelH = 0.5 / Main.ATLAS_HEIGHT;
-
-					setF32ValueAt(this.vIdx, -w + xBase);
-					setF32ValueAt(this.vIdx + 1, -h + yBase);
-					setF32ValueAt(this.vIdx + 2, scaledU);
-					setF32ValueAt(this.vIdx + 3, scaledV);
-
-					setF32ValueAt(this.vIdx + 4, texelW);
-					setF32ValueAt(this.vIdx + 5, texelH);
-					setF32ValueAt(this.vIdx + 6, 0);
-					setF32ValueAt(this.vIdx + 7, 0);
-					setF32ValueAt(this.vIdx + 8, 0);
-					setF32ValueAt(this.vIdx + 9, -1);
-
-					setF32ValueAt(this.vIdx + 10, w + xBase);
-					setF32ValueAt(this.vIdx + 11, -h + yBase);
-					setF32ValueAt(this.vIdx + 12, scaledU + scaledW);
-					setF32ValueAt(this.vIdx + 13, scaledV);
-
-					setF32ValueAt(this.vIdx + 14, texelW);
-					setF32ValueAt(this.vIdx + 15, texelH);
-					setF32ValueAt(this.vIdx + 16, 0);
-					setF32ValueAt(this.vIdx + 17, 0);
-					setF32ValueAt(this.vIdx + 18, 0);
-					setF32ValueAt(this.vIdx + 19, -1);
-
-					setF32ValueAt(this.vIdx + 20, -w + xBase);
-					setF32ValueAt(this.vIdx + 21, h + yBase);
-					setF32ValueAt(this.vIdx + 22, scaledU);
-					setF32ValueAt(this.vIdx + 23, scaledV + scaledH);
-
-					setF32ValueAt(this.vIdx + 24, texelW);
-					setF32ValueAt(this.vIdx + 25, texelH);
-					setF32ValueAt(this.vIdx + 26, 0);
-					setF32ValueAt(this.vIdx + 27, 0);
-					setF32ValueAt(this.vIdx + 28, 0);
-					setF32ValueAt(this.vIdx + 29, -1);
-
-					setF32ValueAt(this.vIdx + 30, w + xBase);
-					setF32ValueAt(this.vIdx + 31, h + yBase);
-					setF32ValueAt(this.vIdx + 32, scaledU + scaledW);
-					setF32ValueAt(this.vIdx + 33, scaledV + scaledH);
-
-					setF32ValueAt(this.vIdx + 34, texelW);
-					setF32ValueAt(this.vIdx + 35, texelH);
-					setF32ValueAt(this.vIdx + 36, 0);
-					setF32ValueAt(this.vIdx + 37, 0);
-					setF32ValueAt(this.vIdx + 38, 0);
-					setF32ValueAt(this.vIdx + 39, -1);
-					this.vIdx += 40;
-
-					final i4 = this.i * 4;
-					setI32ValueAt(this.iIdx, i4);
-					setI32ValueAt(this.iIdx + 1, 1 + i4);
-					setI32ValueAt(this.iIdx + 2, 2 + i4);
-					setI32ValueAt(this.iIdx + 3, 2 + i4);
-					setI32ValueAt(this.iIdx + 4, 1 + i4);
-					setI32ValueAt(this.iIdx + 5, 3 + i4);
-					this.iIdx += 6;
-					this.i++;
-				}
-		}
-
-		var isPortal = obj.objClass == "Portal";
-		if ((obj.props.showName || isPortal) && obj.name != null && obj.name != "") {
-			if (obj.nameTex == null) {
-				obj.nameText = new SimpleText(16, 0xFFFFFF);
-				obj.nameText.setBold(true);
-				obj.nameText.text = obj.name;
-				obj.nameText.updateMetrics();
-
-				obj.nameTex = new BitmapData(Std.int(obj.nameText.width + 20), 64, true, 0);
-				obj.nameTex.draw(obj.nameText, new Matrix(1, 0, 0, 1, 12, 0));
-				obj.nameTex.applyFilter(obj.nameTex, obj.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
-			}
-			
-			var textureData = TextureFactory.make(obj.nameTex);
-			this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
-				sinX: 0, sinY: 0,
-				cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-				x: (screenX - 3) * RenderUtils.clipSpaceScaleX, y: (screenY - hBase + 30 + (sink - 1) * hBase / 3) * RenderUtils.clipSpaceScaleY,
-				texelW: 0, texelH: 0,
-				texture: textureData.texture});
-
-			if (isPortal && Global.currentInteractiveTarget == obj.objectId) {
-				if (obj.enterTex == null) {
-					var enterText = new SimpleText(16, 0xFFFFFF);
-					enterText.setBold(true);
-					enterText.text = "Enter";
-					enterText.updateMetrics();
-
-					obj.enterTex = new BitmapData(Std.int(enterText.width + 20), 64, true, 0);
-					obj.enterTex.draw(enterText, new Matrix(1, 0, 0, 1, 12, 0));
-					obj.enterTex.applyFilter(obj.enterTex, obj.enterTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
-				}
-				
-				var textureData = TextureFactory.make(obj.enterTex);
-				this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
-					sinX: 0, sinY: 0,
-					cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-					x: (screenX + 8) * RenderUtils.clipSpaceScaleX, y: (screenY + 40) * RenderUtils.clipSpaceScaleY,
-					texelW: 0, texelH: 0,
-					texture: textureData.texture});
-
-				if (obj.enterKeyTex == null)
-					obj.enterKeyTex = AssetLibrary.getImageFromSet("keyIndicators", KeyCodeUtil.charCodeIconIndices[Settings.interact]);
-
-				var textureData = TextureFactory.make(obj.enterKeyTex);
-				this.rdSingle.push({cosX: (textureData.width >> 2) * RenderUtils.clipSpaceScaleX, 
-					sinX: 0, sinY: 0,
-					cosY: (textureData.height >> 2) * RenderUtils.clipSpaceScaleY,
-					x: (screenX - 22) * RenderUtils.clipSpaceScaleX, y: (screenY + 19) * RenderUtils.clipSpaceScaleY,
-					texelW: 0, texelH: 0,
-					texture: textureData.texture});	
-			}
-		}
-	}
-
-	@:nonVirtual private final #if !tracing inline #end function drawPlayer(time: Int32, player: Player) {		
-		var screenX = player.screenX = player.mapX * Camera.cos + player.mapY * Camera.sin + Camera.csX;
-		var screenY = player.screenYNoZ + player.mapZ * -Camera.PX_PER_TILE;
-
-		var texW = player.width * Main.ATLAS_WIDTH,
-			texH = player.height * Main.ATLAS_HEIGHT;
-
-		var action = AnimatedChar.STAND;
-		var p: Float32 = 0.0;
-		var rect: Rect = null;
-		if (player.animatedChar != null) {
-			if (time < player.attackStart + GameObject.ATTACK_PERIOD) {
-				if (!player.props.dontFaceAttacks)
-					player.facing = player.attackAngle;
-
-				p = (time - player.attackStart) % GameObject.ATTACK_PERIOD / GameObject.ATTACK_PERIOD;
-				action = AnimatedChar.ATTACK;
-			} else if (player.moveVec.x != 0 || player.moveVec.y != 0) {
-				var walkPer = Std.int(0.5 / player.moveVec.length);
-				walkPer += 400 - walkPer % 400;
-				if (player.moveVec.x > GameObject.ZERO_LIMIT
-					|| player.moveVec.x < GameObject.NEGATIVE_ZERO_LIMIT
-					|| player.moveVec.y > GameObject.ZERO_LIMIT
-					|| player.moveVec.y < GameObject.NEGATIVE_ZERO_LIMIT) {
-					player.facing = Math.atan2(player.moveVec.y, player.moveVec.x);
-					action = AnimatedChar.WALK;
-				} else
-					action = AnimatedChar.STAND;
-
-				p = time % walkPer / walkPer;
-			}
-
-			rect = player.animatedChar.rectFromFacing(player.facing, action, p);
-		} else if (player.animations != null)
-			rect = player.animations.getTexture(time);
-
-		if (rect != null) {
-			player.uValue = rect.x / Main.ATLAS_WIDTH;
-			player.vValue = rect.y / Main.ATLAS_WIDTH;
-			texW = rect.width;
-			player.width = texW / Main.ATLAS_WIDTH;
-			texH = rect.height;
-			player.height = texH / Main.ATLAS_HEIGHT;
-		}
-
-		var sink: Float32 = 1.0;
-		if (player.curSquare != null && !(player.flying || player.curSquare.obj != null && player.curSquare.obj.props.protectFromSink))
-			sink += player.curSquare.sink + player.sinkLevel;
-
-		var flashStrength: Float32 = 0.0;
-		if (player.flashPeriodMs > 0) {
-			if (player.flashRepeats != -1 && time > player.flashStartTime + player.flashPeriodMs * player.flashRepeats)
-				player.flashRepeats = player.flashStartTime = player.flashPeriodMs = player.flashColor = 0;
-			else
-				flashStrength = MathUtil.sin((time - player.flashStartTime) % player.flashPeriodMs / player.flashPeriodMs * MathUtil.PI) * 0.5;
-		}
-
-		var size = Camera.SIZE_MULT * player.size;
-		var w = size * texW * RenderUtils.clipSpaceScaleX * 0.5;
-		var hBase = player.hBase = size * texH;
-		var h = hBase * RenderUtils.clipSpaceScaleY * 0.5 / sink;
-		var yBase = (screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
-		var xOffset: Float32 = 0.0;
-		if (action == AnimatedChar.ATTACK && p >= 0.5) {
-			var dir = player.animatedChar.facingToDir(player.facing);
-			if (dir == AnimatedChar.LEFT)
-				xOffset = -w / 2 + size * Main.PADDING * RenderUtils.clipSpaceScaleX * 0.5;
-			else
-				xOffset = w / 2 - size * Main.PADDING * RenderUtils.clipSpaceScaleX * 0.5;
-		}
-		var xBase = screenX * RenderUtils.clipSpaceScaleX + xOffset;
-		var texelW: Float32 = 2.0 / Main.ATLAS_WIDTH / size;
-		var texelH: Float32 = 2.0 / Main.ATLAS_HEIGHT / size;
-		var alphaMult: Float32 = ((player.condition & ConditionEffect.INVISIBLE_BIT) != 0 ? 0.6 : -1);
-
-		if (player.props.lightColor != -1) {
-			// width
-			this.lightPointer[this.lightIdx] = w * 8 * player.props.lightRadius;
-
-			// height
-			this.lightPointer[this.lightIdx + 1] = h * 8 * player.props.lightRadius;
-
-			// x
-			this.lightPointer[this.lightIdx + 2] = xBase;
-
-			// y
-			this.lightPointer[this.lightIdx + 3] = yBase;
-
-			// color
-			this.lightPointer[this.lightIdx + 4] = player.props.lightColor;
-
-			// intensity
-			this.lightPointer[this.lightIdx + 5] = player.props.lightIntensity;
-
-			this.lightIdx += 6;
-		}
-
-		setF32ValueAt(this.vIdx, -w + xBase);
-		setF32ValueAt(this.vIdx + 1, -h + yBase);
-		setF32ValueAt(this.vIdx + 2, player.uValue);
-		setF32ValueAt(this.vIdx + 3, player.vValue);
-
-		setF32ValueAt(this.vIdx + 4, texelW);
-		setF32ValueAt(this.vIdx + 5, texelH);
-		setF32ValueAt(this.vIdx + 6, player.glowColor);
-		setF32ValueAt(this.vIdx + 7, player.flashColor);
-		setF32ValueAt(this.vIdx + 8, flashStrength);
-		setF32ValueAt(this.vIdx + 9, alphaMult);
-
-		setF32ValueAt(this.vIdx + 10, w + xBase);
-		setF32ValueAt(this.vIdx + 11, -h + yBase);
-		setF32ValueAt(this.vIdx + 12, player.uValue + player.width);
-		setF32ValueAt(this.vIdx + 13, player.vValue);
-
-		setF32ValueAt(this.vIdx + 14, texelW);
-		setF32ValueAt(this.vIdx + 15, texelH);
-		setF32ValueAt(this.vIdx + 16, player.glowColor);
-		setF32ValueAt(this.vIdx + 17, player.flashColor);
-		setF32ValueAt(this.vIdx + 18, flashStrength);
-		setF32ValueAt(this.vIdx + 19, alphaMult);
-
-		setF32ValueAt(this.vIdx + 20, -w + xBase);
-		setF32ValueAt(this.vIdx + 21, h + yBase);
-		setF32ValueAt(this.vIdx + 22, player.uValue);
-		setF32ValueAt(this.vIdx + 23, player.vValue + player.height / sink);
-
-		setF32ValueAt(this.vIdx + 24, texelW);
-		setF32ValueAt(this.vIdx + 25, texelH);
-		setF32ValueAt(this.vIdx + 26, player.glowColor);
-		setF32ValueAt(this.vIdx + 27, player.flashColor);
-		setF32ValueAt(this.vIdx + 28, flashStrength);
-		setF32ValueAt(this.vIdx + 29, alphaMult);
-
-		setF32ValueAt(this.vIdx + 30, w + xBase);
-		setF32ValueAt(this.vIdx + 31, h + yBase);
-		setF32ValueAt(this.vIdx + 32, player.uValue + player.width);
-		setF32ValueAt(this.vIdx + 33, player.vValue + player.height / sink);
-
-		setF32ValueAt(this.vIdx + 34, texelW);
-		setF32ValueAt(this.vIdx + 35, texelH);
-		setF32ValueAt(this.vIdx + 36, player.glowColor);
-		setF32ValueAt(this.vIdx + 37, player.flashColor);
-		setF32ValueAt(this.vIdx + 38, flashStrength);
-		setF32ValueAt(this.vIdx + 39, alphaMult);
-		this.vIdx += 40;
-
-		final i4 = this.i * 4;
-		setI32ValueAt(this.iIdx, i4);
-		setI32ValueAt(this.iIdx + 1, 1 + i4);
-		setI32ValueAt(this.iIdx + 2, 2 + i4);
-		setI32ValueAt(this.iIdx + 3, 2 + i4);
-		setI32ValueAt(this.iIdx + 4, 1 + i4);
-		setI32ValueAt(this.iIdx + 5, 3 + i4);
-		this.iIdx += 6;
-		this.i++;
-
-		var yPos: Int32 = 15 + (sink != 0 ? 5 : 0);
-		if (player.props == null || !player.props.noMiniMap) {
-			xBase = screenX * RenderUtils.clipSpaceScaleX;
-
-			if (player.hp > player.maxHP)
-				player.maxHP = player.hp;
-
-			if (player.mp > player.maxMP)
-				player.maxMP = player.mp;
-
-			var scaledEmptyBarW: Float32 = emptyBarW / Main.ATLAS_WIDTH;
-			var scaledEmptyBarH: Float32 = emptyBarH / Main.ATLAS_HEIGHT;
-			if (player.hp >= 0 && player.hp < player.maxHP) {
-				var scaledBarW: Float32 = hpBarW / Main.ATLAS_WIDTH;
-				var scaledBarH: Float32 = hpBarH / Main.ATLAS_HEIGHT;
-				w = hpBarW * RenderUtils.clipSpaceScaleX;
-				h = hpBarH * RenderUtils.clipSpaceScaleY;
-				yBase = (screenY + yPos - (hpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
-				texelW = 0.5 / Main.ATLAS_WIDTH;
-				texelH = 0.5 / Main.ATLAS_HEIGHT;
-
-				setF32ValueAt(this.vIdx, -w + xBase);
-				setF32ValueAt(this.vIdx + 1, -h + yBase);
-				setF32ValueAt(this.vIdx + 2, emptyBarU);
-				setF32ValueAt(this.vIdx + 3, emptyBarV);
-
-				setF32ValueAt(this.vIdx + 4, texelW);
-				setF32ValueAt(this.vIdx + 5, texelH);
-				setF32ValueAt(this.vIdx + 6, 0);
-				setF32ValueAt(this.vIdx + 7, 0);
-				setF32ValueAt(this.vIdx + 8, 0);
-				setF32ValueAt(this.vIdx + 9, -1);
-
-				setF32ValueAt(this.vIdx + 10, w + xBase);
-				setF32ValueAt(this.vIdx + 11, -h + yBase);
-				setF32ValueAt(this.vIdx + 12, emptyBarU + scaledEmptyBarW);
-				setF32ValueAt(this.vIdx + 13, emptyBarV);
-
-				setF32ValueAt(this.vIdx + 14, texelW);
-				setF32ValueAt(this.vIdx + 15, texelH);
-				setF32ValueAt(this.vIdx + 16, 0);
-				setF32ValueAt(this.vIdx + 17, 0);
-				setF32ValueAt(this.vIdx + 18, 0);
-				setF32ValueAt(this.vIdx + 19, -1);
-
-				setF32ValueAt(this.vIdx + 20, -w + xBase);
-				setF32ValueAt(this.vIdx + 21, h + yBase);
-				setF32ValueAt(this.vIdx + 22, emptyBarU);
-				setF32ValueAt(this.vIdx + 23, emptyBarV + scaledEmptyBarH);
-
-				setF32ValueAt(this.vIdx + 24, texelW);
-				setF32ValueAt(this.vIdx + 25, texelH);
-				setF32ValueAt(this.vIdx + 26, 0);
-				setF32ValueAt(this.vIdx + 27, 0);
-				setF32ValueAt(this.vIdx + 28, 0);
-				setF32ValueAt(this.vIdx + 29, -1);
-
-				setF32ValueAt(this.vIdx + 30, w + xBase);
-				setF32ValueAt(this.vIdx + 31, h + yBase);
-				setF32ValueAt(this.vIdx + 32, emptyBarU + scaledEmptyBarW);
-				setF32ValueAt(this.vIdx + 33, emptyBarV + scaledEmptyBarH);
-
-				setF32ValueAt(this.vIdx + 34, texelW);
-				setF32ValueAt(this.vIdx + 35, texelH);
-				setF32ValueAt(this.vIdx + 36, 0);
-				setF32ValueAt(this.vIdx + 37, 0);
-				setF32ValueAt(this.vIdx + 38, 0);
-				setF32ValueAt(this.vIdx + 39, -1);
-				this.vIdx += 40;
-
-				final i4 = this.i * 4;
-				setI32ValueAt(this.iIdx, i4);
-				setI32ValueAt(this.iIdx + 1, 1 + i4);
-				setI32ValueAt(this.iIdx + 2, 2 + i4);
-				setI32ValueAt(this.iIdx + 3, 2 + i4);
-				setI32ValueAt(this.iIdx + 4, 1 + i4);
-				setI32ValueAt(this.iIdx + 5, 3 + i4);
-				this.iIdx += 6;
-				this.i++;
-
-				var hpPerc = 1 / (player.hp / player.maxHP);
-				var hpPercOffset = (1 - player.hp / player.maxHP) * hpBarW * RenderUtils.clipSpaceScaleX;
-				w /= hpPerc;
-
-				setF32ValueAt(this.vIdx, -w + xBase - hpPercOffset);
-				setF32ValueAt(this.vIdx + 1, -h + yBase);
-				setF32ValueAt(this.vIdx + 2, hpBarU);
-				setF32ValueAt(this.vIdx + 3, hpBarV);
-
-				setF32ValueAt(this.vIdx + 4, texelW);
-				setF32ValueAt(this.vIdx + 5, texelH);
-				setF32ValueAt(this.vIdx + 6, 0);
-				setF32ValueAt(this.vIdx + 7, 0);
-				setF32ValueAt(this.vIdx + 8, 0);
-				setF32ValueAt(this.vIdx + 9, -1);
-
-				setF32ValueAt(this.vIdx + 10, w + xBase - hpPercOffset);
-				setF32ValueAt(this.vIdx + 11, -h + yBase);
-				setF32ValueAt(this.vIdx + 12, hpBarU + scaledBarW / hpPerc);
-				setF32ValueAt(this.vIdx + 13, hpBarV);
-
-				setF32ValueAt(this.vIdx + 14, texelW);
-				setF32ValueAt(this.vIdx + 15, texelH);
-				setF32ValueAt(this.vIdx + 16, 0);
-				setF32ValueAt(this.vIdx + 17, 0);
-				setF32ValueAt(this.vIdx + 18, 0);
-				setF32ValueAt(this.vIdx + 19, -1);
-
-				setF32ValueAt(this.vIdx + 20, -w + xBase - hpPercOffset);
-				setF32ValueAt(this.vIdx + 21, h + yBase);
-				setF32ValueAt(this.vIdx + 22, hpBarU);
-				setF32ValueAt(this.vIdx + 23, hpBarV + scaledBarH);
-
-				setF32ValueAt(this.vIdx + 24, texelW);
-				setF32ValueAt(this.vIdx + 25, texelH);
-				setF32ValueAt(this.vIdx + 26, 0);
-				setF32ValueAt(this.vIdx + 27, 0);
-				setF32ValueAt(this.vIdx + 28, 0);
-				setF32ValueAt(this.vIdx + 29, -1);
-
-				setF32ValueAt(this.vIdx + 30, w + xBase - hpPercOffset);
-				setF32ValueAt(this.vIdx + 31, h + yBase);
-				setF32ValueAt(this.vIdx + 32, hpBarU + scaledBarW / hpPerc);
-				setF32ValueAt(this.vIdx + 33, hpBarV + scaledBarH);
-
-				setF32ValueAt(this.vIdx + 34, texelW);
-				setF32ValueAt(this.vIdx + 35, texelH);
-				setF32ValueAt(this.vIdx + 36, 0);
-				setF32ValueAt(this.vIdx + 37, 0);
-				setF32ValueAt(this.vIdx + 38, 0);
-				setF32ValueAt(this.vIdx + 39, -1);
-				this.vIdx += 40;
-
-				final i4 = this.i * 4;
-				setI32ValueAt(this.iIdx, i4);
-				setI32ValueAt(this.iIdx + 1, 1 + i4);
-				setI32ValueAt(this.iIdx + 2, 2 + i4);
-				setI32ValueAt(this.iIdx + 3, 2 + i4);
-				setI32ValueAt(this.iIdx + 4, 1 + i4);
-				setI32ValueAt(this.iIdx + 5, 3 + i4);
-				this.iIdx += 6;
-				this.i++;
-
-				yPos += 20;
-			}
-
-			if (player.mp >= 0 && player.mp < player.maxMP) {
-				var scaledBarW: Float32 = mpBarW / Main.ATLAS_WIDTH;
-				var scaledBarH: Float32 = mpBarH / Main.ATLAS_HEIGHT;
-				w = mpBarW * RenderUtils.clipSpaceScaleX;
-				h = mpBarH * RenderUtils.clipSpaceScaleY;
-				yBase = (screenY + yPos - (mpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
-				texelW = 0.5 / Main.ATLAS_WIDTH;
-				texelH = 0.5 / Main.ATLAS_HEIGHT;
-
-				setF32ValueAt(this.vIdx, -w + xBase);
-				setF32ValueAt(this.vIdx + 1, -h + yBase);
-				setF32ValueAt(this.vIdx + 2, emptyBarU);
-				setF32ValueAt(this.vIdx + 3, emptyBarV);
-
-				setF32ValueAt(this.vIdx + 4, texelW);
-				setF32ValueAt(this.vIdx + 5, texelH);
-				setF32ValueAt(this.vIdx + 6, 0);
-				setF32ValueAt(this.vIdx + 7, 0);
-				setF32ValueAt(this.vIdx + 8, 0);
-				setF32ValueAt(this.vIdx + 9, -1);
-
-				setF32ValueAt(this.vIdx + 10, w + xBase);
-				setF32ValueAt(this.vIdx + 11, -h + yBase);
-				setF32ValueAt(this.vIdx + 12, emptyBarU + scaledEmptyBarW);
-				setF32ValueAt(this.vIdx + 13, emptyBarV);
-
-				setF32ValueAt(this.vIdx + 14, texelW);
-				setF32ValueAt(this.vIdx + 15, texelH);
-				setF32ValueAt(this.vIdx + 16, 0);
-				setF32ValueAt(this.vIdx + 17, 0);
-				setF32ValueAt(this.vIdx + 18, 0);
-				setF32ValueAt(this.vIdx + 19, -1);
-
-				setF32ValueAt(this.vIdx + 20, -w + xBase);
-				setF32ValueAt(this.vIdx + 21, h + yBase);
-				setF32ValueAt(this.vIdx + 22, emptyBarU);
-				setF32ValueAt(this.vIdx + 23, emptyBarV + scaledEmptyBarH);
-
-				setF32ValueAt(this.vIdx + 24, texelW);
-				setF32ValueAt(this.vIdx + 25, texelH);
-				setF32ValueAt(this.vIdx + 26, 0);
-				setF32ValueAt(this.vIdx + 27, 0);
-				setF32ValueAt(this.vIdx + 28, 0);
-				setF32ValueAt(this.vIdx + 29, -1);
-
-				setF32ValueAt(this.vIdx + 30, w + xBase);
-				setF32ValueAt(this.vIdx + 31, h + yBase);
-				setF32ValueAt(this.vIdx + 32, emptyBarU + scaledEmptyBarW);
-				setF32ValueAt(this.vIdx + 33, emptyBarV + scaledEmptyBarH);
-
-				setF32ValueAt(this.vIdx + 34, texelW);
-				setF32ValueAt(this.vIdx + 35, texelH);
-				setF32ValueAt(this.vIdx + 36, 0);
-				setF32ValueAt(this.vIdx + 37, 0);
-				setF32ValueAt(this.vIdx + 38, 0);
-				setF32ValueAt(this.vIdx + 39, -1);
-				this.vIdx += 40;
-
-				final i4 = this.i * 4;
-				setI32ValueAt(this.iIdx, i4);
-				setI32ValueAt(this.iIdx + 1, 1 + i4);
-				setI32ValueAt(this.iIdx + 2, 2 + i4);
-				setI32ValueAt(this.iIdx + 3, 2 + i4);
-				setI32ValueAt(this.iIdx + 4, 1 + i4);
-				setI32ValueAt(this.iIdx + 5, 3 + i4);
-				this.iIdx += 6;
-				this.i++;
-
-				var mpPerc = 1 / (player.mp / player.maxMP);
-				var mpPercOffset = (1 - player.mp / player.maxMP) * mpBarW * RenderUtils.clipSpaceScaleX;
-				w /= mpPerc;
-
-				setF32ValueAt(this.vIdx, -w + xBase - mpPercOffset);
-				setF32ValueAt(this.vIdx + 1, -h + yBase);
-				setF32ValueAt(this.vIdx + 2, mpBarU);
-				setF32ValueAt(this.vIdx + 3, mpBarV);
-
-				setF32ValueAt(this.vIdx + 4, texelW);
-				setF32ValueAt(this.vIdx + 5, texelH);
-				setF32ValueAt(this.vIdx + 6, 0);
-				setF32ValueAt(this.vIdx + 7, 0);
-				setF32ValueAt(this.vIdx + 8, 0);
-				setF32ValueAt(this.vIdx + 9, -1);
-
-				setF32ValueAt(this.vIdx + 10, w + xBase - mpPercOffset);
-				setF32ValueAt(this.vIdx + 11, -h + yBase);
-				setF32ValueAt(this.vIdx + 12, mpBarU + scaledBarW / mpPerc);
-				setF32ValueAt(this.vIdx + 13, mpBarV);
-
-				setF32ValueAt(this.vIdx + 14, texelW);
-				setF32ValueAt(this.vIdx + 15, texelH);
-				setF32ValueAt(this.vIdx + 16, 0);
-				setF32ValueAt(this.vIdx + 17, 0);
-				setF32ValueAt(this.vIdx + 18, 0);
-				setF32ValueAt(this.vIdx + 19, -1);
-
-				setF32ValueAt(this.vIdx + 20, -w + xBase - mpPercOffset);
-				setF32ValueAt(this.vIdx + 21, h + yBase);
-				setF32ValueAt(this.vIdx + 22, mpBarU);
-				setF32ValueAt(this.vIdx + 23, mpBarV + scaledBarH);
-
-				setF32ValueAt(this.vIdx + 24, texelW);
-				setF32ValueAt(this.vIdx + 25, texelH);
-				setF32ValueAt(this.vIdx + 26, 0);
-				setF32ValueAt(this.vIdx + 27, 0);
-				setF32ValueAt(this.vIdx + 28, 0);
-				setF32ValueAt(this.vIdx + 29, -1);
-
-				setF32ValueAt(this.vIdx + 30, w + xBase - mpPercOffset);
-				setF32ValueAt(this.vIdx + 31, h + yBase);
-				setF32ValueAt(this.vIdx + 32, mpBarU + scaledBarW / mpPerc);
-				setF32ValueAt(this.vIdx + 33, mpBarV + scaledBarH);
-
-				setF32ValueAt(this.vIdx + 34, texelW);
-				setF32ValueAt(this.vIdx + 35, texelH);
-				setF32ValueAt(this.vIdx + 36, 0);
-				setF32ValueAt(this.vIdx + 37, 0);
-				setF32ValueAt(this.vIdx + 38, 0);
-				setF32ValueAt(this.vIdx + 39, -1);
-				this.vIdx += 40;
-
-				final i4 = this.i * 4;
-				setI32ValueAt(this.iIdx, i4);
-				setI32ValueAt(this.iIdx + 1, 1 + i4);
-				setI32ValueAt(this.iIdx + 2, 2 + i4);
-				setI32ValueAt(this.iIdx + 3, 2 + i4);
-				setI32ValueAt(this.iIdx + 4, 1 + i4);
-				setI32ValueAt(this.iIdx + 5, 3 + i4);
-				this.iIdx += 6;
-				this.i++;
-
-				yPos += 20;
-			}
-		}
-
-		if (player.condition > 0) {
-			var len = 0;
-			for (i in 0...32)
-				if (player.condition & (1 << i) != 0)
-					len++;
-
-			len >>= 1;
-
-			var idx = 0;
-			for (i in 0...32)
-				if (player.condition & (1 << i) != 0) {
-					var rect = ConditionEffect.effectRects[i];
-					if (rect == null)
-						continue;
-
-					var scaledW: Float32 = rect.width / Main.ATLAS_WIDTH;
-					var scaledH: Float32 = rect.height / Main.ATLAS_HEIGHT;
-					var scaledU: Float32 = rect.x / Main.ATLAS_WIDTH;
-					var scaledV: Float32 = rect.y / Main.ATLAS_HEIGHT;
-					w = rect.width * RenderUtils.clipSpaceScaleX * 0.5;
-					h = rect.height * RenderUtils.clipSpaceScaleY * 0.5;
-					xBase = (screenX - rect.width * len + idx * rect.width) * RenderUtils.clipSpaceScaleX;
-					yBase = (screenY + yPos + 5 - (rect.height / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
-					texelW = 1 / Main.ATLAS_WIDTH;
-					texelH = 1 / Main.ATLAS_HEIGHT;
-
-					setF32ValueAt(this.vIdx, -w + xBase);
-					setF32ValueAt(this.vIdx + 1, -h + yBase);
-					setF32ValueAt(this.vIdx + 2, scaledU);
-					setF32ValueAt(this.vIdx + 3, scaledV);
-
-					setF32ValueAt(this.vIdx + 4, texelW);
-					setF32ValueAt(this.vIdx + 5, texelH);
-					setF32ValueAt(this.vIdx + 6, 0);
-					setF32ValueAt(this.vIdx + 7, 0);
-					setF32ValueAt(this.vIdx + 8, 0);
-					setF32ValueAt(this.vIdx + 9, -1);
-
-					setF32ValueAt(this.vIdx + 10, w + xBase);
-					setF32ValueAt(this.vIdx + 11, -h + yBase);
-					setF32ValueAt(this.vIdx + 12, scaledU + scaledW);
-					setF32ValueAt(this.vIdx + 13, scaledV);
-
-					setF32ValueAt(this.vIdx + 14, texelW);
-					setF32ValueAt(this.vIdx + 15, texelH);
-					setF32ValueAt(this.vIdx + 16, 0);
-					setF32ValueAt(this.vIdx + 17, 0);
-					setF32ValueAt(this.vIdx + 18, 0);
-					setF32ValueAt(this.vIdx + 19, -1);
-
-					setF32ValueAt(this.vIdx + 20, -w + xBase);
-					setF32ValueAt(this.vIdx + 21, h + yBase);
-					setF32ValueAt(this.vIdx + 22, scaledU);
-					setF32ValueAt(this.vIdx + 23, scaledV + scaledH);
-
-					setF32ValueAt(this.vIdx + 24, texelW);
-					setF32ValueAt(this.vIdx + 25, texelH);
-					setF32ValueAt(this.vIdx + 26, 0);
-					setF32ValueAt(this.vIdx + 27, 0);
-					setF32ValueAt(this.vIdx + 28, 0);
-					setF32ValueAt(this.vIdx + 29, -1);
-
-					setF32ValueAt(this.vIdx + 30, w + xBase);
-					setF32ValueAt(this.vIdx + 31, h + yBase);
-					setF32ValueAt(this.vIdx + 32, scaledU + scaledW);
-					setF32ValueAt(this.vIdx + 33, scaledV + scaledH);
-
-					setF32ValueAt(this.vIdx + 34, texelW);
-					setF32ValueAt(this.vIdx + 35, texelH);
-					setF32ValueAt(this.vIdx + 36, 0);
-					setF32ValueAt(this.vIdx + 37, 0);
-					setF32ValueAt(this.vIdx + 38, 0);
-					setF32ValueAt(this.vIdx + 39, -1);
-					this.vIdx += 40;
-
-					final i4 = this.i * 4;
-					setI32ValueAt(this.iIdx, i4);
-					setI32ValueAt(this.iIdx + 1, 1 + i4);
-					setI32ValueAt(this.iIdx + 2, 2 + i4);
-					setI32ValueAt(this.iIdx + 3, 2 + i4);
-					setI32ValueAt(this.iIdx + 4, 1 + i4);
-					setI32ValueAt(this.iIdx + 5, 3 + i4);
-					this.iIdx += 6;
-					this.i++;
-					idx++;
-				}
-		}
-
-		if (player.name != null && player.name != "") {
-			if (player.nameTex == null) {
-				player.nameText = new SimpleText(16, player.isFellowGuild ? Settings.FELLOW_GUILD_COLOR : Settings.DEFAULT_COLOR);
-				player.nameText.setBold(true);
-				player.nameText.text = player.name;
-				player.nameText.updateMetrics();
-
-				player.nameTex = new BitmapData(Std.int(player.nameText.width + 20), 64, true, 0);
-				player.nameTex.draw(player.nameText, new Matrix(1, 0, 0, 1, 12, 0));
-				player.nameTex.applyFilter(player.nameTex, player.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
-			}
-			
-			var textureData = TextureFactory.make(player.nameTex);
-			this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
-				sinX: 0, sinY: 0,
-				cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-				x: screenX * RenderUtils.clipSpaceScaleX, y: (screenY - hBase + 30 + (sink - 1) * hBase / 3) * RenderUtils.clipSpaceScaleY,
-				texelW: 0, texelH: 0,
-				texture: textureData.texture});
-		}
-	}
-
-	@:nonVirtual private final #if !tracing inline #end function drawProjectile(time: Int32, proj: Projectile) {
-		var screenX = proj.mapX * Camera.cos + proj.mapY * Camera.sin + Camera.csX;
-		var screenY = proj.mapX * -Camera.sin + proj.mapY * Camera.cos + Camera.csY;
-
-		var texW = proj.width * Main.ATLAS_WIDTH,
-			texH = proj.height * Main.ATLAS_HEIGHT;
-
-		final size = Camera.SIZE_MULT * proj.size;
-		final w = size * texW;
-		final h = size * texH;
-		final yBase = (screenY - (h / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
-		final xBase = screenX * RenderUtils.clipSpaceScaleX;
-		final texelW = 2 / Main.ATLAS_WIDTH / size;
-		final texelH = 2 / Main.ATLAS_HEIGHT / size;
-		final rotation = proj.projProps.rotation;
-		final angle = proj.getDirectionAngle(time) + proj.projProps.angleCorrection + (rotation == 0 ? 0 : time / rotation) - Camera.angleRad;
-		final cosAngle = MathUtil.cos(angle);
-		final sinAngle = MathUtil.sin(angle);
-		final xScaledCos = cosAngle * w * RenderUtils.clipSpaceScaleX * 0.5;
-		final xScaledSin = sinAngle * h * RenderUtils.clipSpaceScaleX * 0.5;
-		final yScaledCos = cosAngle * w * RenderUtils.clipSpaceScaleY * 0.5;
-		final yScaledSinInv = -sinAngle * h * RenderUtils.clipSpaceScaleY * 0.5;
-
-		if (proj.projProps.lightColor != -1) {
-			// width
-			this.lightPointer[this.lightIdx] = w * RenderUtils.clipSpaceScaleX * 0.5 * 8 * proj.projProps.lightRadius;
-
-			// height
-			this.lightPointer[this.lightIdx + 1] = h * RenderUtils.clipSpaceScaleY * 0.5 * 8 * proj.projProps.lightRadius;
-
-			// x
-			this.lightPointer[this.lightIdx + 2] = xBase;
-
-			// y
-			this.lightPointer[this.lightIdx + 3] = yBase;
-
-			// color
-			this.lightPointer[this.lightIdx + 4] = proj.projProps.lightColor;
-
-			// intensity
-			this.lightPointer[this.lightIdx + 5] = proj.projProps.lightIntensity;
-
-			this.lightIdx += 6;
-		}
-
-		setF32ValueAt(this.vIdx, -xScaledCos + xScaledSin + xBase);
-		setF32ValueAt(this.vIdx + 1, yScaledSinInv + -yScaledCos + yBase);
-		setF32ValueAt(this.vIdx + 2, proj.uValue);
-		setF32ValueAt(this.vIdx + 3, proj.vValue);
-
-		setF32ValueAt(this.vIdx + 4, texelW);
-		setF32ValueAt(this.vIdx + 5, texelH);
-		setF32ValueAt(this.vIdx + 6, 0);
-		setF32ValueAt(this.vIdx + 7, 0);
-		setF32ValueAt(this.vIdx + 8, 0);
-		setF32ValueAt(this.vIdx + 9, -1);
-
-		setF32ValueAt(this.vIdx + 10, xScaledCos + xScaledSin + xBase);
-		setF32ValueAt(this.vIdx + 11, -(yScaledSinInv + yScaledCos) + yBase);
-		setF32ValueAt(this.vIdx + 12, proj.uValue + proj.width);
-		setF32ValueAt(this.vIdx + 13, proj.vValue);
-
-		setF32ValueAt(this.vIdx + 14, texelW);
-		setF32ValueAt(this.vIdx + 15, texelH);
-		setF32ValueAt(this.vIdx + 16, 0);
-		setF32ValueAt(this.vIdx + 17, 0);
-		setF32ValueAt(this.vIdx + 18, 0);
-		setF32ValueAt(this.vIdx + 19, -1);
-
-		setF32ValueAt(this.vIdx + 20, -(xScaledCos + xScaledSin) + xBase);
-		setF32ValueAt(this.vIdx + 21, yScaledSinInv + yScaledCos + yBase);
-		setF32ValueAt(this.vIdx + 22, proj.uValue);
-		setF32ValueAt(this.vIdx + 23, proj.vValue + proj.height);
-
-		setF32ValueAt(this.vIdx + 24, texelW);
-		setF32ValueAt(this.vIdx + 25, texelH);
-		setF32ValueAt(this.vIdx + 26, 0);
-		setF32ValueAt(this.vIdx + 27, 0);
-		setF32ValueAt(this.vIdx + 28, 0);
-		setF32ValueAt(this.vIdx + 29, -1);
-
-		setF32ValueAt(this.vIdx + 30, xScaledCos + -xScaledSin + xBase);
-		setF32ValueAt(this.vIdx + 31, -yScaledSinInv + yScaledCos + yBase);
-		setF32ValueAt(this.vIdx + 32, proj.uValue + proj.width);
-		setF32ValueAt(this.vIdx + 33, proj.vValue + proj.height);
-
-		setF32ValueAt(this.vIdx + 34, texelW);
-		setF32ValueAt(this.vIdx + 35, texelH);
-		setF32ValueAt(this.vIdx + 36, 0);
-		setF32ValueAt(this.vIdx + 37, 0);
-		setF32ValueAt(this.vIdx + 38, 0);
-		setF32ValueAt(this.vIdx + 39, -1);
-		this.vIdx += 40;
-
-		final i4 = this.i * 4;
-		setI32ValueAt(this.iIdx, i4);
-		setI32ValueAt(this.iIdx + 1, 1 + i4);
-		setI32ValueAt(this.iIdx + 2, 2 + i4);
-		setI32ValueAt(this.iIdx + 3, 2 + i4);
-		setI32ValueAt(this.iIdx + 4, 1 + i4);
-		setI32ValueAt(this.iIdx + 5, 3 + i4);
-		this.iIdx += 6;
-		this.i++;
-	}
-
-	@:nonVirtual private final #if !tracing inline #end function drawParticle(time: Int32, obj: GameObject) {
-		var screenX = obj.screenX = obj.mapX * Camera.cos + obj.mapY * Camera.sin + Camera.csX;
-		var screenY = obj.screenYNoZ + obj.mapZ * -Camera.PX_PER_TILE;
-
-		var texW = obj.width * Main.ATLAS_WIDTH,
-			texH = obj.height * Main.ATLAS_HEIGHT;
-
-		var size = Camera.SIZE_MULT * obj.size;
-		var hBase = obj.hBase = size * texH;
-		var rect: Rect = null;
-		if (obj.animations != null)
-			rect = obj.animations.getTexture(time);
-
-		if (rect != null) {
-			obj.uValue = rect.x / Main.ATLAS_WIDTH;
-			obj.vValue = rect.y / Main.ATLAS_WIDTH;
-			texW = rect.width;
-			obj.width = texW / Main.ATLAS_WIDTH;
-			texH = rect.height;
-			obj.height = texH / Main.ATLAS_HEIGHT;
-		}
-
-		var flashStrength: Float32 = 0.0;
-		if (obj.flashPeriodMs > 0) {
-			if (obj.flashRepeats != -1 && time > obj.flashStartTime + obj.flashPeriodMs * obj.flashRepeats)
-				obj.flashRepeats = obj.flashStartTime = obj.flashPeriodMs = obj.flashColor = 0;
-			else
-				flashStrength = MathUtil.sin((time - obj.flashStartTime) % obj.flashPeriodMs / obj.flashPeriodMs * MathUtil.PI) * 0.5;
-		} else if (obj.flashRepeats == -1)
-			flashStrength = 1; // more hackyness
-
-		var w = size * texW * RenderUtils.clipSpaceScaleX * 0.5;
-		var h = hBase * RenderUtils.clipSpaceScaleY * 0.5;
-		var yBase = (screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
-		var xBase = screenX * RenderUtils.clipSpaceScaleX;
-		var texelW: Float32 = obj.outlineSize / Main.ATLAS_WIDTH / size;
-		var texelH: Float32 = obj.outlineSize / Main.ATLAS_HEIGHT / size;
-
-		setF32ValueAt(this.vIdx, -w + xBase);
-		setF32ValueAt(this.vIdx + 1, -h + yBase);
-		setF32ValueAt(this.vIdx + 2, obj.uValue);
-		setF32ValueAt(this.vIdx + 3, obj.vValue);
-
-		setF32ValueAt(this.vIdx + 4, texelW);
-		setF32ValueAt(this.vIdx + 5, texelH);
-		setF32ValueAt(this.vIdx + 6, obj.glowColor);
-		setF32ValueAt(this.vIdx + 7, obj.flashColor);
-		setF32ValueAt(this.vIdx + 8, flashStrength);
-		setF32ValueAt(this.vIdx + 9, -2);
-
-		setF32ValueAt(this.vIdx + 10, w + xBase);
-		setF32ValueAt(this.vIdx + 11, -h + yBase);
-		setF32ValueAt(this.vIdx + 12, obj.uValue + obj.width);
-		setF32ValueAt(this.vIdx + 13, obj.vValue);
-
-		setF32ValueAt(this.vIdx + 14, texelW);
-		setF32ValueAt(this.vIdx + 15, texelH);
-		setF32ValueAt(this.vIdx + 16, obj.glowColor);
-		setF32ValueAt(this.vIdx + 17, obj.flashColor);
-		setF32ValueAt(this.vIdx + 18, flashStrength);
-		setF32ValueAt(this.vIdx + 19, -2);
-
-		setF32ValueAt(this.vIdx + 20, -w + xBase);
-		setF32ValueAt(this.vIdx + 21, h + yBase);
-		setF32ValueAt(this.vIdx + 22, obj.uValue);
-		setF32ValueAt(this.vIdx + 23, obj.vValue + obj.height);
-
-		setF32ValueAt(this.vIdx + 24, texelW);
-		setF32ValueAt(this.vIdx + 25, texelH);
-		setF32ValueAt(this.vIdx + 26, obj.glowColor);
-		setF32ValueAt(this.vIdx + 27, obj.flashColor);
-		setF32ValueAt(this.vIdx + 28, flashStrength);
-		setF32ValueAt(this.vIdx + 29, -2);
-
-		setF32ValueAt(this.vIdx + 30, w + xBase);
-		setF32ValueAt(this.vIdx + 31, h + yBase);
-		setF32ValueAt(this.vIdx + 32, obj.uValue + obj.width);
-		setF32ValueAt(this.vIdx + 33, obj.vValue + obj.height);
-
-		setF32ValueAt(this.vIdx + 34, texelW);
-		setF32ValueAt(this.vIdx + 35, texelH);
-		setF32ValueAt(this.vIdx + 36, obj.glowColor);
-		setF32ValueAt(this.vIdx + 37, obj.flashColor);
-		setF32ValueAt(this.vIdx + 38, flashStrength);
-		setF32ValueAt(this.vIdx + 39, -2);
-		this.vIdx += 40;
-
-		final i4 = this.i * 4;
-		setI32ValueAt(this.iIdx, i4);
-		setI32ValueAt(this.iIdx + 1, 1 + i4);
-		setI32ValueAt(this.iIdx + 2, 2 + i4);
-		setI32ValueAt(this.iIdx + 3, 2 + i4);
-		setI32ValueAt(this.iIdx + 4, 1 + i4);
-		setI32ValueAt(this.iIdx + 5, 3 + i4);
-		this.iIdx += 6;
-		this.i++;
-	}
-
-	@:nonVirtual private inline function setF32ValueAt(index: Int32, value: Float32): Void {
-		return untyped __cpp__('_f32Arr_[{0}] = {1}', index, value);
-	}
-
-	@:nonVirtual private inline function setI32ValueAt(index: Int32, value: Int32): Void {
-		return untyped __cpp__('_i32Arr_[{0}] = {1}', index, value);
-	}
-
-	@:nonVirtual private inline function getF32Pointer() {
-		return untyped __cpp__('(uintptr_t)_f32Arr_');
-	}
-
-	@:nonVirtual private inline function getI32Pointer() {
-		return untyped __cpp__('(uintptr_t)_i32Arr_');
+	@:nonVirtual private final inline function drawGeneric(x1: Float32, y1: Float32, x2: Float32, y2: Float32, x3: Float32, y3: Float32, x4: Float32,
+			y4: Float32, texU: Float32, texV: Float32, texW: Float32, texH: Float32, texelW: Float32 = 0, texelH: Float32 = 0, glowColor: Float32 = 0,
+			flashColor: Float32 = 0, flashStrength: Float32 = 0, alphaMult: Float32 = -1) {
+		// this untyped stuff is a bit horrible. haxe maxx
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), x1);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), y1);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), texU);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), texV);
+
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), texelW);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), texelH);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), glowColor);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), flashColor);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), flashStrength);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), alphaMult);
+
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), x2);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), y2);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), texU + texW);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), texV);
+
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), texelW);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), texelH);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), glowColor);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), flashColor);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), flashStrength);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), alphaMult);
+
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), x3);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), y3);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), texU);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), texV + texH);
+
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), texelW);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), texelH);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), glowColor);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), flashColor);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), flashStrength);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), alphaMult);
+
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), x4);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), y4);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), texU + texW);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), texV + texH);
+
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), texelW);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), texelH);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), glowColor);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), flashColor);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), flashStrength);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), alphaMult);
+
+		final i4 = untyped __cpp__('count') * 4;
+		untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), i4);
+		untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), 1 + i4);
+		untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), 2 + i4);
+		untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), 2 + i4);
+		untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), 1 + i4);
+		untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), 3 + i4);
+
+		untyped __cpp__('count++');
 	}
 
 	@:nonVirtual private final function getLightIntensity(time: Int32) {
@@ -2437,20 +646,26 @@ class Map {
 		if (serverTimeClamped <= DAY_CYCLE_MS / 2)
 			return this.nightLightIntensity + (this.dayLightIntensity - this.nightLightIntensity) * (serverTimeClamped / (DAY_CYCLE_MS / 2));
 		else
-			return this.dayLightIntensity - (this.dayLightIntensity - this.nightLightIntensity) * ((serverTimeClamped - DAY_CYCLE_MS / 2) / (DAY_CYCLE_MS / 2));
+			return this.dayLightIntensity
+				- (this.dayLightIntensity - this.nightLightIntensity) * ((serverTimeClamped - DAY_CYCLE_MS / 2) / (DAY_CYCLE_MS / 2));
 	}
 
 	@:nonVirtual public final function draw(time: Int32) {
 		var camX = Camera.mapX, camY = Camera.mapY;
-		if (time - this.lastTileUpdate > TILE_UPDATE_MS && camX >= 0 && camY >= 0) {
-			var xMin = Std.int(Math.max(0, camX - Camera.maxDist)),
-				xMax = Std.int(Math.min(this.mapWidth, camX + Camera.maxDist));
-			var yMin = Std.int(Math.max(0, camY - Camera.maxDist)),
-				yMax = Std.int(Math.min(this.mapHeight, camY + Camera.maxDist));
 
+		var minX = Camera.minX;
+		var maxX = Camera.maxX;
+		if (maxX > this.mapWidth)
+			maxX = this.mapWidth;
+		var minY = Camera.minY;
+		var maxY = Camera.maxY;
+		if (maxY > this.mapHeight)
+			maxY = this.mapHeight;
+
+		if (time - this.lastTileUpdate > TILE_UPDATE_MS && camX >= 0 && camY >= 0) {
 			var visIdx: UInt16 = 0;
-			for (x in xMin...xMax)
-				for (y in yMin...yMax) {
+			for (x in minX...maxX)
+				for (y in minY...maxY) {
 					var dx: Float32 = camX - x - 0.5;
 					var dy: Float32 = camY - y - 0.5;
 					if (dx * dx + dy * dy > Camera.maxDistSq)
@@ -2461,10 +676,10 @@ class Map {
 						continue;
 
 					this.visSquares[visIdx++] = square;
-					// #if debug
-					// if (visIdx > MAX_VISIBLE_SQUARES)
-					// 	throw new Exception("Client sees more tiles than it should");
-					// #end
+					#if debug
+					if (visIdx > MAX_VISIBLE_SQUARES)
+						throw new Exception("Client sees more tiles than it should");
+					#end
 					square.lastVisible = time + TILE_UPDATE_MS;
 				}
 
@@ -2488,7 +703,6 @@ class Map {
 
 		this.c3d.clear();
 		this.rdSingle.resize(0);
-		this.lightIdx = 0;
 
 		GL.disable(GL.DEPTH_TEST);
 		GL.disable(GL.STENCIL_TEST);
@@ -2497,29 +711,146 @@ class Map {
 		GL.activeTexture(GL.TEXTURE0);
 		GL.bindTexture(GL.TEXTURE_2D, Main.atlas.texture);
 
-		// this will break at 13k+ objects because of stack size... todo break into multiple batches
-		var vSize = Std.int(Math.max(this.visSquareLen * 56, this.gameObjectsLen * 40));
-		var iSize = Std.int(Math.max(this.visSquareLen * 6, this.gameObjectsLen * 6));
-		untyped __cpp__('float _f32Arr_[{0}]', vSize);
-		untyped __cpp__('int _i32Arr_[{0}]', iSize);
+		var i: Int32 = 0;
+		var count: Int32 = 0;
+		var vIdx: Int32 = 0;
+		var iIdx: Int32 = 0;
+		var lightIdx: Int32 = 0;
+		untyped __cpp__('float _f32Arr_[56000]'); // 1000 squares, 1400 normal objs, 2800 lights per batch
+		untyped __cpp__('int _i32Arr_[8400]'); // 1400 of both
+		untyped __cpp__('float _lights_[60000]'); // 10000 light data (max, can't be batched efficiently)
 
-		this.i = this.vIdx = this.iIdx = 0;
-		drawSquares(time);
+		final xScaledCos = Camera.xScaledCos;
+		final yScaledCos = Camera.yScaledCos;
+		final xScaledSin = Camera.xScaledSin;
+		final yScaledSin = Camera.yScaledSin;
 
 		GL.useProgram(this.groundProgram);
 		GL.uniform2f(leftMaskUniformLoc, leftMaskU, leftMaskV);
 		GL.uniform2f(topMaskUniformLoc, topMaskU, topMaskV);
 		GL.uniform2f(rightMaskUniformLoc, rightMaskU, rightMaskV);
 		GL.uniform2f(bottomMaskUniformLoc, bottomMaskU, bottomMaskV);
+
+		while (i < this.visSquareLen) {
+			final square = this.visSquares[i];
+
+			if (square.animations != null) {
+				var rect = square.animations.getTexture(time);
+				if (rect != null) {
+					square.baseU = (rect.x + 2) / Main.ATLAS_WIDTH;
+					square.baseV = (rect.y + 2) / Main.ATLAS_WIDTH;
+					updateBlends(square.x, square.y, square);
+				}
+			}
+
+			square.clipX = (square.middleX * Camera.cos + square.middleY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
+			square.clipY = (square.middleX * -Camera.sin + square.middleY * Camera.cos + Camera.csY) * RenderUtils.clipSpaceScaleY;
+
+			if (square.props.lightColor != -1) {
+				untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'),
+					Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleX * 8 * square.props.lightRadius);
+				untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'),
+					Camera.PX_PER_TILE * RenderUtils.clipSpaceScaleY * 8 * square.props.lightRadius);
+				untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), square.clipX);
+				untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), square.clipY);
+				untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), square.props.lightColor);
+				untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), square.props.lightIntensity);
+			}
+
+			final w: Float32 = 8 / Main.ATLAS_WIDTH;
+			final h: Float32 = 8 / Main.ATLAS_HEIGHT;
+
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), -xScaledCos - xScaledSin + square.clipX);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), yScaledSin - yScaledCos + square.clipY);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 0);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 0);
+
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.leftBlendU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.leftBlendV);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.topBlendU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.topBlendV);
+
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.rightBlendU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.rightBlendV);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.bottomBlendU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.bottomBlendV);
+
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.baseU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.baseV);
+
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), xScaledCos - xScaledSin + square.clipX);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), -yScaledSin - yScaledCos + square.clipY);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), w);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 0);
+
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.leftBlendU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.leftBlendV);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.topBlendU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.topBlendV);
+
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.rightBlendU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.rightBlendV);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.bottomBlendU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.bottomBlendV);
+
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.baseU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.baseV);
+
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), -xScaledCos + xScaledSin + square.clipX);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), yScaledSin + yScaledCos + square.clipY);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 0);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), h);
+
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.leftBlendU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.leftBlendV);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.topBlendU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.topBlendV);
+
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.rightBlendU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.rightBlendV);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.bottomBlendU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.bottomBlendV);
+
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.baseU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.baseV);
+
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), xScaledCos + xScaledSin + square.clipX);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), -yScaledSin + yScaledCos + square.clipY);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), w);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), h);
+
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.leftBlendU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.leftBlendV);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.topBlendU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.topBlendV);
+
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.rightBlendU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.rightBlendV);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.bottomBlendU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.bottomBlendV);
+
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.baseU);
+			untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), square.baseV);
+
+			final i4 = i * 4;
+			untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), i4);
+			untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), 1 + i4);
+			untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), 2 + i4);
+			untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), 2 + i4);
+			untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), 1 + i4);
+			untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), 3 + i4);
+			i++;
+		}
+
 		GL.bindVertexArray(this.groundVAO);
 
-		GL.bindBuffer(GL.ARRAY_BUFFER, this.groundVBO);
 		// think about 2x scaling factor... todo
-		if (this.vIdx > this.groundVBOLen) {
-			GL.bufferData(GL.ARRAY_BUFFER, this.vIdx * 4, getF32Pointer(), GL.DYNAMIC_DRAW);
-			this.groundVBOLen = this.vIdx;
+		GL.bindBuffer(GL.ARRAY_BUFFER, this.groundVBO);
+		if (vIdx > this.groundVBOLen) {
+			GL.bufferData(GL.ARRAY_BUFFER, vIdx * 4, untyped __cpp__('(uintptr_t)_f32Arr_'), GL.DYNAMIC_DRAW);
+			this.groundVBOLen = vIdx;
 		} else
-			GL.bufferSubData(GL.ARRAY_BUFFER, 0, this.vIdx * 4, getF32Pointer());
+			GL.bufferSubData(GL.ARRAY_BUFFER, 0, vIdx * 4, untyped __cpp__('(uintptr_t)_f32Arr_'));
 
 		GL.enableVertexAttribArray(0);
 		GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 56, 0);
@@ -2535,23 +866,22 @@ class Map {
 		GL.vertexAttribPointer(5, 2, GL.FLOAT, false, 56, 48);
 
 		GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.groundIBO);
-		if (this.iIdx > this.groundIBOLen) {
-			GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, this.iIdx * 4, getI32Pointer(), GL.DYNAMIC_DRAW);
-			this.groundIBOLen = this.iIdx;
+		if (iIdx > this.groundIBOLen) {
+			GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, iIdx * 4, untyped __cpp__('(uintptr_t)_i32Arr_'), GL.DYNAMIC_DRAW);
+			this.groundIBOLen = iIdx;
 		} else
-			GL.bufferSubData(GL.ELEMENT_ARRAY_BUFFER, 0, this.iIdx * 4, getI32Pointer());
-		GL.drawElements(GL.TRIANGLES, this.iIdx, GL.UNSIGNED_INT, 0);
+			GL.bufferSubData(GL.ELEMENT_ARRAY_BUFFER, 0, iIdx * 4, untyped __cpp__('(uintptr_t)_i32Arr_'));
+		GL.drawElements(GL.TRIANGLES, iIdx, GL.UNSIGNED_INT, 0);
 
 		if (this.gameObjectsLen == 0) {
 			this.c3d.present();
 			return;
 		}
 
-		this.i = this.vIdx = this.iIdx = 0;
+		i = vIdx = iIdx = 0;
 
-		var i = 0;
 		while (i < this.gameObjectsLen) {
-			var obj: GameObject = this.gameObjects.unsafeGet(i);
+			var obj = this.gameObjects.unsafeGet(i);
 			obj.screenYNoZ = obj.mapX * -Camera.sin + obj.mapY * Camera.cos + Camera.csY;
 			obj.sortValue = obj.screenYNoZ - (obj.props.drawOnGround ? Main.stageHeight : 0) + obj.props.sortPriority;
 			i++;
@@ -2560,27 +890,6 @@ class Map {
 		i = 0;
 
 		this.gameObjects.sort((a: GameObject, b: GameObject) -> Std.int(a.sortValue - b.sortValue));
-
-		while (i < this.gameObjectsLen) {
-			var obj: GameObject = this.gameObjects.unsafeGet(i);
-			if (obj.curSquare?.lastVisible >= time) {
-				switch (obj.objClass) {
-					case "Wall":
-						drawWall(time, obj);
-					case "Player":
-						drawPlayer(time, cast(obj, Player));
-					case "Projectile":
-						drawProjectile(time, cast(obj, Projectile));
-					case "Particle":
-						drawParticle(time, obj);
-					default:
-						if (obj.objClass != "ParticleEffect") // hacky
-							drawGameObject(time, obj);
-				}
-			}
-				
-			i++;
-		}
 
 		GL.blendEquation(GL.FUNC_ADD);
 		GL.enable(GL.BLEND);
@@ -2597,15 +906,943 @@ class Map {
 			case GlowType.VeryHigh:
 				GL.useProgram(this.veryHighGlowProgram);
 		}
-		
+
+		while (i < this.gameObjectsLen) {
+			var obj = this.gameObjects.unsafeGet(i);
+			i++;
+
+			if (i > 0 && i % 1400 == 0 && i != this.gameObjectsLen - 1) {
+				GL.bindVertexArray(this.objVAO);
+
+				GL.bindBuffer(GL.ARRAY_BUFFER, this.objVBO);
+				if (vIdx > this.objVBOLen) {
+					GL.bufferData(GL.ARRAY_BUFFER, vIdx * 4, untyped __cpp__('(uintptr_t)_f32Arr_'), GL.DYNAMIC_DRAW);
+					this.objVBOLen = vIdx;
+				} else
+					GL.bufferSubData(GL.ARRAY_BUFFER, 0, vIdx * 4, untyped __cpp__('(uintptr_t)_f32Arr_'));
+
+				GL.enableVertexAttribArray(0);
+				GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 40, 0);
+				GL.enableVertexAttribArray(1);
+				GL.vertexAttribPointer(1, 2, GL.FLOAT, false, 40, 16);
+				GL.enableVertexAttribArray(2);
+				GL.vertexAttribPointer(2, 2, GL.FLOAT, false, 40, 24);
+				GL.enableVertexAttribArray(3);
+				GL.vertexAttribPointer(3, 1, GL.FLOAT, false, 40, 32);
+				GL.enableVertexAttribArray(4);
+				GL.vertexAttribPointer(4, 1, GL.FLOAT, false, 40, 36);
+
+				GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.objIBO);
+				if (iIdx > this.objIBOLen) {
+					GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, iIdx * 4, untyped __cpp__('(uintptr_t)_i32Arr_'), GL.DYNAMIC_DRAW);
+					this.objIBOLen = iIdx;
+				} else
+					GL.bufferSubData(GL.ELEMENT_ARRAY_BUFFER, 0, iIdx * 4, untyped __cpp__('(uintptr_t)_i32Arr_'));
+
+				GL.drawElements(GL.TRIANGLES, iIdx, GL.UNSIGNED_INT, 0);
+				count = vIdx = iIdx = 0;
+			}
+
+			if (obj.mapX >= minX && obj.mapX <= maxX && obj.mapY >= minY && obj.mapY <= maxY) {
+				switch (obj.objClass) {
+					case "Wall": {
+							if (obj.animations != null) {
+								var rect = obj.animations.getTexture(time);
+								if (rect != null) {
+									obj.uValue = (rect.x + 2) / Main.ATLAS_WIDTH;
+									obj.vValue = (rect.y + 2) / Main.ATLAS_WIDTH;
+								}
+							}
+
+							var size = 8 / Main.ATLAS_WIDTH;
+							var objX = obj.mapX;
+							var objY = obj.mapY;
+							var xBaseTop = (objX * Camera.cos + objY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
+							var yBaseTop = (objX * -Camera.sin + objY * Camera.cos + Camera.csY - Camera.PX_PER_TILE) * RenderUtils.clipSpaceScaleY;
+							var xBase = (objX * Camera.cos + objY * Camera.sin + Camera.csX) * RenderUtils.clipSpaceScaleX;
+							var yBase = (objX * -Camera.sin + objY * Camera.cos + Camera.csY) * RenderUtils.clipSpaceScaleY;
+
+							if (obj.props.isEnemy) {
+								obj.hBase = size * Camera.SIZE_MULT;
+								obj.screenX = xBaseTop;
+								obj.screenYNoZ = yBaseTop;
+							}
+
+							var xScaledCos = Camera.xScaledCos;
+							var yScaledCos = Camera.yScaledCos;
+							var xScaledSin = Camera.xScaledSin;
+							var yScaledSin = Camera.yScaledSin;
+
+							final floorX = Math.floor(objX);
+							final floorY = Math.floor(objY);
+
+							var uValue: Float32 = 0.0, vValue: Float32 = 0.0;
+							var boundAngle = MathUtil.halfBound(Camera.angleRad);
+							if (boundAngle >= MathUtil.PI_DIV_2 && boundAngle <= MathUtil.PI || boundAngle >= -MathUtil.PI && boundAngle <=
+								-MathUtil.PI_DIV_2) {
+								var topSquare = validPos(floorX, floorY - 1) ? this.squares[(floorY - 1) * this.mapWidth + floorX] : null;
+								var topSqNull = topSquare == null;
+								if (topSqNull || topSquare.obj == null || topSquare.obj.objClass != "Wall") {
+									if (topSqNull || topSquare.tileType == 0xFF) {
+										uValue = wallBackfaceU;
+										vValue = wallBackfaceV;
+									} else {
+										uValue = obj.uValue;
+										vValue = obj.vValue;
+									}
+
+									this.drawGeneric(-xScaledCos
+										+ xScaledSin
+										+ xBaseTop
+										- xScaledSin * 2,
+										yScaledSin
+										+ yScaledCos
+										+ yBaseTop
+										- yScaledCos * 2, xScaledCos
+										+ xScaledSin
+										+ xBaseTop
+										- xScaledSin * 2,
+										-yScaledSin
+										+ yScaledCos
+										+ yBaseTop
+										- yScaledCos * 2,
+										-xScaledCos
+										+ xScaledSin
+										+ xBase
+										- xScaledSin * 2,
+										yScaledSin
+										+ yScaledCos
+										+ yBase
+										- yScaledCos * 2, xScaledCos
+										+ xScaledSin
+										+ xBase
+										- xScaledSin * 2,
+										-yScaledSin
+										+ yScaledCos
+										+ yBase
+										- yScaledCos * 2, uValue, vValue, size, size, 0, 0, 0, 1.0, 0.25);
+								}
+							}
+
+							if (boundAngle <= MathUtil.PI_DIV_2 && boundAngle >= -MathUtil.PI_DIV_2) {
+								var bottomSquare = validPos(floorX, floorY + 1) ? this.squares[(floorY + 1) * this.mapWidth + floorX] : null;
+								var bottomSqNull = bottomSquare == null;
+								if (bottomSqNull || bottomSquare.obj == null || bottomSquare.obj.objClass != "Wall") {
+									if (bottomSqNull || bottomSquare.tileType == 0xFF) {
+										uValue = wallBackfaceU;
+										vValue = wallBackfaceV;
+									} else {
+										uValue = obj.uValue;
+										vValue = obj.vValue;
+									}
+
+									this.drawGeneric(-xScaledCos
+										+ xScaledSin
+										+ xBaseTop, yScaledSin
+										+ yScaledCos
+										+ yBaseTop,
+										xScaledCos
+										+ xScaledSin
+										+ xBaseTop,
+										-yScaledSin
+										+ yScaledCos
+										+ yBaseTop,
+										-xScaledCos
+										+ xScaledSin
+										+ xBase,
+										yScaledSin
+										+ yScaledCos
+										+ yBase, xScaledCos
+										+ xScaledSin
+										+ xBase,
+										-yScaledSin
+										+ yScaledCos
+										+ yBase, uValue, vValue,
+										size, size, 0, 0, 0, 1.0, 0.25);
+								}
+							}
+
+							if (boundAngle >= 0 && boundAngle <= MathUtil.PI) {
+								var leftSquare = validPos(floorX - 1, floorY) ? this.squares[floorY * this.mapWidth + floorX - 1] : null;
+								var leftSqNull = leftSquare == null;
+								if (leftSqNull || leftSquare.obj == null || leftSquare.obj.objClass != "Wall") {
+									if (leftSqNull || leftSquare.tileType == 0xFF) {
+										uValue = wallBackfaceU;
+										vValue = wallBackfaceV;
+									} else {
+										uValue = obj.uValue;
+										vValue = obj.vValue;
+									}
+
+									this.drawGeneric(-xScaledCos
+										- xScaledSin
+										+ xBaseTop, yScaledSin
+										- yScaledCos
+										+ yBaseTop,
+										-xScaledCos
+										+ xScaledSin
+										+ xBaseTop, yScaledSin
+										+ yScaledCos
+										+ yBaseTop,
+										-xScaledCos
+										+ xScaledSin
+										+ xBase
+										- xScaledSin * 2, yScaledSin
+										+ yScaledCos
+										+ yBase
+										- yScaledCos * 2,
+										-xScaledCos
+										+ xScaledSin
+										+ xBase, yScaledSin
+										+ yScaledCos
+										+ yBase, uValue, vValue, size, size, 0, 0, 0, 1.0, 0.25);
+								}
+							}
+
+							if (boundAngle <= 0 && boundAngle >= -MathUtil.PI) {
+								var rightSquare = validPos(floorX + 1, floorY) ? this.squares[floorY * this.mapWidth + floorX + 1] : null;
+								var rightSqNull = rightSquare == null;
+								if (rightSqNull || rightSquare.obj == null || rightSquare.obj.objClass != "Wall") {
+									if (rightSqNull || rightSquare.tileType == 0xFF) {
+										uValue = wallBackfaceU;
+										vValue = wallBackfaceV;
+									} else {
+										uValue = obj.uValue;
+										vValue = obj.vValue;
+									}
+
+									this.drawGeneric(xScaledCos
+										- xScaledSin
+										+ xBaseTop,
+										-yScaledSin
+										- yScaledCos
+										+ yBaseTop,
+										xScaledCos
+										+ xScaledSin
+										+ xBaseTop,
+										-yScaledSin
+										+ yScaledCos
+										+ yBaseTop,
+										xScaledCos
+										+ xScaledSin
+										+ xBase
+										- xScaledSin * 2,
+										-yScaledSin
+										+ yScaledCos
+										+ yBase
+										- yScaledCos * 2,
+										xScaledCos
+										+ xScaledSin
+										+ xBase,
+										-yScaledSin
+										+ yScaledCos
+										+ yBase, uValue, vValue, size, size, 0, 0, 0, 1.0, 0.25);
+								}
+							}
+
+							this.drawGeneric(-xScaledCos
+								- xScaledSin
+								+ xBaseTop, yScaledSin
+								- yScaledCos
+								+ yBaseTop, xScaledCos
+								- xScaledSin
+								+ xBaseTop,
+								-yScaledSin
+								- yScaledCos
+								+ yBaseTop,
+								-xScaledCos
+								+ xScaledSin
+								+ xBaseTop, yScaledSin
+								+ yScaledCos
+								+ yBaseTop,
+								xScaledCos
+								+ xScaledSin
+								+ xBaseTop,
+								-yScaledSin
+								+ yScaledCos
+								+ yBaseTop, obj.topUValue, obj.topVValue, size, size, 0, 0, 0,
+								1.0, 0.1);
+						}
+					case "Player":
+						{
+							var player: Player = cast obj;
+							var screenX = player.screenX = player.mapX * Camera.cos + player.mapY * Camera.sin + Camera.csX;
+							var screenY = player.screenYNoZ + player.mapZ * -Camera.PX_PER_TILE;
+
+							var texW = player.width * Main.ATLAS_WIDTH,
+								texH = player.height * Main.ATLAS_HEIGHT;
+
+							var action = AnimatedChar.STAND;
+							var p: Float32 = 0.0;
+							var rect: Rect = null;
+							if (player.animatedChar != null) {
+								if (time < player.attackStart + GameObject.ATTACK_PERIOD) {
+									if (!player.props.dontFaceAttacks)
+										player.facing = player.attackAngle;
+
+									p = (time - player.attackStart) % GameObject.ATTACK_PERIOD / GameObject.ATTACK_PERIOD;
+									action = AnimatedChar.ATTACK;
+								} else if (player.moveVec.x != 0 || player.moveVec.y != 0) {
+									var walkPer = Std.int(0.5 / player.moveVec.length);
+									walkPer += 400 - walkPer % 400;
+									if (player.moveVec.x > GameObject.ZERO_LIMIT
+										|| player.moveVec.x < GameObject.NEGATIVE_ZERO_LIMIT
+										|| player.moveVec.y > GameObject.ZERO_LIMIT
+										|| player.moveVec.y < GameObject.NEGATIVE_ZERO_LIMIT) {
+										player.facing = Math.atan2(player.moveVec.y, player.moveVec.x);
+										action = AnimatedChar.WALK;
+									} else
+										action = AnimatedChar.STAND;
+
+									p = time % walkPer / walkPer;
+								}
+
+								rect = player.animatedChar.rectFromFacing(player.facing, action, p);
+							} else if (player.animations != null)
+								rect = player.animations.getTexture(time);
+
+							if (rect != null) {
+								player.uValue = rect.x / Main.ATLAS_WIDTH;
+								player.vValue = rect.y / Main.ATLAS_WIDTH;
+								texW = rect.width;
+								player.width = texW / Main.ATLAS_WIDTH;
+								texH = rect.height;
+								player.height = texH / Main.ATLAS_HEIGHT;
+							}
+
+							var sink: Float32 = 1.0;
+							if (player.curSquare != null
+								&& !(player.flying || player.curSquare.obj != null && player.curSquare.obj.props.protectFromSink))
+								sink += player.curSquare.sink + player.sinkLevel;
+
+							var flashStrength: Float32 = 0.0;
+							if (player.flashPeriodMs > 0) {
+								if (player.flashRepeats != -1 && time > player.flashStartTime + player.flashPeriodMs * player.flashRepeats)
+									player.flashRepeats = player.flashStartTime = player.flashPeriodMs = player.flashColor = 0;
+								else
+									flashStrength = MathUtil.sin((time - player.flashStartTime) % player.flashPeriodMs / player.flashPeriodMs * MathUtil.PI) * 0.5;
+							}
+
+							var size = Camera.SIZE_MULT * player.size;
+							var w = size * texW * RenderUtils.clipSpaceScaleX * 0.5;
+							var hBase = player.hBase = size * texH;
+							var h = hBase * RenderUtils.clipSpaceScaleY * 0.5 / sink;
+							var yBase = (screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+							var xOffset: Float32 = 0.0;
+							if (action == AnimatedChar.ATTACK && p >= 0.5) {
+								var dir = player.animatedChar.facingToDir(player.facing);
+								if (dir == AnimatedChar.LEFT)
+									xOffset = -w / 2 + size * Main.PADDING * RenderUtils.clipSpaceScaleX * 0.5;
+								else
+									xOffset = w / 2 - size * Main.PADDING * RenderUtils.clipSpaceScaleX * 0.5;
+							}
+							var xBase = screenX * RenderUtils.clipSpaceScaleX + xOffset;
+							var texelW: Float32 = Main.BASE_TEXEL_W * 2 / size;
+							var texelH: Float32 = Main.BASE_TEXEL_H * 2 / size;
+							var alphaMult: Float32 = ((player.condition & ConditionEffect.INVISIBLE_BIT) != 0 ? 0.6 : -1);
+
+							if (player.props.lightColor != -1) {
+								untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), w * 8 * player.props.lightRadius);
+								untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), h * 8 * player.props.lightRadius);
+								untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), xBase);
+								untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), yBase);
+								untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), player.props.lightColor);
+								untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), player.props.lightIntensity);
+							}
+
+							this.drawGeneric(-w + xBase, -h + yBase, w + xBase, -h + yBase, -w + xBase, h + yBase, w + xBase, h + yBase, player.uValue,
+								player.vValue, player.width, player.height / sink, texelW, texelH, player.glowColor, player.flashColor, flashStrength,
+								alphaMult);
+
+							var yPos: Int32 = 15 + (sink != 0 ? 5 : 0);
+							if (player.props == null || !player.props.noMiniMap) {
+								xBase = screenX * RenderUtils.clipSpaceScaleX;
+
+								if (player.hp > player.maxHP)
+									player.maxHP = player.hp;
+
+								var scaledEmptyBarW: Float32 = emptyBarW / Main.ATLAS_WIDTH;
+								var scaledEmptyBarH: Float32 = emptyBarH / Main.ATLAS_HEIGHT;
+								if (player.hp >= 0 && player.hp < player.maxHP) {
+									var scaledBarW: Float32 = hpBarW / Main.ATLAS_WIDTH;
+									var scaledBarH: Float32 = hpBarH / Main.ATLAS_HEIGHT;
+									w = hpBarW * RenderUtils.clipSpaceScaleX;
+									h = hpBarH * RenderUtils.clipSpaceScaleY;
+									yBase = (screenY + yPos - (hpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+									texelW = Main.BASE_TEXEL_W * 0.5;
+									texelH = Main.BASE_TEXEL_H * 0.5;
+
+									this.drawGeneric(-w + xBase, -h + yBase, w + xBase, -h + yBase, -w + xBase, h + yBase, w + xBase, h + yBase, emptyBarU,
+										emptyBarV, scaledEmptyBarW, scaledEmptyBarH, texelW, texelH);
+
+									var hpPerc = 1 / (player.hp / player.maxHP);
+									var hpPercOffset = (1 - player.hp / player.maxHP) * hpBarW * RenderUtils.clipSpaceScaleX;
+									w /= hpPerc;
+
+									this.drawGeneric(-w
+										+ xBase
+										- hpPercOffset,
+										-h
+										+ yBase, w
+										+ xBase
+										- hpPercOffset,
+										-h
+										+ yBase,
+										-w
+										+ xBase
+										- hpPercOffset,
+										h
+										+ yBase, w
+										+ xBase
+										- hpPercOffset, h
+										+ yBase, hpBarU, hpBarV, scaledBarW / hpPerc, scaledBarH, texelW, texelH);
+
+									yPos += 20;
+								}
+
+								if (player.mp >= 0 && player.mp < player.maxMP) {
+									var scaledBarW: Float32 = mpBarW / Main.ATLAS_WIDTH;
+									var scaledBarH: Float32 = mpBarH / Main.ATLAS_HEIGHT;
+									w = mpBarW * RenderUtils.clipSpaceScaleX;
+									h = mpBarH * RenderUtils.clipSpaceScaleY;
+									yBase = (screenY + yPos - (hpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+									texelW = Main.BASE_TEXEL_W * 0.5;
+									texelH = Main.BASE_TEXEL_H * 0.5;
+
+									this.drawGeneric(-w + xBase, -h + yBase, w + xBase, -h + yBase, -w + xBase, h + yBase, w + xBase, h + yBase, emptyBarU,
+										emptyBarV, scaledEmptyBarW, scaledEmptyBarH, texelW, texelH);
+
+									var mpPerc = 1 / (player.mp / player.maxMP);
+									var mpPercOffset = (1 - player.mp / player.maxMP) * mpBarW * RenderUtils.clipSpaceScaleX;
+									w /= mpPerc;
+
+									this.drawGeneric(-w
+										+ xBase
+										- mpPercOffset,
+										-h
+										+ yBase, w
+										+ xBase
+										- mpPercOffset,
+										-h
+										+ yBase,
+										-w
+										+ xBase
+										- mpPercOffset,
+										h
+										+ yBase, w
+										+ xBase
+										- mpPercOffset, h
+										+ yBase, mpBarU, mpBarV, scaledBarW / mpPerc, scaledBarH, texelW, texelH);
+
+									yPos += 20;
+								}
+							}
+
+							if (player.condition > 0) {
+								var len = 0;
+								for (i in 0...32)
+									if (player.condition & (1 << i) != 0)
+										len++;
+
+								len >>= 1;
+								for (i in 0...32)
+									if (player.condition & (1 << i) != 0) {
+										var rect = ConditionEffect.effectRects[i];
+										if (rect == null)
+											continue;
+
+										var scaledW: Float32 = rect.width / Main.ATLAS_WIDTH;
+										var scaledH: Float32 = rect.height / Main.ATLAS_HEIGHT;
+										var scaledU: Float32 = rect.x / Main.ATLAS_WIDTH;
+										var scaledV: Float32 = rect.y / Main.ATLAS_HEIGHT;
+										w = rect.width * RenderUtils.clipSpaceScaleX;
+										h = rect.height * RenderUtils.clipSpaceScaleY;
+										xBase = (screenX - rect.width * len + i * rect.width) * RenderUtils.clipSpaceScaleX;
+										yBase = (screenY + yPos - (rect.height / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+										texelW = Main.BASE_TEXEL_W * 0.5;
+										texelH = Main.BASE_TEXEL_H * 0.5;
+
+										this.drawGeneric(-w + xBase, -h + yBase, w + xBase, -h + yBase, -w + xBase, h + yBase, w + xBase, h + yBase, scaledU,
+											scaledV, scaledW, scaledH, texelW, texelH);
+									}
+							}
+
+							if (player.name != null && player.name != "") {
+								if (player.nameTex == null) {
+									player.nameText = new SimpleText(16, player.isFellowGuild ? Settings.FELLOW_GUILD_COLOR : Settings.DEFAULT_COLOR);
+									player.nameText.setBold(true);
+									player.nameText.text = player.name;
+									player.nameText.updateMetrics();
+
+									player.nameTex = new BitmapData(Std.int(player.nameText.width + 20), 64, true, 0);
+									player.nameTex.draw(player.nameText, new Matrix(1, 0, 0, 1, 12, 0));
+									player.nameTex.applyFilter(player.nameTex, player.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
+								}
+
+								var textureData = TextureFactory.make(player.nameTex);
+								this.rdSingle.push({
+									cosX: textureData.width * RenderUtils.clipSpaceScaleX,
+									sinX: 0,
+									sinY: 0,
+									cosY: textureData.height * RenderUtils.clipSpaceScaleY,
+									x: screenX * RenderUtils.clipSpaceScaleX,
+									y: (screenY - hBase + 30 + (sink - 1) * hBase / 3) * RenderUtils.clipSpaceScaleY,
+									texelW: 0,
+									texelH: 0,
+									texture: textureData.texture
+								});
+							}
+						}
+					case "Projectile":
+						{
+							var proj: Projectile = cast obj;
+							var screenX = proj.mapX * Camera.cos + proj.mapY * Camera.sin + Camera.csX;
+							var screenY = proj.mapX * -Camera.sin + proj.mapY * Camera.cos + Camera.csY;
+
+							var texW = proj.width * Main.ATLAS_WIDTH,
+								texH = proj.height * Main.ATLAS_HEIGHT;
+
+							final size = Camera.SIZE_MULT * proj.size;
+							final w = size * texW;
+							final h = size * texH;
+							final yBase = (screenY - (h / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+							final xBase = screenX * RenderUtils.clipSpaceScaleX;
+							final texelW = Main.BASE_TEXEL_W * 2 / size;
+							final texelH = Main.BASE_TEXEL_H * 2 / size;
+							final rotation = proj.projProps.rotation;
+							final angle = proj.getDirectionAngle(time) + proj.projProps.angleCorrection + (rotation == 0 ? 0 : time / rotation)
+								- Camera.angleRad;
+							final cosAngle = MathUtil.cos(angle);
+							final sinAngle = MathUtil.sin(angle);
+							final xScaledCos = cosAngle * w * RenderUtils.clipSpaceScaleX * 0.5;
+							final xScaledSin = sinAngle * h * RenderUtils.clipSpaceScaleX * 0.5;
+							final yScaledCos = cosAngle * w * RenderUtils.clipSpaceScaleY * 0.5;
+							final yScaledSinInv = -sinAngle * h * RenderUtils.clipSpaceScaleY * 0.5;
+
+							if (proj.projProps.lightColor != -1) {
+								untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'),
+									w * RenderUtils.clipSpaceScaleX * 0.5 * 8 * proj.projProps.lightRadius);
+								untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'),
+									h * RenderUtils.clipSpaceScaleY * 0.5 * 8 * proj.projProps.lightRadius);
+								untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), xBase);
+								untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), yBase);
+								untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), proj.projProps.lightColor);
+								untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), proj.projProps.lightIntensity);
+							}
+
+							this.drawGeneric(-xScaledCos
+								+ xScaledSin
+								+ xBase, yScaledSinInv
+								+ -yScaledCos + yBase, xScaledCos
+								+ xScaledSin
+								+ xBase,
+								-(yScaledSinInv + yScaledCos)
+								+ yBase,
+								-(xScaledCos + xScaledSin)
+								+ xBase, yScaledSinInv
+								+ yScaledCos
+								+ yBase,
+								xScaledCos
+								+ -xScaledSin + xBase,
+								-yScaledSinInv
+								+ yScaledCos
+								+ yBase, proj.uValue, proj.vValue, proj.width, proj.height,
+								texelW, texelH);
+						}
+					case "Particle":
+						{
+							var screenX = obj.screenX = obj.mapX * Camera.cos + obj.mapY * Camera.sin + Camera.csX;
+							var screenY = obj.screenYNoZ + obj.mapZ * -Camera.PX_PER_TILE;
+
+							var texW = obj.width * Main.ATLAS_WIDTH,
+								texH = obj.height * Main.ATLAS_HEIGHT;
+
+							var size = Camera.SIZE_MULT * obj.size;
+							var hBase = obj.hBase = size * texH;
+							var rect: Rect = null;
+							if (obj.animations != null)
+								rect = obj.animations.getTexture(time);
+
+							if (rect != null) {
+								obj.uValue = rect.x / Main.ATLAS_WIDTH;
+								obj.vValue = rect.y / Main.ATLAS_WIDTH;
+								texW = rect.width;
+								obj.width = texW / Main.ATLAS_WIDTH;
+								texH = rect.height;
+								obj.height = texH / Main.ATLAS_HEIGHT;
+							}
+
+							var flashStrength: Float32 = 0.0;
+							if (obj.flashPeriodMs > 0) {
+								if (obj.flashRepeats != -1 && time > obj.flashStartTime + obj.flashPeriodMs * obj.flashRepeats)
+									obj.flashRepeats = obj.flashStartTime = obj.flashPeriodMs = obj.flashColor = 0;
+								else
+									flashStrength = MathUtil.sin((time - obj.flashStartTime) % obj.flashPeriodMs / obj.flashPeriodMs * MathUtil.PI) * 0.5;
+							} else if (obj.flashRepeats == -1)
+								flashStrength = 1; // more hackyness
+
+							var w = size * texW * RenderUtils.clipSpaceScaleX * 0.5;
+							var h = hBase * RenderUtils.clipSpaceScaleY * 0.5;
+							var yBase = (screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+							var xBase = screenX * RenderUtils.clipSpaceScaleX;
+							var texelW: Float32 = Main.BASE_TEXEL_W * obj.outlineSize / size;
+							var texelH: Float32 = Main.BASE_TEXEL_H * obj.outlineSize / size;
+
+							this.drawGeneric(-w + xBase, -h + yBase, w + xBase, -h + yBase, -w + xBase, h + yBase, w + xBase, h + yBase, obj.uValue,
+								obj.vValue, obj.width, obj.height, texelW, texelH, obj.glowColor, obj.flashColor, flashStrength, -2);
+						}
+					default:
+						if (obj.objClass != "ParticleEffect") {
+							var screenX = obj.screenX = obj.mapX * Camera.cos + obj.mapY * Camera.sin + Camera.csX;
+							var screenY = obj.screenYNoZ + obj.mapZ * -Camera.PX_PER_TILE;
+
+							var texW = obj.width * Main.ATLAS_WIDTH,
+								texH = obj.height * Main.ATLAS_HEIGHT;
+
+							var size = Camera.SIZE_MULT * obj.size;
+							var hBase = obj.hBase = size * texH;
+
+							if (obj.props.drawOnGround) {
+								if (obj.curSquare != null)
+									continue;
+
+								final xScaledCos = Camera.xScaledCos;
+								final yScaledCos = Camera.yScaledCos;
+								final xScaledSin = Camera.xScaledSin;
+								final yScaledSin = Camera.yScaledSin;
+								final clipX = obj.curSquare.clipX;
+								final clipY = obj.curSquare.clipY;
+
+								this.drawGeneric(-xScaledCos
+									- xScaledSin
+									+ clipX, yScaledSin
+									- yScaledCos
+									+ clipY, xScaledCos
+									- xScaledSin
+									+ clipX,
+									-yScaledSin
+									- yScaledCos
+									+ clipY,
+									-xScaledCos
+									+ xScaledSin
+									+ clipX, yScaledSin
+									+ yScaledCos
+									+ clipY,
+									xScaledCos
+									+ xScaledSin
+									+ clipX,
+									-yScaledSin
+									+ yScaledCos
+									+ clipY, obj.uValue, obj.vValue, obj.width, obj.height);
+
+								var isPortal = obj.objClass == "Portal";
+								if ((obj.props.showName || isPortal) && obj.name != null && obj.name != "") {
+									if (obj.nameTex == null) {
+										obj.nameText = new SimpleText(16, 0xFFFFFF);
+										obj.nameText.setBold(true);
+										obj.nameText.text = obj.name;
+										obj.nameText.updateMetrics();
+
+										obj.nameTex = new BitmapData(Std.int(obj.nameText.width + 20), 64, true, 0);
+										obj.nameTex.draw(obj.nameText, new Matrix(1, 0, 0, 1, 12, 0));
+										obj.nameTex.applyFilter(obj.nameTex, obj.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
+									}
+
+									var textureData = TextureFactory.make(obj.nameTex);
+									this.rdSingle.push({
+										cosX: textureData.width * RenderUtils.clipSpaceScaleX,
+										sinX: 0,
+										sinY: 0,
+										cosY: textureData.height * RenderUtils.clipSpaceScaleY,
+										x: clipX - 3 * RenderUtils.clipSpaceScaleX,
+										y: clipY - hBase / 2 * RenderUtils.clipSpaceScaleY,
+										texelW: 0,
+										texelH: 0,
+										texture: textureData.texture
+									});
+
+									if (isPortal && Global.currentInteractiveTarget == obj.objectId) {
+										if (obj.enterTex == null) {
+											var enterText = new SimpleText(16, 0xFFFFFF);
+											enterText.setBold(true);
+											enterText.text = "Enter";
+											enterText.updateMetrics();
+
+											obj.enterTex = new BitmapData(Std.int(enterText.width + 20), 64, true, 0);
+											obj.enterTex.draw(enterText, new Matrix(1, 0, 0, 1, 12, 0));
+											obj.enterTex.applyFilter(obj.enterTex, obj.enterTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
+										}
+
+										var textureData = TextureFactory.make(obj.enterTex);
+										this.rdSingle.push({
+											cosX: textureData.width * RenderUtils.clipSpaceScaleX,
+											sinX: 0,
+											sinY: 0,
+											cosY: textureData.height * RenderUtils.clipSpaceScaleY,
+											x: clipX + 8 * RenderUtils.clipSpaceScaleX,
+											y: clipY + 70 * RenderUtils.clipSpaceScaleY,
+											texelW: 0,
+											texelH: 0,
+											texture: textureData.texture
+										});
+
+										if (obj.enterKeyTex == null)
+											obj.enterKeyTex = AssetLibrary.getImageFromSet("keyIndicators",
+												KeyCodeUtil.charCodeIconIndices[Settings.interact]);
+
+										var textureData = TextureFactory.make(obj.enterKeyTex);
+										this.rdSingle.push({
+											cosX: (textureData.width >> 2) * RenderUtils.clipSpaceScaleX,
+											sinX: 0,
+											sinY: 0,
+											cosY: (textureData.height >> 2) * RenderUtils.clipSpaceScaleY,
+											x: clipX - 22 * RenderUtils.clipSpaceScaleX,
+											y: clipY + 49 * RenderUtils.clipSpaceScaleY,
+											texelW: 0,
+											texelH: 0,
+											texture: textureData.texture
+										});
+									}
+								}
+							} else {
+								var rect: Rect = null;
+								var action = AnimatedChar.STAND;
+								var p: Float32 = 0.0;
+								if (obj.animatedChar != null) {
+									if (time < obj.attackStart + GameObject.ATTACK_PERIOD) {
+										if (!obj.props.dontFaceAttacks)
+											obj.facing = obj.attackAngle;
+
+										p = (time - obj.attackStart) % GameObject.ATTACK_PERIOD / GameObject.ATTACK_PERIOD;
+										action = AnimatedChar.ATTACK;
+									} else if (obj.moveVec.x != 0 || obj.moveVec.y != 0) {
+										var walkPer = Std.int(0.5 / obj.moveVec.length);
+										walkPer += 400 - walkPer % 400;
+										if (obj.moveVec.x > GameObject.ZERO_LIMIT
+											|| obj.moveVec.x < GameObject.NEGATIVE_ZERO_LIMIT
+											|| obj.moveVec.y > GameObject.ZERO_LIMIT
+											|| obj.moveVec.y < GameObject.NEGATIVE_ZERO_LIMIT) {
+											obj.facing = Math.atan2(obj.moveVec.y, obj.moveVec.x);
+											action = AnimatedChar.WALK;
+										} else
+											action = AnimatedChar.STAND;
+
+										p = time % walkPer / walkPer;
+									}
+
+									rect = obj.animatedChar.rectFromFacing(obj.facing, action, p);
+								} else if (obj.animations != null)
+									rect = obj.animations.getTexture(time);
+
+								if (rect != null) {
+									obj.uValue = rect.x / Main.ATLAS_WIDTH;
+									obj.vValue = rect.y / Main.ATLAS_WIDTH;
+									texW = rect.width;
+									obj.width = texW / Main.ATLAS_WIDTH;
+									texH = rect.height;
+									obj.height = texH / Main.ATLAS_HEIGHT;
+								}
+
+								var sink: Float32 = 1.0;
+								if (obj.curSquare != null
+									&& !(obj.flying || obj.curSquare.obj != null && obj.curSquare.obj.props.protectFromSink))
+									sink += obj.curSquare.sink + obj.sinkLevel;
+
+								var flashStrength: Float32 = 0.0;
+								if (obj.flashPeriodMs > 0) {
+									if (obj.flashRepeats != -1 && time > obj.flashStartTime + obj.flashPeriodMs * obj.flashRepeats)
+										obj.flashRepeats = obj.flashStartTime = obj.flashPeriodMs = obj.flashColor = 0;
+									else
+										flashStrength = MathUtil.sin((time - obj.flashStartTime) % obj.flashPeriodMs / obj.flashPeriodMs * MathUtil.PI) * 0.5;
+								}
+
+								var w = size * texW * RenderUtils.clipSpaceScaleX * 0.5;
+								var h = hBase * RenderUtils.clipSpaceScaleY * 0.5 / sink;
+								var yBase = (screenY - (hBase / 2 - size * Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+								var xOffset: Float32 = 0.0;
+								if (action == AnimatedChar.ATTACK && p >= 0.5) {
+									var dir = obj.animatedChar.facingToDir(obj.facing);
+									if (dir == AnimatedChar.LEFT)
+										xOffset = -w / 2 + size * Main.PADDING * RenderUtils.clipSpaceScaleX * 0.5;
+									else
+										xOffset = w / 2 - size * Main.PADDING * RenderUtils.clipSpaceScaleX * 0.5;
+								}
+								var xBase = screenX * RenderUtils.clipSpaceScaleX + xOffset;
+								var texelW: Float32 = Main.BASE_TEXEL_W * 2 / size;
+								var texelH: Float32 = Main.BASE_TEXEL_H * 2 / size;
+								var alphaMult: Float32 = ((obj.condition & ConditionEffect.INVISIBLE_BIT) != 0 ? 0.6 : -1);
+
+								if (obj.props.lightColor != -1) {
+									untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), w * 8 * obj.props.lightRadius);
+									untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), h * 8 * obj.props.lightRadius);
+									untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), xBase);
+									untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), yBase);
+									untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), obj.props.lightColor);
+									untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), obj.props.lightIntensity);
+								}
+
+								this.drawGeneric(-w + xBase, -h + yBase, w + xBase, -h + yBase, -w + xBase, h + yBase, w + xBase, h + yBase, obj.uValue,
+									obj.vValue, obj.width, obj.height / sink, texelW, texelH, obj.glowColor, obj.flashColor, flashStrength, alphaMult);
+
+								var yPos: Int32 = 15 + (sink != 0 ? 5 : 0);
+								if (obj.props == null || !obj.props.noMiniMap) {
+									xBase = screenX * RenderUtils.clipSpaceScaleX;
+
+									if (obj.hp > obj.maxHP)
+										obj.maxHP = obj.hp;
+
+									var scaledEmptyBarW: Float32 = emptyBarW / Main.ATLAS_WIDTH;
+									var scaledEmptyBarH: Float32 = emptyBarH / Main.ATLAS_HEIGHT;
+									if (obj.hp >= 0 && obj.hp < obj.maxHP) {
+										var scaledBarW: Float32 = hpBarW / Main.ATLAS_WIDTH;
+										var scaledBarH: Float32 = hpBarH / Main.ATLAS_HEIGHT;
+										w = hpBarW * RenderUtils.clipSpaceScaleX;
+										h = hpBarH * RenderUtils.clipSpaceScaleY;
+										yBase = (screenY + yPos - (hpBarH / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+										texelW = Main.BASE_TEXEL_W * 0.5;
+										texelH = Main.BASE_TEXEL_H * 0.5;
+
+										this.drawGeneric(-w + xBase, -h + yBase, w + xBase, -h + yBase, -w + xBase, h + yBase, w + xBase, h + yBase,
+											emptyBarU, emptyBarV, scaledEmptyBarW, scaledEmptyBarH, texelW, texelH);
+
+										var hpPerc = 1 / (obj.hp / obj.maxHP);
+										var hpPercOffset = (1 - obj.hp / obj.maxHP) * hpBarW * RenderUtils.clipSpaceScaleX;
+										w /= hpPerc;
+
+										this.drawGeneric(-w
+											+ xBase
+											- hpPercOffset,
+											-h
+											+ yBase, w
+											+ xBase
+											- hpPercOffset,
+											-h
+											+ yBase,
+											-w
+											+ xBase
+											- hpPercOffset, h
+											+ yBase, w
+											+ xBase
+											- hpPercOffset, h
+											+ yBase, hpBarU, hpBarV, scaledBarW / hpPerc,
+											scaledBarH, texelW, texelH);
+
+										yPos += 20;
+									}
+								}
+
+								if (obj.condition > 0) {
+									var len = 0;
+									for (i in 0...32)
+										if (obj.condition & (1 << i) != 0)
+											len++;
+
+									len >>= 1;
+									for (i in 0...32)
+										if (obj.condition & (1 << i) != 0) {
+											var rect = ConditionEffect.effectRects[i];
+											if (rect == null)
+												continue;
+
+											var scaledW: Float32 = rect.width / Main.ATLAS_WIDTH;
+											var scaledH: Float32 = rect.height / Main.ATLAS_HEIGHT;
+											var scaledU: Float32 = rect.x / Main.ATLAS_WIDTH;
+											var scaledV: Float32 = rect.y / Main.ATLAS_HEIGHT;
+											w = rect.width * RenderUtils.clipSpaceScaleX;
+											h = rect.height * RenderUtils.clipSpaceScaleY;
+											xBase = (screenX - rect.width * len + i * rect.width) * RenderUtils.clipSpaceScaleX;
+											yBase = (screenY + yPos - (rect.height / 2 - Main.PADDING)) * RenderUtils.clipSpaceScaleY;
+											texelW = Main.BASE_TEXEL_W * 0.5;
+											texelH = Main.BASE_TEXEL_H * 0.5;
+
+											this.drawGeneric(-w + xBase, -h + yBase, w + xBase, -h + yBase, -w + xBase, h + yBase, w + xBase, h + yBase,
+												scaledU, scaledV, scaledW, scaledH, texelW, texelH);
+										}
+								}
+
+								var isPortal = obj.objClass == "Portal";
+								if ((obj.props.showName || isPortal) && obj.name != null && obj.name != "") {
+									if (obj.nameTex == null) {
+										obj.nameText = new SimpleText(16, 0xFFFFFF);
+										obj.nameText.setBold(true);
+										obj.nameText.text = obj.name;
+										obj.nameText.updateMetrics();
+
+										obj.nameTex = new BitmapData(Std.int(obj.nameText.width + 20), 64, true, 0);
+										obj.nameTex.draw(obj.nameText, new Matrix(1, 0, 0, 1, 12, 0));
+										obj.nameTex.applyFilter(obj.nameTex, obj.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
+									}
+
+									var textureData = TextureFactory.make(obj.nameTex);
+									this.rdSingle.push({
+										cosX: textureData.width * RenderUtils.clipSpaceScaleX,
+										sinX: 0,
+										sinY: 0,
+										cosY: textureData.height * RenderUtils.clipSpaceScaleY,
+										x: (screenX - 3) * RenderUtils.clipSpaceScaleX,
+										y: (screenY - hBase + 30 + (sink - 1) * hBase / 3) * RenderUtils.clipSpaceScaleY,
+										texelW: 0,
+										texelH: 0,
+										texture: textureData.texture
+									});
+
+									if (isPortal && Global.currentInteractiveTarget == obj.objectId) {
+										if (obj.enterTex == null) {
+											var enterText = new SimpleText(16, 0xFFFFFF);
+											enterText.setBold(true);
+											enterText.text = "Enter";
+											enterText.updateMetrics();
+
+											obj.enterTex = new BitmapData(Std.int(enterText.width + 20), 64, true, 0);
+											obj.enterTex.draw(enterText, new Matrix(1, 0, 0, 1, 12, 0));
+											obj.enterTex.applyFilter(obj.enterTex, obj.enterTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
+										}
+
+										var textureData = TextureFactory.make(obj.enterTex);
+										this.rdSingle.push({
+											cosX: textureData.width * RenderUtils.clipSpaceScaleX,
+											sinX: 0,
+											sinY: 0,
+											cosY: textureData.height * RenderUtils.clipSpaceScaleY,
+											x: (screenX + 8) * RenderUtils.clipSpaceScaleX,
+											y: (screenY + 40) * RenderUtils.clipSpaceScaleY,
+											texelW: 0,
+											texelH: 0,
+											texture: textureData.texture
+										});
+
+										if (obj.enterKeyTex == null)
+											obj.enterKeyTex = AssetLibrary.getImageFromSet("keyIndicators",
+												KeyCodeUtil.charCodeIconIndices[Settings.interact]);
+
+										var textureData = TextureFactory.make(obj.enterKeyTex);
+										this.rdSingle.push({
+											cosX: (textureData.width >> 2) * RenderUtils.clipSpaceScaleX,
+											sinX: 0,
+											sinY: 0,
+											cosY: (textureData.height >> 2) * RenderUtils.clipSpaceScaleY,
+											x: (screenX - 22) * RenderUtils.clipSpaceScaleX,
+											y: (screenY + 19) * RenderUtils.clipSpaceScaleY,
+											texelW: 0,
+											texelH: 0,
+											texture: textureData.texture
+										});
+									}
+								}
+							}
+						}
+				}
+			}
+		}
+
 		GL.bindVertexArray(this.objVAO);
 
 		GL.bindBuffer(GL.ARRAY_BUFFER, this.objVBO);
-		if (this.vIdx > this.objVBOLen) {
-			GL.bufferData(GL.ARRAY_BUFFER, this.vIdx * 4, getF32Pointer(), GL.DYNAMIC_DRAW);
-			this.objVBOLen = this.vIdx;
+		if (vIdx > this.objVBOLen) {
+			GL.bufferData(GL.ARRAY_BUFFER, vIdx * 4, untyped __cpp__('(uintptr_t)_f32Arr_'), GL.DYNAMIC_DRAW);
+			this.objVBOLen = vIdx;
 		} else
-			GL.bufferSubData(GL.ARRAY_BUFFER, 0, this.vIdx * 4, getF32Pointer());
+			GL.bufferSubData(GL.ARRAY_BUFFER, 0, vIdx * 4, untyped __cpp__('(uintptr_t)_f32Arr_'));
 
 		GL.enableVertexAttribArray(0);
 		GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 40, 0);
@@ -2619,18 +1856,18 @@ class Map {
 		GL.vertexAttribPointer(4, 1, GL.FLOAT, false, 40, 36);
 
 		GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.objIBO);
-		if (this.iIdx > this.objIBOLen) {
-			GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, this.iIdx * 4, getI32Pointer(), GL.DYNAMIC_DRAW);
-			this.objIBOLen = this.iIdx;
+		if (iIdx > this.objIBOLen) {
+			GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, iIdx * 4, untyped __cpp__('(uintptr_t)_i32Arr_'), GL.DYNAMIC_DRAW);
+			this.objIBOLen = iIdx;
 		} else
-			GL.bufferSubData(GL.ELEMENT_ARRAY_BUFFER, 0, this.iIdx * 4, getI32Pointer());
+			GL.bufferSubData(GL.ELEMENT_ARRAY_BUFFER, 0, iIdx * 4, untyped __cpp__('(uintptr_t)_i32Arr_'));
 
 		GL.drawElements(GL.TRIANGLES, iIdx, GL.UNSIGNED_INT, 0);
 
 		for (sb in this.speechBalloons) {
 			if (sb.disposed || sb.go?.map == null)
 				continue;
-			
+
 			var dt = time - sb.startTime;
 			if (dt > sb.lifetime) {
 				sb.disposed = true;
@@ -2659,20 +1896,32 @@ class Map {
 			else if (dt > sb.lifetime - 333)
 				alpha = -(MathUtil.cos((1 - (dt - sb.lifetime + 333) / 333) * MathUtil.PI) - 1) / 2;
 
-			this.rdSingle.push({cosX: (textureData.width << 2) * RenderUtils.clipSpaceScaleX, 
-				sinX: 0, sinY: 0,
+			this.rdSingle.push({
+				cosX: (textureData.width << 2) * RenderUtils.clipSpaceScaleX,
+				sinX: 0,
+				sinY: 0,
 				cosY: (textureData.height << 2) * RenderUtils.clipSpaceScaleY,
-				x: (sb.go.screenX + 45) * RenderUtils.clipSpaceScaleX, y: (sb.go.screenYNoZ - sb.go.hBase - 40) * RenderUtils.clipSpaceScaleY,
-				texelW: 0, texelH: 0,
-				texture: textureData.texture, alpha: alpha});
+				x: (sb.go.screenX + 45) * RenderUtils.clipSpaceScaleX,
+				y: (sb.go.screenYNoZ - sb.go.hBase - 40) * RenderUtils.clipSpaceScaleY,
+				texelW: 0,
+				texelH: 0,
+				texture: textureData.texture,
+				alpha: alpha
+			});
 
 			var textureData = TextureFactory.make(sb.textTex);
-			this.rdSingle.push({cosX: textureData.width * RenderUtils.clipSpaceScaleX, 
-				sinX: 0, sinY: 0,
+			this.rdSingle.push({
+				cosX: textureData.width * RenderUtils.clipSpaceScaleX,
+				sinX: 0,
+				sinY: 0,
 				cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-				x: (sb.go.screenX + 42) * RenderUtils.clipSpaceScaleX, y:  (sb.go.screenYNoZ - sb.go.hBase - 33 - (sb.numLines * 6)) * RenderUtils.clipSpaceScaleY,
-				texelW: 0, texelH: 0,
-				texture: textureData.texture, alpha: alpha});	
+				x: (sb.go.screenX + 42) * RenderUtils.clipSpaceScaleX,
+				y: (sb.go.screenYNoZ - sb.go.hBase - 33 - (sb.numLines * 6)) * RenderUtils.clipSpaceScaleY,
+				texelW: 0,
+				texelH: 0,
+				texture: textureData.texture,
+				alpha: alpha
+			});
 		}
 
 		for (st in this.statusTexts) {
@@ -2688,12 +1937,18 @@ class Map {
 			var frac = dt / st.lifetime;
 			var scale = Math.min(1, Math.max(0.7, 1 - frac * 0.3 + 0.075));
 			var textureData = TextureFactory.make(st.textTex);
-			this.rdSingle.push({cosX: textureData.width * scale * RenderUtils.clipSpaceScaleX, 
-				sinX: 0, sinY: 0,
+			this.rdSingle.push({
+				cosX: textureData.width * scale * RenderUtils.clipSpaceScaleX,
+				sinX: 0,
+				sinY: 0,
 				cosY: textureData.height * scale * RenderUtils.clipSpaceScaleY,
-				x: (st.go.screenX + st.xOffset) * RenderUtils.clipSpaceScaleX, y:  (st.go.screenYNoZ + st.yOffset - st.go.hBase - frac * CharacterStatusText.MAX_DRIFT) * RenderUtils.clipSpaceScaleY,
-				texelW: 0, texelH: 0,
-				texture: textureData.texture, alpha: 1 - frac + 0.33});
+				x: (st.go.screenX + st.xOffset) * RenderUtils.clipSpaceScaleX,
+				y: (st.go.screenYNoZ + st.yOffset - st.go.hBase - frac * CharacterStatusText.MAX_DRIFT) * RenderUtils.clipSpaceScaleY,
+				texelW: 0,
+				texelH: 0,
+				texture: textureData.texture,
+				alpha: 1 - frac + 0.33
+			});
 		}
 
 		i = 0;
@@ -2726,75 +1981,103 @@ class Map {
 			GL.drawElements(GL.TRIANGLES, 6, GL.UNSIGNED_SHORT, 0);
 		}
 
-		this.vIdx = this.iIdx = 0;
-		
-		i = 0;
-		var lightsLen = Math.floor(this.lightIdx / 6);
+		var lightsLen = Math.floor(lightIdx / 6);
 		if (lightsLen > 0) {
-			while (i < lightsLen) {
-				var ptrIdx = i * 6;
-				var width = this.lightPointer[ptrIdx];
-				var height = this.lightPointer[ptrIdx + 1];
-				var x = this.lightPointer[ptrIdx + 2];
-				var y = this.lightPointer[ptrIdx + 3];
-				var color = this.lightPointer[ptrIdx + 4];
-				var intensity = this.lightPointer[ptrIdx + 5];
-
-				setF32ValueAt(this.vIdx, width * -0.5 + x);
-				setF32ValueAt(this.vIdx + 1, height * -0.5 + y);
-				setF32ValueAt(this.vIdx + 2, 0);
-				setF32ValueAt(this.vIdx + 3, 0);
-
-				setF32ValueAt(this.vIdx + 4, color);
-				setF32ValueAt(this.vIdx + 5, intensity);
-
-				setF32ValueAt(this.vIdx + 6, width * 0.5 + x);
-				setF32ValueAt(this.vIdx + 7, height * -0.5 + y);
-				setF32ValueAt(this.vIdx + 8, 1);
-				setF32ValueAt(this.vIdx + 9, 0);
-
-				setF32ValueAt(this.vIdx + 10, color);
-				setF32ValueAt(this.vIdx + 11, intensity);
-
-				setF32ValueAt(this.vIdx + 12, width * -0.5 + x);
-				setF32ValueAt(this.vIdx + 13, height * 0.5 + y);
-				setF32ValueAt(this.vIdx + 14, 0);
-				setF32ValueAt(this.vIdx + 15, 1);
-
-				setF32ValueAt(this.vIdx + 16, color);
-				setF32ValueAt(this.vIdx + 17, intensity);
-
-				setF32ValueAt(this.vIdx + 18, width * 0.5 + x);
-				setF32ValueAt(this.vIdx + 19, height * 0.5 + y);
-				setF32ValueAt(this.vIdx + 20, 1);
-				setF32ValueAt(this.vIdx + 21, 1);
-
-				setF32ValueAt(this.vIdx + 22, color);
-				setF32ValueAt(this.vIdx + 23, intensity);
-				this.vIdx += 24;
-
-				final i4 = i * 4;
-				setI32ValueAt(this.iIdx, i4);
-				setI32ValueAt(this.iIdx + 1, 1 + i4);
-				setI32ValueAt(this.iIdx + 2, 2 + i4);
-				setI32ValueAt(this.iIdx + 3, 2 + i4);
-				setI32ValueAt(this.iIdx + 4, 1 + i4);
-				setI32ValueAt(this.iIdx + 5, 3 + i4);
-				this.iIdx += 6;
-				i++;
-			}
+			i = count = vIdx = iIdx = 0;
 
 			GL.blendFunc(GL.SRC_ALPHA, GL.ONE);
-
 			GL.useProgram(this.lightProgram);
+			GL.bindTexture(GL.TEXTURE_2D, this.lightTex);
+
+			while (i < lightsLen) {
+				if (i > 0 && i % 2800 == 0 && i != lightsLen - 1) {
+					GL.bindVertexArray(this.lightVAO);
+
+					GL.bindBuffer(GL.ARRAY_BUFFER, this.lightVBO);
+					if (vIdx > this.lightVBOLen) {
+						GL.bufferData(GL.ARRAY_BUFFER, vIdx * 4, untyped __cpp__('(uintptr_t)_f32Arr_'), GL.DYNAMIC_DRAW);
+						this.lightVBOLen = vIdx;
+					} else
+						GL.bufferSubData(GL.ARRAY_BUFFER, 0, vIdx * 4, untyped __cpp__('(uintptr_t)_f32Arr_'));
+
+					GL.enableVertexAttribArray(0);
+					GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 24, 0);
+					GL.enableVertexAttribArray(1);
+					GL.vertexAttribPointer(1, 1, GL.FLOAT, false, 24, 16);
+					GL.enableVertexAttribArray(2);
+					GL.vertexAttribPointer(2, 1, GL.FLOAT, false, 24, 20);
+
+					GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.lightIBO);
+					if (iIdx > this.lightIBOLen) {
+						GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, iIdx * 4, untyped __cpp__('(uintptr_t)_i32Arr_'), GL.DYNAMIC_DRAW);
+						this.lightIBOLen = iIdx;
+					} else
+						GL.bufferSubData(GL.ELEMENT_ARRAY_BUFFER, 0, iIdx * 4, untyped __cpp__('(uintptr_t)_i32Arr_'));
+
+					GL.drawElements(GL.TRIANGLES, iIdx, GL.UNSIGNED_INT, 0);
+
+					count = vIdx = iIdx = 0;
+				}
+
+				var ptrIdx = count * 6;
+				var width: Float32 = untyped __cpp__('_lights_[{0}]', ptrIdx);
+				var height: Float32 = untyped __cpp__('_lights_[{0}]', ptrIdx + 1);
+				var x: Float32 = untyped __cpp__('_lights_[{0}]', ptrIdx + 2);
+				var y: Float32 = untyped __cpp__('_lights_[{0}]', ptrIdx + 3);
+				var color: Float32 = untyped __cpp__('_lights_[{0}]', ptrIdx + 4);
+				var intensity: Float32 = untyped __cpp__('_lights_[{0}]', ptrIdx + 5);
+
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), width * -0.5 + x);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), height * -0.5 + y);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 0);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 0);
+
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), color);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), intensity);
+
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), width * 0.5 + x);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), height * -0.5 + y);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 1);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 0);
+
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), color);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), intensity);
+
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), width * -0.5 + x);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), height * 0.5 + y);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 0);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 1);
+
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), color);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), intensity);
+
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), width * 0.5 + x);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), height * 0.5 + y);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 1);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 1);
+
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), color);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), intensity);
+
+				final i4 = i * 4;
+				untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), i4);
+				untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), 1 + i4);
+				untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), 2 + i4);
+				untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), 2 + i4);
+				untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), 1 + i4);
+				untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), 3 + i4);
+				i++;
+				count++;
+			}
+
 			GL.bindVertexArray(this.lightVAO);
 
 			GL.bindBuffer(GL.ARRAY_BUFFER, this.lightVBO);
-			if (this.vIdx > this.lightVBOLen) {
-				GL.bufferData(GL.ARRAY_BUFFER, this.vIdx * 4, getF32Pointer(), GL.DYNAMIC_DRAW);
-				this.lightVBOLen = this.vIdx;
+			if (vIdx > this.lightVBOLen) {
+				GL.bufferData(GL.ARRAY_BUFFER, vIdx * 4, untyped __cpp__('(uintptr_t)_f32Arr_'), GL.DYNAMIC_DRAW);
+				this.lightVBOLen = vIdx;
 			} else
-				GL.bufferSubData(GL.ARRAY_BUFFER, 0, this.vIdx * 4, getF32Pointer());
+				GL.bufferSubData(GL.ARRAY_BUFFER, 0, vIdx * 4, untyped __cpp__('(uintptr_t)_f32Arr_'));
 
 			GL.enableVertexAttribArray(0);
 			GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 24, 0);
@@ -2804,16 +2087,15 @@ class Map {
 			GL.vertexAttribPointer(2, 1, GL.FLOAT, false, 24, 20);
 
 			GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.lightIBO);
-			if (this.iIdx > this.lightIBOLen) {
-				GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, this.iIdx * 4, getI32Pointer(), GL.DYNAMIC_DRAW);
-				this.lightIBOLen = this.iIdx;
+			if (iIdx > this.lightIBOLen) {
+				GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, iIdx * 4, untyped __cpp__('(uintptr_t)_i32Arr_'), GL.DYNAMIC_DRAW);
+				this.lightIBOLen = iIdx;
 			} else
-				GL.bufferSubData(GL.ELEMENT_ARRAY_BUFFER, 0, this.iIdx * 4, getI32Pointer());
+				GL.bufferSubData(GL.ELEMENT_ARRAY_BUFFER, 0, iIdx * 4, untyped __cpp__('(uintptr_t)_i32Arr_'));
 
-			GL.bindTexture(GL.TEXTURE_2D, this.lightTex);
-			GL.drawElements(GL.TRIANGLES, this.iIdx, GL.UNSIGNED_INT, 0);
+			GL.drawElements(GL.TRIANGLES, iIdx, GL.UNSIGNED_INT, 0);
 		}
-		
+
 		this.c3d.present();
 	}
 }

@@ -59,21 +59,17 @@ class StatToolTip extends ToolTip {
 		this.line.x = 8;
 		this.line.y = this.descText.y + this.descText.height + 14;
 		addChild(this.line);
+
+		this.breakdownText = new SimpleText(12, 0xB09C99, false, Std.int(MAX_WIDTH - this.icon.width - 4), 0);
+		this.breakdownText.wordWrap = true;
+		this.breakdownText.filters = [new DropShadowFilter(0, 0, 0, 0.5, 12, 12)];
+		this.breakdownText.x = 10;
+		this.breakdownText.y = this.line.y + 14;
+		addChild(this.breakdownText);
 	}
 
 	public function setBreakdownText(breakdown: String) {
 		this.breakdownBase = breakdown;
-
-		this.breakdownText = new SimpleText(12, 0xB09C99, false, Std.int(MAX_WIDTH - this.icon.width - 4), 0);
-		this.breakdownText.wordWrap = true;
-		this.breakdownText.text = breakdown;
-		this.breakdownText.useTextDimensions();
-		this.breakdownText.filters = [new DropShadowFilter(0, 0, 0, 0.5, 12, 12)];
-		this.breakdownText.x = 10;
-		this.breakdownText.y = this.line.y + 14;
-
-		if (!contains(this.breakdownText)) // this is needeed otherwise it will start to stack xd
-			addChild(this.breakdownText);
 	}
 
 	public function updateBreakdown(value: Int32, boost: Int32, max: Int32) {

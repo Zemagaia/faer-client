@@ -28,6 +28,10 @@ class Camera {
 
 	public static var angleRad: Float32 = 0.0;
 	public static var clipRect: Rectangle;
+	public static var minX: Int32 = 0;
+	public static var maxX: Int32 = 0;
+	public static var minY: Int32 = 0;
+	public static var maxY: Int32 = 0;
 	public static var maxDist: Float32 = 0.0;
 	public static var maxDistSq: Float32 = 0.0;
 	public static var viewMatrix: Float32Array;
@@ -81,6 +85,17 @@ class Camera {
 		var h = clipRect.height / (2 * PX_PER_TILE);
 
 		maxDist = Math.ceil(Math.sqrt(w * w + h * h)) + 1;
+		minX = Std.int(x - maxDist);
+		if (minX < 0)
+			minX = 0;
+
+		maxX = Std.int(x + maxDist);
+
+		minY = Std.int(y - maxDist);
+		if (minY < 0)
+			minY = 0;
+
+		maxY = Std.int(y + maxDist);
 		maxDistSq = maxDist * maxDist;
 	}
 

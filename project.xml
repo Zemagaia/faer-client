@@ -22,4 +22,3 @@
 	<haxeflag name="-dce" value="full" />
 	<assets path="assets" />
 </project>
- 
