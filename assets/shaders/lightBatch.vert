@@ -3,13 +3,13 @@
 precision lowp float;
 
 layout (location = 0) in vec4 vertUV;
-layout (location = 1) in float color;
+layout (location = 1) in vec3 color;
 layout (location = 2) in float alphaMult;
 
 out BatchData {
-    vec2 uv;
-    float color;
+    vec3 color;
     float alphaMult;
+    vec2 uv;
 } data;
 
 void main() {

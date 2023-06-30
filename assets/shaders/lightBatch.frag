@@ -3,9 +3,9 @@
 precision lowp float;
 
 in BatchData {
-    vec2 uv;
-    float color;
+    vec3 color;
     float alphaMult;
+    vec2 uv;
 } data;
 
 layout (location = 0) out vec4 resultColor;
@@ -17,10 +17,8 @@ void main() {
     if (pixel.a == 0.0)
         discard;
 
-    int color = int(data.color);
     pixel.a *= data.alphaMult;
-    if (color != -1 && pixel.a > 0.0)
-        pixel.rgb = vec3(((color >> 16) & 0xFF) / 255.0, ((color >> 8) & 0xFF) / 255.0, (color & 0xFF) / 255.0);
+    pixel.rgb = data.color;
 
     resultColor = pixel; 
 }

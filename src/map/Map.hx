@@ -345,11 +345,11 @@ class Map {
 		GL.bindBuffer(GL.ARRAY_BUFFER, this.lightVBO);
 		GL.bufferData(GL.ARRAY_BUFFER, 0, new Float32Array([]), GL.DYNAMIC_DRAW);
 		GL.enableVertexAttribArray(0);
-		GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 24, 0);
+		GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 32, 0);
 		GL.enableVertexAttribArray(1);
-		GL.vertexAttribPointer(1, 1, GL.FLOAT, false, 24, 16);
+		GL.vertexAttribPointer(1, 3, GL.FLOAT, false, 32, 16);
 		GL.enableVertexAttribArray(2);
-		GL.vertexAttribPointer(2, 1, GL.FLOAT, false, 24, 20);
+		GL.vertexAttribPointer(2, 1, GL.FLOAT, false, 32, 28);
 		GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.lightIBO);
 		GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, 0, new Int32Array([]), GL.DYNAMIC_DRAW);
 
@@ -2001,11 +2001,11 @@ class Map {
 						GL.bufferSubData(GL.ARRAY_BUFFER, 0, vIdx * 4, untyped __cpp__('(uintptr_t)_f32Arr_'));
 
 					GL.enableVertexAttribArray(0);
-					GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 24, 0);
+					GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 32, 0);
 					GL.enableVertexAttribArray(1);
-					GL.vertexAttribPointer(1, 1, GL.FLOAT, false, 24, 16);
+					GL.vertexAttribPointer(1, 3, GL.FLOAT, false, 32, 16);
 					GL.enableVertexAttribArray(2);
-					GL.vertexAttribPointer(2, 1, GL.FLOAT, false, 24, 20);
+					GL.vertexAttribPointer(2, 1, GL.FLOAT, false, 32, 28);
 
 					GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.lightIBO);
 					if (iIdx > this.lightIBOLen) {
@@ -2027,12 +2027,19 @@ class Map {
 				var color: Float32 = untyped __cpp__('_lights_[{0}]', ptrIdx + 4);
 				var intensity: Float32 = untyped __cpp__('_lights_[{0}]', ptrIdx + 5);
 
+				var intColor = Std.int(color);
+				var colorR: Float32 = ((intColor >> 16) & 0xFF) / 255.0;
+				var colorG: Float32 = ((intColor >> 8) & 0xFF) / 255.0;
+				var colorB: Float32 = (intColor & 0xFF) / 255.0;
+
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), width * -0.5 + x);
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), height * -0.5 + y);
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 0);
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 0);
 
-				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), color);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), colorR);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), colorG);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), colorB);
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), intensity);
 
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), width * 0.5 + x);
@@ -2040,7 +2047,9 @@ class Map {
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 1);
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 0);
 
-				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), color);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), colorR);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), colorG);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), colorB);
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), intensity);
 
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), width * -0.5 + x);
@@ -2048,7 +2057,9 @@ class Map {
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 0);
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 1);
 
-				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), color);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), colorR);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), colorG);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), colorB);
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), intensity);
 
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), width * 0.5 + x);
@@ -2056,7 +2067,9 @@ class Map {
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 1);
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), 1);
 
-				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), color);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), colorR);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), colorG);
+				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), colorB);
 				untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), intensity);
 
 				final i4 = i * 4;
@@ -2080,11 +2093,11 @@ class Map {
 				GL.bufferSubData(GL.ARRAY_BUFFER, 0, vIdx * 4, untyped __cpp__('(uintptr_t)_f32Arr_'));
 
 			GL.enableVertexAttribArray(0);
-			GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 24, 0);
+			GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 32, 0);
 			GL.enableVertexAttribArray(1);
-			GL.vertexAttribPointer(1, 1, GL.FLOAT, false, 24, 16);
+			GL.vertexAttribPointer(1, 3, GL.FLOAT, false, 32, 16);
 			GL.enableVertexAttribArray(2);
-			GL.vertexAttribPointer(2, 1, GL.FLOAT, false, 24, 20);
+			GL.vertexAttribPointer(2, 1, GL.FLOAT, false, 32, 28);
 
 			GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.lightIBO);
 			if (iIdx > this.lightIBOLen) {
