@@ -654,12 +654,13 @@ class Map {
 
 	@:nonVirtual private final inline function drawText(str: String, size: Float32, color: Float32, x: Float32, y: Float32) {
 		var cX: Float32 = x, cY: Float32 = y;
+		// size = 22;
 		var scale: Float32 = size / 64;
 		var xScale: Float32 = RenderUtils.clipSpaceScaleX * scale;
 		var yScale: Float32 = RenderUtils.clipSpaceScaleY * scale;
 		for (i in 0...str.length) {
 			var code = str.charCodeAt(i);
-			var char = FontLibrary.charMap[code];
+			var char = FontLibrary.normalCharMap[code];
 			if (char == null) {
 				cX += 28 * xScale; // assume space
 				continue;
@@ -672,9 +673,9 @@ class Map {
 			cY = y + char.yOffset * yScale;
 
 			this.drawGeneric(-w + cX, -h + cY, w + cX, -h + cY, -w + cX, h + cY, w + cX, h + cY, char.x / Main.ATLAS_WIDTH, char.y / Main.ATLAS_HEIGHT,
-				char.width / Main.ATLAS_WIDTH, char.height / Main.ATLAS_HEIGHT, 0, 0, 0, color, 0, 1, 0.2, 0.07 / scale);
+				char.width / Main.ATLAS_WIDTH, char.height / Main.ATLAS_HEIGHT, 0, 0, 0, color, 0, 1, 0.2, 0.1 / scale);
 
-			cX += (char.xAdvance - char.xOffset + 8) * xScale;
+			cX += (char.xAdvance - char.xOffset + 6) * xScale;
 		}
 	}
 
@@ -1561,13 +1562,14 @@ class Map {
 
 								var isPortal = obj.objClass == "Portal";
 								if ((obj.props.showName || isPortal) && obj.name != null && obj.name != "") {
-									this.drawText(obj.name, 16, 0xFFFFFF, clipX - (3 + FontLibrary.textWidth(obj.name, 16) / 2) * RenderUtils.clipSpaceScaleX,
-										clipY - (hBase + FontLibrary.textHeight(obj.name, 16)) / 2 * RenderUtils.clipSpaceScaleY);
+									this.drawText(obj.name, 16, 0xFFFFFF,
+										clipX - (3 + FontLibrary.textWidthNormal(obj.name, 16) / 2) * RenderUtils.clipSpaceScaleX,
+										clipY - (hBase + FontLibrary.textHeightNormal(obj.name, 16)) / 2 * RenderUtils.clipSpaceScaleY);
 
 									if (isPortal && Global.currentInteractiveTarget == obj.objectId) {
 										this.drawText("Enter", 16, 0xFFFFFF,
-											clipX + (8 + FontLibrary.textWidth("Enter", 16) / 2) * RenderUtils.clipSpaceScaleX,
-											clipY + (70 + FontLibrary.textHeight("Enter", 16) / 2) * RenderUtils.clipSpaceScaleY);
+											clipX + (8 + FontLibrary.textWidthNormal("Enter", 16) / 2) * RenderUtils.clipSpaceScaleX,
+											clipY + (70 + FontLibrary.textHeightNormal("Enter", 16) / 2) * RenderUtils.clipSpaceScaleY);
 
 										if (obj.enterKeyRect == null)
 											obj.enterKeyRect = AssetLibrary.getRectFromSet("keyIndicators",
@@ -1744,13 +1746,15 @@ class Map {
 
 								var isPortal = obj.objClass == "Portal";
 								if ((obj.props.showName || isPortal) && obj.name != null && obj.name != "") {
-									this.drawText(obj.name, 16, 0xFFFFFF, (screenX - FontLibrary.textWidth(obj.name, 16) / 3) * RenderUtils.clipSpaceScaleX,
-										(screenY - hBase + 20 + (sink - 1) * hBase / 3 - FontLibrary.textHeight(obj.name, 16)) * RenderUtils.clipSpaceScaleY);
+									this.drawText(obj.name, 16, 0xFFFFFF,
+										(screenX - FontLibrary.textWidthNormal(obj.name, 16) / 3) * RenderUtils.clipSpaceScaleX,
+										(screenY - hBase + 20 + (sink - 1) * hBase / 3 - FontLibrary.textHeightNormal(obj.name,
+											16)) * RenderUtils.clipSpaceScaleY);
 
 									if (isPortal && Global.currentInteractiveTarget == obj.objectId) {
 										this.drawText("Enter", 16, 0xFFFFFF,
-											(screenX + 13 - FontLibrary.textWidth("Enter", 16) / 3) * RenderUtils.clipSpaceScaleX,
-											(screenY + 28 - FontLibrary.textHeight("Enter", 16)) * RenderUtils.clipSpaceScaleY);
+											(screenX + 13 - FontLibrary.textWidthNormal("Enter", 16) / 3) * RenderUtils.clipSpaceScaleX,
+											(screenY + 28 - FontLibrary.textHeightNormal("Enter", 16)) * RenderUtils.clipSpaceScaleY);
 
 										if (obj.enterKeyRect == null)
 											obj.enterKeyRect = AssetLibrary.getRectFromSet("keyIndicators",
