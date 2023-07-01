@@ -1,5 +1,7 @@
 package map;
 
+import util.FontLibrary;
+import util.AssetLoader;
 import lime.math.Rectangle;
 import openfl.display.Shape;
 import lime.graphics.opengl.GLUniformLocation;
@@ -326,15 +328,19 @@ class Map {
 		GL.bindBuffer(GL.ARRAY_BUFFER, this.objVBO);
 		GL.bufferData(GL.ARRAY_BUFFER, 0, new Float32Array([]), GL.DYNAMIC_DRAW);
 		GL.enableVertexAttribArray(0);
-		GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 40, 0);
+		GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 48, 0);
 		GL.enableVertexAttribArray(1);
-		GL.vertexAttribPointer(1, 2, GL.FLOAT, false, 40, 16);
+		GL.vertexAttribPointer(1, 2, GL.FLOAT, false, 48, 16);
 		GL.enableVertexAttribArray(2);
-		GL.vertexAttribPointer(2, 2, GL.FLOAT, false, 40, 24);
+		GL.vertexAttribPointer(2, 2, GL.FLOAT, false, 48, 24);
 		GL.enableVertexAttribArray(3);
-		GL.vertexAttribPointer(3, 1, GL.FLOAT, false, 40, 32);
+		GL.vertexAttribPointer(3, 1, GL.FLOAT, false, 48, 32);
 		GL.enableVertexAttribArray(4);
-		GL.vertexAttribPointer(4, 1, GL.FLOAT, false, 40, 36);
+		GL.vertexAttribPointer(4, 1, GL.FLOAT, false, 48, 36);
+		GL.enableVertexAttribArray(5);
+		GL.vertexAttribPointer(5, 1, GL.FLOAT, false, 48, 40);
+		GL.enableVertexAttribArray(6);
+		GL.vertexAttribPointer(6, 1, GL.FLOAT, false, 48, 44);
 		GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.objIBO);
 		GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, 0, new Int32Array([]), GL.DYNAMIC_DRAW);
 
@@ -577,7 +583,7 @@ class Map {
 
 	@:nonVirtual private final inline function drawGeneric(x1: Float32, y1: Float32, x2: Float32, y2: Float32, x3: Float32, y3: Float32, x4: Float32,
 			y4: Float32, texU: Float32, texV: Float32, texW: Float32, texH: Float32, texelW: Float32 = 0, texelH: Float32 = 0, glowColor: Float32 = 0,
-			flashColor: Float32 = 0, flashStrength: Float32 = 0, alphaMult: Float32 = -1) {
+			flashColor: Float32 = 0, flashStrength: Float32 = 0, alphaMult: Float32 = -1, sdfBuffer: Float32 = -1, sdfSmoothing: Float32 = -1) {
 		// this untyped stuff is a bit horrible. haxe maxx
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), x1);
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), y1);
@@ -590,6 +596,8 @@ class Map {
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), flashColor);
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), flashStrength);
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), alphaMult);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), sdfBuffer);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), sdfSmoothing);
 
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), x2);
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), y2);
@@ -602,6 +610,8 @@ class Map {
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), flashColor);
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), flashStrength);
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), alphaMult);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), sdfBuffer);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), sdfSmoothing);
 
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), x3);
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), y3);
@@ -614,6 +624,8 @@ class Map {
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), flashColor);
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), flashStrength);
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), alphaMult);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), sdfBuffer);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), sdfSmoothing);
 
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), x4);
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), y4);
@@ -626,6 +638,8 @@ class Map {
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), flashColor);
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), flashStrength);
 		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), alphaMult);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), sdfBuffer);
+		untyped __cpp__('_f32Arr_[{0}] = {1}', untyped __cpp__('vIdx++'), sdfSmoothing);
 
 		final i4 = untyped __cpp__('count') * 4;
 		untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), i4);
@@ -636,6 +650,32 @@ class Map {
 		untyped __cpp__('_i32Arr_[{0}] = {1}', untyped __cpp__('iIdx++'), 3 + i4);
 
 		untyped __cpp__('count++');
+	}
+
+	@:nonVirtual private final inline function drawText(str: String, size: Float32, color: Float32, x: Float32, y: Float32) {
+		var cX: Float32 = x, cY: Float32 = y;
+		var scale: Float32 = size / 64;
+		var xScale: Float32 = RenderUtils.clipSpaceScaleX * scale;
+		var yScale: Float32 = RenderUtils.clipSpaceScaleY * scale;
+		for (i in 0...str.length) {
+			var code = str.charCodeAt(i);
+			var char = FontLibrary.charMap[code];
+			if (char == null) {
+				cX += 28 * xScale; // assume space
+				continue;
+			}
+
+			var w = char.width * xScale;
+			var h = char.height * yScale;
+
+			cX += char.xOffset * xScale;
+			cY = y + char.yOffset * yScale;
+
+			this.drawGeneric(-w + cX, -h + cY, w + cX, -h + cY, -w + cX, h + cY, w + cX, h + cY, char.x / Main.ATLAS_WIDTH, char.y / Main.ATLAS_HEIGHT,
+				char.width / Main.ATLAS_WIDTH, char.height / Main.ATLAS_HEIGHT, 0, 0, 0, color, 0, 1, 0.2, 0.07 / scale);
+
+			cX += (char.xAdvance - char.xOffset + 8) * xScale;
+		}
 	}
 
 	@:nonVirtual private final function getLightIntensity(time: Int32) {
@@ -922,15 +962,19 @@ class Map {
 					GL.bufferSubData(GL.ARRAY_BUFFER, 0, vIdx * 4, untyped __cpp__('(uintptr_t)_f32Arr_'));
 
 				GL.enableVertexAttribArray(0);
-				GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 40, 0);
+				GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 48, 0);
 				GL.enableVertexAttribArray(1);
-				GL.vertexAttribPointer(1, 2, GL.FLOAT, false, 40, 16);
+				GL.vertexAttribPointer(1, 2, GL.FLOAT, false, 48, 16);
 				GL.enableVertexAttribArray(2);
-				GL.vertexAttribPointer(2, 2, GL.FLOAT, false, 40, 24);
+				GL.vertexAttribPointer(2, 2, GL.FLOAT, false, 48, 24);
 				GL.enableVertexAttribArray(3);
-				GL.vertexAttribPointer(3, 1, GL.FLOAT, false, 40, 32);
+				GL.vertexAttribPointer(3, 1, GL.FLOAT, false, 48, 32);
 				GL.enableVertexAttribArray(4);
-				GL.vertexAttribPointer(4, 1, GL.FLOAT, false, 40, 36);
+				GL.vertexAttribPointer(4, 1, GL.FLOAT, false, 48, 36);
+				GL.enableVertexAttribArray(5);
+				GL.vertexAttribPointer(5, 1, GL.FLOAT, false, 48, 40);
+				GL.enableVertexAttribArray(6);
+				GL.vertexAttribPointer(6, 1, GL.FLOAT, false, 48, 44);
 
 				GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.objIBO);
 				if (iIdx > this.objIBOLen) {
@@ -945,7 +989,8 @@ class Map {
 
 			if (obj.mapX >= minX && obj.mapX <= maxX && obj.mapY >= minY && obj.mapY <= maxY) {
 				switch (obj.objClass) {
-					case "Wall": {
+					case "Wall":
+						{
 							if (obj.animations != null) {
 								var rect = obj.animations.getTexture(time);
 								if (rect != null) {
@@ -1239,7 +1284,7 @@ class Map {
 							var xBase = screenX * RenderUtils.clipSpaceScaleX + xOffset;
 							var texelW: Float32 = Main.BASE_TEXEL_W * 2 / size;
 							var texelH: Float32 = Main.BASE_TEXEL_H * 2 / size;
-							var alphaMult: Float32 = ((player.condition & ConditionEffect.INVISIBLE_BIT) != 0 ? 0.6 : -1);
+							var alphaMult: Float32 = ((player.condition & ConditionEffect.INVISIBLE_BIT) != 0 ? 0.6 : player.props.alphaMult);
 
 							if (player.props.lightColor != -1) {
 								untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), w * 8 * player.props.lightRadius);
@@ -1367,31 +1412,10 @@ class Map {
 									}
 							}
 
-							if (player.name != null && player.name != "") {
-								if (player.nameTex == null) {
-									player.nameText = new SimpleText(16, player.isFellowGuild ? Settings.FELLOW_GUILD_COLOR : Settings.DEFAULT_COLOR);
-									player.nameText.setBold(true);
-									player.nameText.text = player.name;
-									player.nameText.updateMetrics();
-
-									player.nameTex = new BitmapData(Std.int(player.nameText.width + 20), 64, true, 0);
-									player.nameTex.draw(player.nameText, new Matrix(1, 0, 0, 1, 12, 0));
-									player.nameTex.applyFilter(player.nameTex, player.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
-								}
-
-								var textureData = TextureFactory.make(player.nameTex);
-								this.rdSingle.push({
-									cosX: textureData.width * RenderUtils.clipSpaceScaleX,
-									sinX: 0,
-									sinY: 0,
-									cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-									x: screenX * RenderUtils.clipSpaceScaleX,
-									y: (screenY - hBase + 30 + (sink - 1) * hBase / 3) * RenderUtils.clipSpaceScaleY,
-									texelW: 0,
-									texelH: 0,
-									texture: textureData.texture
-								});
-							}
+							if (player.name != null && player.name != "")
+								this.drawText(player.name, 16, player.isFellowGuild ? Settings.FELLOW_GUILD_COLOR : Settings.DEFAULT_COLOR,
+									(screenX - FontLibrary.textWidth(player.name, 16) / 3) * RenderUtils.clipSpaceScaleX,
+									(screenY - hBase + 20 + (sink - 1) * hBase / 3 - FontLibrary.textHeight(player.name, 16)) * RenderUtils.clipSpaceScaleY);
 						}
 					case "Projectile":
 						{
@@ -1537,71 +1561,29 @@ class Map {
 
 								var isPortal = obj.objClass == "Portal";
 								if ((obj.props.showName || isPortal) && obj.name != null && obj.name != "") {
-									if (obj.nameTex == null) {
-										obj.nameText = new SimpleText(16, 0xFFFFFF);
-										obj.nameText.setBold(true);
-										obj.nameText.text = obj.name;
-										obj.nameText.updateMetrics();
-
-										obj.nameTex = new BitmapData(Std.int(obj.nameText.width + 20), 64, true, 0);
-										obj.nameTex.draw(obj.nameText, new Matrix(1, 0, 0, 1, 12, 0));
-										obj.nameTex.applyFilter(obj.nameTex, obj.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
-									}
-
-									var textureData = TextureFactory.make(obj.nameTex);
-									this.rdSingle.push({
-										cosX: textureData.width * RenderUtils.clipSpaceScaleX,
-										sinX: 0,
-										sinY: 0,
-										cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-										x: clipX - 3 * RenderUtils.clipSpaceScaleX,
-										y: clipY - hBase / 2 * RenderUtils.clipSpaceScaleY,
-										texelW: 0,
-										texelH: 0,
-										texture: textureData.texture
-									});
+									this.drawText(obj.name, 16, 0xFFFFFF, clipX - (3 + FontLibrary.textWidth(obj.name, 16) / 2) * RenderUtils.clipSpaceScaleX,
+										clipY - (hBase + FontLibrary.textHeight(obj.name, 16)) / 2 * RenderUtils.clipSpaceScaleY);
 
 									if (isPortal && Global.currentInteractiveTarget == obj.objectId) {
-										if (obj.enterTex == null) {
-											var enterText = new SimpleText(16, 0xFFFFFF);
-											enterText.setBold(true);
-											enterText.text = "Enter";
-											enterText.updateMetrics();
+										this.drawText("Enter", 16, 0xFFFFFF,
+											clipX + (8 + FontLibrary.textWidth("Enter", 16) / 2) * RenderUtils.clipSpaceScaleX,
+											clipY + (70 + FontLibrary.textHeight("Enter", 16) / 2) * RenderUtils.clipSpaceScaleY);
 
-											obj.enterTex = new BitmapData(Std.int(enterText.width + 20), 64, true, 0);
-											obj.enterTex.draw(enterText, new Matrix(1, 0, 0, 1, 12, 0));
-											obj.enterTex.applyFilter(obj.enterTex, obj.enterTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
-										}
-
-										var textureData = TextureFactory.make(obj.enterTex);
-										this.rdSingle.push({
-											cosX: textureData.width * RenderUtils.clipSpaceScaleX,
-											sinX: 0,
-											sinY: 0,
-											cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-											x: clipX + 8 * RenderUtils.clipSpaceScaleX,
-											y: clipY + 70 * RenderUtils.clipSpaceScaleY,
-											texelW: 0,
-											texelH: 0,
-											texture: textureData.texture
-										});
-
-										if (obj.enterKeyTex == null)
-											obj.enterKeyTex = AssetLibrary.getImageFromSet("keyIndicators",
+										if (obj.enterKeyRect == null)
+											obj.enterKeyRect = AssetLibrary.getRectFromSet("keyIndicators",
 												KeyCodeUtil.charCodeIconIndices[Settings.interact]);
 
-										var textureData = TextureFactory.make(obj.enterKeyTex);
-										this.rdSingle.push({
-											cosX: (textureData.width >> 2) * RenderUtils.clipSpaceScaleX,
-											sinX: 0,
-											sinY: 0,
-											cosY: (textureData.height >> 2) * RenderUtils.clipSpaceScaleY,
-											x: clipX - 22 * RenderUtils.clipSpaceScaleX,
-											y: clipY + 49 * RenderUtils.clipSpaceScaleY,
-											texelW: 0,
-											texelH: 0,
-											texture: textureData.texture
-										});
+										var scaledW: Float32 = obj.enterKeyRect.width / Main.ATLAS_WIDTH;
+										var scaledH: Float32 = obj.enterKeyRect.height / Main.ATLAS_HEIGHT;
+										var scaledU: Float32 = obj.enterKeyRect.x / Main.ATLAS_WIDTH;
+										var scaledV: Float32 = obj.enterKeyRect.y / Main.ATLAS_HEIGHT;
+										var w = obj.enterKeyRect.width * RenderUtils.clipSpaceScaleX * 0.125;
+										var h = obj.enterKeyRect.height * RenderUtils.clipSpaceScaleY * 0.125;
+										var xBase = clipX - 22 * RenderUtils.clipSpaceScaleX;
+										var yBase = clipY + 49 * RenderUtils.clipSpaceScaleY;
+
+										this.drawGeneric(-w + xBase, -h + yBase, w + xBase, -h + yBase, -w + xBase, h + yBase, w + xBase, h + yBase, scaledU,
+											scaledV, scaledW, scaledH);
 									}
 								}
 							} else {
@@ -1670,7 +1652,7 @@ class Map {
 								var xBase = screenX * RenderUtils.clipSpaceScaleX + xOffset;
 								var texelW: Float32 = Main.BASE_TEXEL_W * 2 / size;
 								var texelH: Float32 = Main.BASE_TEXEL_H * 2 / size;
-								var alphaMult: Float32 = ((obj.condition & ConditionEffect.INVISIBLE_BIT) != 0 ? 0.6 : -1);
+								var alphaMult: Float32 = ((obj.condition & ConditionEffect.INVISIBLE_BIT) != 0 ? 0.6 : obj.props.alphaMult);
 
 								if (obj.props.lightColor != -1) {
 									untyped __cpp__('_lights_[{0}] = {1}', untyped __cpp__('lightIdx++'), w * 8 * obj.props.lightRadius);
@@ -1762,71 +1744,29 @@ class Map {
 
 								var isPortal = obj.objClass == "Portal";
 								if ((obj.props.showName || isPortal) && obj.name != null && obj.name != "") {
-									if (obj.nameTex == null) {
-										obj.nameText = new SimpleText(16, 0xFFFFFF);
-										obj.nameText.setBold(true);
-										obj.nameText.text = obj.name;
-										obj.nameText.updateMetrics();
-
-										obj.nameTex = new BitmapData(Std.int(obj.nameText.width + 20), 64, true, 0);
-										obj.nameTex.draw(obj.nameText, new Matrix(1, 0, 0, 1, 12, 0));
-										obj.nameTex.applyFilter(obj.nameTex, obj.nameTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
-									}
-
-									var textureData = TextureFactory.make(obj.nameTex);
-									this.rdSingle.push({
-										cosX: textureData.width * RenderUtils.clipSpaceScaleX,
-										sinX: 0,
-										sinY: 0,
-										cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-										x: (screenX - 3) * RenderUtils.clipSpaceScaleX,
-										y: (screenY - hBase + 30 + (sink - 1) * hBase / 3) * RenderUtils.clipSpaceScaleY,
-										texelW: 0,
-										texelH: 0,
-										texture: textureData.texture
-									});
+									this.drawText(obj.name, 16, 0xFFFFFF, (screenX - FontLibrary.textWidth(obj.name, 16) / 3) * RenderUtils.clipSpaceScaleX,
+										(screenY - hBase + 20 + (sink - 1) * hBase / 3 - FontLibrary.textHeight(obj.name, 16)) * RenderUtils.clipSpaceScaleY);
 
 									if (isPortal && Global.currentInteractiveTarget == obj.objectId) {
-										if (obj.enterTex == null) {
-											var enterText = new SimpleText(16, 0xFFFFFF);
-											enterText.setBold(true);
-											enterText.text = "Enter";
-											enterText.updateMetrics();
+										this.drawText("Enter", 16, 0xFFFFFF,
+											(screenX + 13 - FontLibrary.textWidth("Enter", 16) / 3) * RenderUtils.clipSpaceScaleX,
+											(screenY + 28 - FontLibrary.textHeight("Enter", 16)) * RenderUtils.clipSpaceScaleY);
 
-											obj.enterTex = new BitmapData(Std.int(enterText.width + 20), 64, true, 0);
-											obj.enterTex.draw(enterText, new Matrix(1, 0, 0, 1, 12, 0));
-											obj.enterTex.applyFilter(obj.enterTex, obj.enterTex.rect, new Point(0, 0), new GlowFilter(0, 1, 3, 3, 2, 1));
-										}
-
-										var textureData = TextureFactory.make(obj.enterTex);
-										this.rdSingle.push({
-											cosX: textureData.width * RenderUtils.clipSpaceScaleX,
-											sinX: 0,
-											sinY: 0,
-											cosY: textureData.height * RenderUtils.clipSpaceScaleY,
-											x: (screenX + 8) * RenderUtils.clipSpaceScaleX,
-											y: (screenY + 40) * RenderUtils.clipSpaceScaleY,
-											texelW: 0,
-											texelH: 0,
-											texture: textureData.texture
-										});
-
-										if (obj.enterKeyTex == null)
-											obj.enterKeyTex = AssetLibrary.getImageFromSet("keyIndicators",
+										if (obj.enterKeyRect == null)
+											obj.enterKeyRect = AssetLibrary.getRectFromSet("keyIndicators",
 												KeyCodeUtil.charCodeIconIndices[Settings.interact]);
 
-										var textureData = TextureFactory.make(obj.enterKeyTex);
-										this.rdSingle.push({
-											cosX: (textureData.width >> 2) * RenderUtils.clipSpaceScaleX,
-											sinX: 0,
-											sinY: 0,
-											cosY: (textureData.height >> 2) * RenderUtils.clipSpaceScaleY,
-											x: (screenX - 22) * RenderUtils.clipSpaceScaleX,
-											y: (screenY + 19) * RenderUtils.clipSpaceScaleY,
-											texelW: 0,
-											texelH: 0,
-											texture: textureData.texture
-										});
+										var scaledW: Float32 = obj.enterKeyRect.width / Main.ATLAS_WIDTH;
+										var scaledH: Float32 = obj.enterKeyRect.height / Main.ATLAS_HEIGHT;
+										var scaledU: Float32 = obj.enterKeyRect.x / Main.ATLAS_WIDTH;
+										var scaledV: Float32 = obj.enterKeyRect.y / Main.ATLAS_HEIGHT;
+										w = obj.enterKeyRect.width * RenderUtils.clipSpaceScaleX * 0.125;
+										h = obj.enterKeyRect.height * RenderUtils.clipSpaceScaleY * 0.125;
+										xBase = (screenX - 22) * RenderUtils.clipSpaceScaleX;
+										yBase = (screenY + 20) * RenderUtils.clipSpaceScaleY;
+
+										this.drawGeneric(-w + xBase, -h + yBase, w + xBase, -h + yBase, -w + xBase, h + yBase, w + xBase, h + yBase, scaledU,
+											scaledV, scaledW, scaledH);
 									}
 								}
 							}
@@ -1845,15 +1785,19 @@ class Map {
 			GL.bufferSubData(GL.ARRAY_BUFFER, 0, vIdx * 4, untyped __cpp__('(uintptr_t)_f32Arr_'));
 
 		GL.enableVertexAttribArray(0);
-		GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 40, 0);
+		GL.vertexAttribPointer(0, 4, GL.FLOAT, false, 48, 0);
 		GL.enableVertexAttribArray(1);
-		GL.vertexAttribPointer(1, 2, GL.FLOAT, false, 40, 16);
+		GL.vertexAttribPointer(1, 2, GL.FLOAT, false, 48, 16);
 		GL.enableVertexAttribArray(2);
-		GL.vertexAttribPointer(2, 2, GL.FLOAT, false, 40, 24);
+		GL.vertexAttribPointer(2, 2, GL.FLOAT, false, 48, 24);
 		GL.enableVertexAttribArray(3);
-		GL.vertexAttribPointer(3, 1, GL.FLOAT, false, 40, 32);
+		GL.vertexAttribPointer(3, 1, GL.FLOAT, false, 48, 32);
 		GL.enableVertexAttribArray(4);
-		GL.vertexAttribPointer(4, 1, GL.FLOAT, false, 40, 36);
+		GL.vertexAttribPointer(4, 1, GL.FLOAT, false, 48, 36);
+		GL.enableVertexAttribArray(5);
+		GL.vertexAttribPointer(5, 1, GL.FLOAT, false, 48, 40);
+		GL.enableVertexAttribArray(6);
+		GL.vertexAttribPointer(6, 1, GL.FLOAT, false, 48, 44);
 
 		GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.objIBO);
 		if (iIdx > this.objIBOLen) {

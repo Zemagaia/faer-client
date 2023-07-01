@@ -7,6 +7,8 @@ layout (location = 1) in vec2 texelSize;
 layout (location = 2) in vec2 colors;
 layout (location = 3) in float flashStrength;
 layout (location = 4) in float alphaMult;
+layout (location = 5) in float sdfBuffer;
+layout (location = 6) in float sdfSmoothing;
 
 out BatchData {
     vec2 uv;
@@ -14,6 +16,8 @@ out BatchData {
     vec2 colors;
     float flashStrength;
     float alphaMult;
+    float sdfBuffer;
+    float sdfSmoothing;
 } data;
 
 void main() {
@@ -23,4 +27,6 @@ void main() {
     data.colors = colors;
     data.flashStrength = flashStrength;
     data.alphaMult = alphaMult;
+    data.sdfBuffer = sdfBuffer;
+    data.sdfSmoothing = sdfSmoothing;
 }

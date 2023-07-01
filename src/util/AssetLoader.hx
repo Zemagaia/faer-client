@@ -1,11 +1,17 @@
 package util;
 
+import util.NativeTypes.Float32;
+import openfl.geom.Point;
+import openfl.geom.Rectangle;
+import util.BinPacker.Rect;
+import util.BmFontReader;
 import sound.Music;
 import map.GroundLibrary;
 import map.RegionLibrary;
 import objects.ObjectLibrary;
 import openfl.display.BitmapData;
 import openfl.utils.Assets;
+import haxe.ds.Vector.Vector;
 
 using util.Utils;
 
@@ -22,7 +28,6 @@ class AssetLoader {
 		AssetLibrary.addImageSet("wallBackface", new BitmapData(8, 8, false, 0), 8, 8);
 
 		// not part of the sprite batcher
-		AssetLibrary.addImageSet("keyIndicators", Assets.getBitmapData("assets/sheets/KeyIndicators.png"), 100, 100, true);
 		AssetLibrary.addImageSet("cursors", Assets.getBitmapData("assets/sheets/Cursors.png"), 32, 32, true);
 		AssetLibrary.addImageSet("items", Assets.getBitmapData("assets/sheets/Items.png"), 8, 8, true);
 		AssetLibrary.addImageSet("skinItems", Assets.getBitmapData("assets/sheets/Players.png"), 8, 8, true);
@@ -32,6 +37,9 @@ class AssetLoader {
 		AssetLibrary.addImageSet("abilityIcons", Assets.getBitmapData("assets/sheets/AbilityIcons.png"), 40, 40, true);
 		AssetLibrary.addImageSet("light", Assets.getBitmapData("assets/sheets/Light.png"), 384, 384, true);
 
+		FontLibrary.parse();
+
+		AssetLibrary.addImageSet("keyIndicators", Assets.getBitmapData("assets/sheets/KeyIndicators.png"), 100, 100);
 		AssetLibrary.addImageSet("particles", Assets.getBitmapData("assets/sheets/Particles.png"), 8, 8);
 		AssetLibrary.addImageSet("bars", Assets.getBitmapData("assets/sheets/Bars.png"), 24, 8);
 		AssetLibrary.addImageSet("ground", Assets.getBitmapData("assets/sheets/Ground.png"), 8, 8);

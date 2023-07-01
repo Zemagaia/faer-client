@@ -1,5 +1,6 @@
 package objects;
 
+import util.BinPacker.Rect;
 import objects.particles.RingEffect;
 import openfl.display.Bitmap;
 import network.NetworkHandler;
@@ -91,7 +92,7 @@ class GameObject {
 	public var nameText: SimpleText = null;
 	public var nameTex: BitmapData = null;
 	public var enterTex: BitmapData = null;
-	public var enterKeyTex: BitmapData = null;
+	public var enterKeyRect: Rect = null;
 	public var isLoot = false;
 	public var ownerId = -1;
 	public var hpBar: Bitmap;
@@ -109,6 +110,7 @@ class GameObject {
 	public var yBaseNoZ: Float32 = 0.0;
 
 	public var nextBulletId: Int8 = 1;
+
 	private var sizeMult: Float32 = 1.0;
 
 	public var icons: Array<BitmapData> = null;
@@ -181,16 +183,13 @@ class GameObject {
 			var topTextureData = ObjectLibrary.typeToTopTextureData.get(this.objectType);
 			var topRandTexData = topTextureData.randomTextureData;
 			if (topRandTexData != null) {
-				var randTex = topRandTexData[
-					Math.floor(Math.random() * topRandTexData.length)
-				];
+				var randTex = topRandTexData[Math.floor(Math.random() * topRandTexData.length)];
 				this.topUValue = randTex.uValue;
 				this.topVValue = randTex.vValue;
 			} else {
 				this.topUValue = topTextureData.uValue;
 				this.topVValue = topTextureData.vValue;
 			}
-			
 		}
 
 		this.sizeMult = this.width == 0 ? 1 : this.width * (Main.ATLAS_WIDTH / 8);
@@ -234,12 +233,12 @@ class GameObject {
 		this.moveTo(x, y);
 
 		var effLen = this.props != null && this.props.showEffects != null ? this.props.showEffects.length : 0;
-			for (i in 0...effLen) {
-				var eff = this.props.showEffects[i];
-				switch (eff.effType) {
-					case "Ring":
-						this.map.addGameObject(new RingEffect(this, eff.radius, eff.color, eff.cooldown), this.mapX, this.mapY);
-				}
+		for (i in 0...effLen) {
+			var eff = this.props.showEffects[i];
+			switch (eff.effType) {
+				case "Ring":
+					this.map.addGameObject(new RingEffect(this, eff.radius, eff.color, eff.cooldown), this.mapX, this.mapY);
+			}
 		}
 
 		if (this.props.floating)

@@ -77,7 +77,7 @@ final class Global {
 
 	public static var backgroundImage: Bitmap;
 
-	public static function init(root: Sprite) {
+	public static function init() {
 		projPool = new ObjectPool<Projectile>(() -> {
 			return new Projectile();
 		});
@@ -100,9 +100,6 @@ final class Global {
 		charModel = new CharacterModel();
 
 		focusCharSkin = new Signal<CharacterSkin>();
-
-		layers = new Layers();
-		root.addChild(layers);
 
 		var playersXML = Assets.getText("assets/xmls/Players.xml").asXml();
 		var skinsXML = Assets.getText("assets/xmls/Skins.xml").asXml();
@@ -133,8 +130,6 @@ final class Global {
 			classModel.getCharacterClass(xml.intElement("PlayerClassType")).skins.addSkin(skin);
 		}
 
-		backgroundImage = new Bitmap(Assets.getBitmapData("assets/ui/background.png"));
-
 		Main.primaryStage3D.addEventListener(Event.CONTEXT3D_CREATE, function(_: Event) {
 			Main.atlas = TextureFactory.make(Main.tempAtlas, false);
 			#if print_atlas
@@ -145,9 +140,6 @@ final class Global {
 			#end
 			Main.tempAtlas.dispose();
 
-			layers.screens.setScreen(new AccountLoadingScreen());
-			loadTask.start();
-			charListTask.start();
 			layers.screens.setScreen(new LoginView());
 		});
 		Main.primaryStage3D.requestContext3D();

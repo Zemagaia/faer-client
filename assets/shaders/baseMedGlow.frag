@@ -8,6 +8,8 @@ in BatchData {
     vec2 colors;
     float flashStrength;
     float alphaMult;
+    float sdfBuffer;
+    float sdfSmoothing;
 } data;
 
 layout (location = 0) out vec4 resultColor;
@@ -15,6 +17,16 @@ layout (location = 0) out vec4 resultColor;
 uniform sampler2D sampler;
 
 void main() {
+    if (data.sdfBuffer > 0) {
+        float dist = texture(sampler, data.uv).a;
+        float alpha = smoothstep(data.sdfBuffer - data.sdfSmoothing, data.sdfBuffer + data.sdfSmoothing, dist);
+        uint flashColor = uint(data.colors.y);
+        resultColor = vec4(((flashColor >> 16) & 0xFF) / 255.0,
+                                ((flashColor >> 8) & 0xFF) / 255.0, 
+                                (flashColor & 0xFF) / 255.0, 1) * alpha * data.alphaMult;
+        return;
+    }
+    
     vec4 pixel = texture(sampler, data.uv);
     if (data.alphaMult >= 0)
         pixel.a *= data.alphaMult;

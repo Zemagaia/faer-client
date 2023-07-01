@@ -1,5 +1,8 @@
 package;
 
+import openfl.utils.Assets;
+import screens.AccountLoadingScreen;
+import core.Layers;
 import util.NativeTypes.Float32;
 #if !disable_rpc
 import hxdiscord_rpc.Discord;
@@ -28,11 +31,11 @@ import util.ConditionEffect;
 
 class Main extends Sprite {
 	public static inline final PADDING = 2;
-	public static inline final ATLAS_WIDTH = 1024;
-	public static inline final ATLAS_HEIGHT = 1024;
+	public static inline final ATLAS_WIDTH = 2048;
+	public static inline final ATLAS_HEIGHT = 2048;
 	// have to pre calc, otherwise it just inlines the division... moron lang
-	public static inline final BASE_TEXEL_W: Float32 = 0.0009765625;
-	public static inline final BASE_TEXEL_H: Float32 = 0.0009765625;
+	public static inline final BASE_TEXEL_W: Float32 = 0.00048828125;
+	public static inline final BASE_TEXEL_H: Float32 = 0.00048828125;
 
 	public static var mouseXOffset: Int = 0;
 	public static var mouseYOffset: Int = 0;
@@ -60,6 +63,11 @@ class Main extends Sprite {
 		primaryStage3D = stage.stage3Ds[0];
 		primaryStage = stage;
 
+		Global.backgroundImage = new Bitmap(Assets.getBitmapData("assets/ui/background.png"));
+		Global.layers = new Layers();
+		addChild(Global.layers);
+		Global.layers.screens.setScreen(new AccountLoadingScreen());
+
 		AssetLoader.load();
 		Settings.load();
 
@@ -80,7 +88,7 @@ class Main extends Sprite {
 		RequestHandler.init();
 		MathUtil.init();
 
-		Global.init(this);
+		Global.init();
 
 		stage.scaleMode = StageScaleMode.NO_SCALE;
 		stage.quality = StageQuality.LOW;

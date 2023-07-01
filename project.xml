@@ -8,6 +8,7 @@
 	<!-- <define name="tracing" /> -->
 	<!-- <define name="print_atlas" /> -->
 	<!-- <define name="disable_rpc" /> -->
+	<define name="print_atlas" />
 	<source path="src" />
 	<haxelib name="openfl" />
 	<!-- haxelib git hxdiscord_rpc https://github.com/MAJigsaw77/hxdiscord_rpc.git -->

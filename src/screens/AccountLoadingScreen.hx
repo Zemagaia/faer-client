@@ -25,6 +25,8 @@ class AccountLoadingScreen extends Sprite {
 		this.loadingText.setBold(true);
 		this.loadingText.text = "Loading...";
 		this.loadingText.updateMetrics();
+		this.loadingText.x = (Main.stageWidth - this.loadingText.width) / 2;
+		this.loadingText.y = Main.stageHeight - this.loadingText.height - 15;
 		this.loadingText.filters = [new DropShadowFilter(0, 0, 0, 1, 4, 4)];
 		addChild(this.loadingText);
 
@@ -36,7 +38,7 @@ class AccountLoadingScreen extends Sprite {
 		if (this.loadingText == null)
 			return;
 
-		this.loadingText.x = Main.stageWidth / 2 - this.loadingText.width / 2;
-		this.loadingText.y = Main.stageHeight - 74;
+		this.loadingText.x = (Main.stageWidth - this.loadingText.width) / 2;
+		this.loadingText.y = Main.stageHeight - this.loadingText.height - 15;
 	}
 }
