@@ -669,12 +669,13 @@ class Map {
 			var w = char.width * xScale * 0.5;
 			var h = char.height * yScale * 0.5;
 
+			cX += char.xOffset * xScale;
 			cY = y + char.yOffset * yScale * 0.5;
 
 			this.drawGeneric(-w + cX, -h + cY, w + cX, -h + cY, -w + cX, h + cY, w + cX, h + cY, char.x / Main.ATLAS_WIDTH, char.y / Main.ATLAS_HEIGHT,
 				char.width / Main.ATLAS_WIDTH, char.height / Main.ATLAS_HEIGHT, 0, 0, 0, color, 0, 1, 0.3, 0.1 / scale);
 
-			cX += (char.xAdvance - 10) * xScale;
+			cX += (char.xAdvance - 8) * xScale;
 		}
 	}
 
@@ -1412,11 +1413,12 @@ class Map {
 									}
 							}
 
-							//player.name = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890\"!`?'.,;:()[]{}<>|/@\\^$-%+=#_&~*";
+							// player.name = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890\"!`?'.,;:()[]{}<>|/@\\^$-%+=#_&~*";
 							if (player.name != null && player.name != "")
 								this.drawText(player.name, 16, player.isFellowGuild ? Settings.FELLOW_GUILD_COLOR : Settings.DEFAULT_COLOR,
 									(screenX - FontLibrary.textWidthNormal(player.name, 16) / 3) * RenderUtils.clipSpaceScaleX,
-									(screenY - hBase + 20 + (sink - 1) * hBase / 3 - FontLibrary.textHeightNormal(player.name, 16)) * RenderUtils.clipSpaceScaleY);
+									(screenY - hBase + 20 + (sink - 1) * hBase / 3 - FontLibrary.textHeightNormal(player.name,
+										16)) * RenderUtils.clipSpaceScaleY);
 						}
 					case "Projectile":
 						{

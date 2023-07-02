@@ -80,7 +80,7 @@ char id=104     x=89   y=44   width=31   height=36   xoffset=-6   yoffset=-5   x
 char id=105     x=0    y=115  width=21   height=35   xoffset=-6   yoffset=-4   xadvance=24   page=0    chnl=0 
 char id=106     x=73   y=0    width=25   height=43   xoffset=-7   yoffset=2   xadvance=32   page=0    chnl=0 
 char id=107     x=21   y=115  width=29   height=35   xoffset=-6   yoffset=-4   xadvance=28   page=0    chnl=0 
-char id=108     x=50   y=115  width=21   height=35   xoffset=-6   yoffset=-4   xadvance=32   page=0    chnl=0 
+char id=108     x=50   y=115  width=21   height=35   xoffset=-6   yoffset=-4   xadvance=28   page=0    chnl=0 
 char id=109     x=0    y=150  width=40   height=32   xoffset=-6   yoffset=-1   xadvance=36   page=0    chnl=0 
 char id=110     x=71   y=150  width=31   height=31   xoffset=-6   yoffset=0    xadvance=33   page=0    chnl=0 
 char id=111     x=254  y=150  width=31   height=30   xoffset=-6   yoffset=1    xadvance=33   page=0    chnl=0 
