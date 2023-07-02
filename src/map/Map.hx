@@ -655,7 +655,7 @@ class Map {
 	@:nonVirtual private final inline function drawText(str: String, size: Float32, color: Float32, x: Float32, y: Float32) {
 		var cX: Float32 = x, cY: Float32 = y;
 		// size = 22;
-		var scale: Float32 = size / 64;
+		var scale: Float32 = size / 32;
 		var xScale: Float32 = RenderUtils.clipSpaceScaleX * scale;
 		var yScale: Float32 = RenderUtils.clipSpaceScaleY * scale;
 		for (i in 0...str.length) {
@@ -666,16 +666,15 @@ class Map {
 				continue;
 			}
 
-			var w = char.width * xScale;
-			var h = char.height * yScale;
+			var w = char.width * xScale * 0.5;
+			var h = char.height * yScale * 0.5;
 
-			cX += char.xOffset * xScale;
-			cY = y + char.yOffset * yScale;
+			cY = y + char.yOffset * yScale * 0.5;
 
 			this.drawGeneric(-w + cX, -h + cY, w + cX, -h + cY, -w + cX, h + cY, w + cX, h + cY, char.x / Main.ATLAS_WIDTH, char.y / Main.ATLAS_HEIGHT,
-				char.width / Main.ATLAS_WIDTH, char.height / Main.ATLAS_HEIGHT, 0, 0, 0, color, 0, 1, 0.2, 0.1 / scale);
+				char.width / Main.ATLAS_WIDTH, char.height / Main.ATLAS_HEIGHT, 0, 0, 0, color, 0, 1, 0.3, 0.1 / scale);
 
-			cX += (char.xAdvance - char.xOffset + 6) * xScale;
+			cX += (char.xAdvance - 10) * xScale;
 		}
 	}
 
@@ -1413,10 +1412,11 @@ class Map {
 									}
 							}
 
+							//player.name = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890\"!`?'.,;:()[]{}<>|/@\\^$-%+=#_&~*";
 							if (player.name != null && player.name != "")
 								this.drawText(player.name, 16, player.isFellowGuild ? Settings.FELLOW_GUILD_COLOR : Settings.DEFAULT_COLOR,
-									(screenX - FontLibrary.textWidth(player.name, 16) / 3) * RenderUtils.clipSpaceScaleX,
-									(screenY - hBase + 20 + (sink - 1) * hBase / 3 - FontLibrary.textHeight(player.name, 16)) * RenderUtils.clipSpaceScaleY);
+									(screenX - FontLibrary.textWidthNormal(player.name, 16) / 3) * RenderUtils.clipSpaceScaleX,
+									(screenY - hBase + 20 + (sink - 1) * hBase / 3 - FontLibrary.textHeightNormal(player.name, 16)) * RenderUtils.clipSpaceScaleY);
 						}
 					case "Projectile":
 						{
