@@ -1,5 +1,6 @@
 package game;
 
+import ui.tooltip.CombatToolTip;
 import util.TextureRedrawer;
 import ui.tooltip.StatToolTip;
 import openfl.text.TextFormatAlign;
@@ -110,6 +111,40 @@ class StatView extends Sprite {
 	}
 }
 
+class CombatIndicator extends Sprite {
+	private var tex: Bitmap;
+	private var toolTip: CombatToolTip;
+
+	public function new() {
+		super();
+
+		this.tex = new Bitmap(Assets.getBitmapData("assets/ui/playerInCombatIndicator.png"));
+		addChild(this.tex);
+
+		this.toolTip = new CombatToolTip();
+
+		// hitbox
+		graphics.beginFill(0, 0);
+		graphics.drawRect(0, 0, 34, 34);
+		graphics.endFill();
+
+		addEventListener(MouseEvent.ROLL_OVER, this.onRollOver);
+		addEventListener(MouseEvent.ROLL_OUT, this.onRollOut);
+	}
+
+	public function onRollOver(_: MouseEvent) {
+		if (this.toolTip != null && !stage.contains(this.toolTip)) {
+			this.toolTip.attachToTarget(this);
+			stage.addChild(this.toolTip);
+		}
+	}
+
+	public function onRollOut(_: MouseEvent) {
+		if (this.toolTip != null && this.toolTip.parent != null)
+			this.toolTip.detachFromTarget();
+	}
+}
+
 class GameSprite extends Sprite {
 	public var map: Map;
 	public var inputHandler: InputHandler;
@@ -156,6 +191,7 @@ class GameSprite extends Sprite {
 	private var pressStatsBtnTex: BitmapData;
 	private var statsButton: Sprite;
 	private var statsButtonBitmap: Bitmap;
+	private var combatIndicator: CombatIndicator;
 	private var strView: StatView;
 	private var resView: StatView;
 	private var intView: StatView;
@@ -295,6 +331,11 @@ class GameSprite extends Sprite {
 		this.statsButton.addEventListener(MouseEvent.MIDDLE_MOUSE_UP, this.onStatsMouseUp);
 		this.statsButton.addEventListener(MouseEvent.RIGHT_MOUSE_UP, this.onStatsMouseUp);
 		addChild(this.statsButton);
+
+		this.combatIndicator = new CombatIndicator();
+		this.combatIndicator.x = this.decor.x + (this.decor.width - this.combatIndicator.width) / 2;
+		this.combatIndicator.y = this.decor.y - this.combatIndicator.height - 10;
+		addChild(this.combatIndicator);
 
 		this.strView = new StatView("misc16", 32, "Strength", "Increases your Physical Damage");
 		this.strView.visible = false;
