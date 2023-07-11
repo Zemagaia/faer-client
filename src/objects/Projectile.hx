@@ -168,7 +168,7 @@ class Projectile extends GameObject {
 		this.containerProps = ObjectLibrary.propsLibrary.get(this.containerType);
 		this.projProps = this.containerProps.projectiles.get(bulletType);
 		
-		var textureData: TextureData = ObjectLibrary.typeToTextureData.get(this.projProps.objType);
+		var textureData = this.projProps.textureData;
 		if (textureData.randomTextureData != null) {
 			var randTexData = textureData.randomTextureData[this.objectId % textureData.randomTextureData.length];
 			this.uValue = randTexData.uValue;

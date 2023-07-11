@@ -19,7 +19,7 @@ class AssetLoader {
 	public static var MODELS = ["cube"];
 	public static var GROUND_FILES = ["Ground"];
 	public static var OBJECT_FILES = [
-		"Projectiles", "Equip", "Players", "EnemiesLowRealm", "EnemiesMidRealm", "Containers", "Portals", "StaticObjects", "Test", "Objects", "Skins"
+		"Equip", "Players", "EnemiesLowRealm", "EnemiesMidRealm", "Containers", "Portals", "StaticObjects", "Test", "Objects", "Skins"
 	];
 	public static var REGION_FILES = ["Regions"];
 

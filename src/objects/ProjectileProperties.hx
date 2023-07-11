@@ -8,9 +8,8 @@ import util.ConditionEffect;
 using util.Utils.XmlUtil;
 
 class ProjectileProperties {
+	public var textureData: TextureData;
 	public var bulletType = 0;
-	public var objectId = "";
-	public var objType = 0;
 	public var angleCorrection = 0.0;
 	public var rotation = 0.0;
 	public var lightColor = 0;
@@ -48,17 +47,13 @@ class ProjectileProperties {
 	public var heatSeekDelay: Float32 = 0;
 
 	public function new(projectileXml: Xml) {
+		this.textureData = new TextureData(projectileXml);
 		this.bulletType = projectileXml.intAttribute("id");
-		this.objectId = projectileXml.element("ObjectId");
-		this.objType = ObjectLibrary.idToType.get(this.objectId);
-		var objectXml = ObjectLibrary.xmlLibrary.get(this.objType);
-		if (objectXml != null) {
-			this.angleCorrection = objectXml.floatElement("AngleCorrection") * (MathUtil.PI / 4);
-			this.rotation = objectXml.floatElement("Rotation");
-			this.lightColor = objectXml.intElement("LightColor", -1);
-			this.lightIntensity = objectXml.floatElement("LightIntensity", 0.1);
-			this.lightRadius = objectXml.floatElement("LightRadius", 1);
-		}
+		this.angleCorrection = projectileXml.floatElement("AngleCorrection") * (MathUtil.PI / 4);
+		this.rotation = projectileXml.floatElement("Rotation");
+		this.lightColor = projectileXml.intElement("LightColor", -1);
+		this.lightIntensity = projectileXml.floatElement("LightIntensity", 0.1);
+		this.lightRadius = projectileXml.floatElement("LightRadius", 1);
 		this.lifetime = projectileXml.intElement("LifetimeMS");
 		this.realSpeed = projectileXml.intElement("Speed");
 		this.speed = this.realSpeed / 10000.0;
