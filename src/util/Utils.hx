@@ -349,7 +349,7 @@ class ColorUtils {
 	public static function getRarityColor(rarity: String, defaultColor: Int = 0x545454) {
 		switch (rarity) {
 			case "Mythic":
-				return 0x930000;
+				return 0xb80000;
 			case "Legendary":
 				return 0xE6A100;
 			case "Epic":
