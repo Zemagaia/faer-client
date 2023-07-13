@@ -495,7 +495,7 @@ class Player extends GameObject {
 			return;
 		}
 
-		var weaponXML = ObjectLibrary.xmlLibrary.get(weaponType);
+		var weaponXML = ItemLibrary.xmlLibrary.get(weaponType);
 		var rateOfFire = weaponXML.floatElement("RateOfFire", 1);
 		this.attackPeriod = Std.int(1 / (ATTACK_FREQUENCY * rateOfFire));
 		if (time < attackStart + this.attackPeriod)
@@ -515,7 +515,7 @@ class Player extends GameObject {
 			var bulletId = this.nextBulletId;
 			this.nextBulletId = (this.nextBulletId + 1) % 128;
 			var proj = Global.projPool.get();
-			proj.reset(weaponType, 0, objectId, bulletId, angle, time);
+			proj.reset(weaponType, 0, objectId, bulletId, angle, time, true);
 			var physDmg = proj.projProps.physicalDamage;
 			var magicDmg = proj.projProps.magicDamage;
 			var trueDmg = proj.projProps.trueDamage;

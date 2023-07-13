@@ -3,6 +3,7 @@ package ui.itemgrids.itemtiles;
 import openfl.Assets;
 import constants.ItemConstants;
 import objects.ObjectLibrary;
+import objects.ItemLibrary;
 import objects.Player;
 import openfl.display.Bitmap;
 import openfl.display.GraphicsPath;
@@ -140,7 +141,7 @@ class ItemTile extends Sprite {
 
 	public function updateUseability(player: Player) {
 		if (this.itemSprite.itemId != ItemConstants.NO_ITEM)
-			this.restrictionBitmap.visible = !ObjectLibrary.isUsableByPlayer(this.itemSprite.itemId, player);
+			this.restrictionBitmap.visible = !ItemLibrary.isUsableByPlayer(this.itemSprite.itemId, player);
 		else
 			this.restrictionBitmap.visible = false;
 	}

@@ -9,6 +9,7 @@ import sound.Music;
 import map.GroundLibrary;
 import map.RegionLibrary;
 import objects.ObjectLibrary;
+import objects.ItemLibrary;
 import openfl.display.BitmapData;
 import openfl.utils.Assets;
 import haxe.ds.Vector.Vector;
@@ -18,8 +19,12 @@ using util.Utils;
 class AssetLoader {
 	public static var MODELS = ["cube"];
 	public static var GROUND_FILES = ["Ground"];
+	public static var ITEM_FILES = [
+		"Items"
+	];
+
 	public static var OBJECT_FILES = [
-		"Equip", "Players", "EnemiesLowRealm", "EnemiesMidRealm", "Containers", "Portals", "StaticObjects", "Test", "Objects", "Skins"
+		"Players", "EnemiesLowRealm", "EnemiesMidRealm", "Containers", "Portals", "StaticObjects", "Objects", "Skins"
 	];
 	public static var REGION_FILES = ["Regions"];
 
@@ -64,6 +69,9 @@ class AssetLoader {
 
 		for (name in GROUND_FILES)
 			GroundLibrary.parseFromXML(Assets.getText("assets/xmls/" + name + ".xml").asXml());
+
+		for (name in ITEM_FILES)
+			ItemLibrary.parseFromXML(Assets.getText("assets/xmls/" + name + ".xml").asXml());
 
 		for (name in OBJECT_FILES)
 			ObjectLibrary.parseFromXML(Assets.getText("assets/xmls/" + name + ".xml").asXml());

@@ -2,7 +2,7 @@ package ui.itemgrids.itemtiles;
 
 import util.BitmapUtil;
 import constants.ItemConstants;
-import objects.ObjectLibrary;
+import objects.ItemLibrary;
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
 import openfl.display.Sprite;
@@ -37,8 +37,8 @@ class ItemTileSprite extends Sprite {
 		var tempText: SimpleText = null;
 		this.itemId = displayedItemType;
 		if (this.itemId != ItemConstants.NO_ITEM) {
-			texture = ObjectLibrary.getRedrawnTextureFromType(this.itemId, 80, true);
-			eqXML = ObjectLibrary.xmlLibrary.get(this.itemId);
+			texture = ItemLibrary.getRedrawnTextureFromType(this.itemId, 80, true);
+			eqXML = ItemLibrary.xmlLibrary.get(this.itemId);
 			if (eqXML?.elementsNamed("Doses").hasNext()) {
 				texture = texture.clone();
 				tempText = new SimpleText(12, 0xFFFFFF, false, 0, 0);

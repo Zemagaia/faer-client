@@ -8,6 +8,7 @@ import constants.ItemConstants;
 import map.Map;
 import objects.GameObject;
 import objects.ObjectLibrary;
+import objects.ItemLibrary;
 import objects.Player;
 import openfl.display.DisplayObject;
 import openfl.events.Event;
@@ -79,7 +80,7 @@ class ItemGrid extends Sprite {
 		var equipment: Array<Int32> = null;
 		var equipCount = 0;
 		var openIndex = 0;
-		var isUntradable = ObjectLibrary.isUntradable(itemTile.itemSprite.itemId);
+		var isUntradable = ItemLibrary.isUntradable(itemTile.itemSprite.itemId);
 		if (this.owner?.map != null && (this.owner.objectId == this.curPlayer.objectId
 			|| this.owner.ownerId == this.curPlayer.accountId) && !isUntradable) {
 			var go = this.owner.map.getGameObject(Global.currentInteractiveTarget);
@@ -135,7 +136,7 @@ class ItemGrid extends Sprite {
 	private function equipOrUseInventory(tile: InteractiveItemTile) {
 		var tileOwner: GameObject = tile.ownerGrid.owner;
 		var player: Player = this.curPlayer;
-		var matchingSlotIndex: Int = ObjectLibrary.getMatchingSlotIndex(tile.getItemId(), player);
+		var matchingSlotIndex: Int = ItemLibrary.getMatchingSlotIndex(tile.getItemId(), player);
 		if (matchingSlotIndex != -1)
 			NetworkHandler.invSwap(player, tileOwner, tile.tileId, tile.getItemId(), player, matchingSlotIndex, player.equipment[matchingSlotIndex]);
 		else

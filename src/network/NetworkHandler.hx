@@ -1,5 +1,6 @@
 package network;
 
+import objects.ItemLibrary;
 import objects.particles.HealEffect;
 import objects.particles.FlowEffect;
 import objects.particles.NovaEffect;
@@ -1419,7 +1420,7 @@ class NetworkHandler {
 			var slotType: Int = Std.parseInt(objectXML.elementsNamed("SlotType").next().firstChild().nodeValue);
 			var slotTypes: Array<Int32> = itemOwner.slotTypes.slice(0, 4);
 			for (i in 0...slotTypes.length)
-				if (ObjectLibrary.slotsMatching(slotTypes[i], slotType)) {
+				if (ItemLibrary.slotsMatching(slotTypes[i], slotType)) {
 					var equips: Array<Int32> = itemOwner.equipment;
 					invSwap(cast(itemOwner, Player), itemOwner, i, equips[i], itemOwner, slotId, equips[slotId]);
 					return true;

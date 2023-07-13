@@ -148,7 +148,8 @@ class Projectile extends GameObject {
 		return true;
 	}
 
-	public function reset(containerType: Int32, bulletType: Int32, ownerId: Int32, bulletId: Int32, angle: Float32, startTime: Int32) {
+	public function reset(containerType: Int32, bulletType: Int32, ownerId: Int32, bulletId: Int32, angle: Float32, startTime: Int32,
+		item: Bool = false) {
 		this.map = null;
 		this.curSquare = null;
 		this.objectId = -1;
@@ -165,8 +166,16 @@ class Projectile extends GameObject {
 		this.cosAngle = MathUtil.cos(this.angle);
 		this.startTime = startTime;
 		this.objectId = getNewObjId(this.ownerId, this.bulletId);
-		this.containerProps = ObjectLibrary.propsLibrary.get(this.containerType);
-		this.projProps = this.containerProps.projectiles.get(bulletType);
+		if (item) {
+			this.damagesEnemies = true;
+			this.damagesPlayers = false;
+			this.projProps = ItemLibrary.propsLibrary.get(this.containerType).projectiles.get(bulletType);
+		} else {
+			var props = ObjectLibrary.propsLibrary.get(this.containerType);
+			this.damagesPlayers = props.isEnemy;
+			this.damagesEnemies = !this.damagesPlayers;
+			this.projProps = props.projectiles.get(bulletType);
+		}
 		
 		var textureData = this.projProps.textureData;
 		if (textureData.randomTextureData != null) {
@@ -183,14 +192,12 @@ class Projectile extends GameObject {
 			this.height = textureData.height;
 			this.colors = BloodComposition.getColors(textureData.getTexture());
 		}
-		this.damagesPlayers = this.containerProps.isEnemy;
-		this.damagesEnemies = !this.damagesPlayers;
-		this.sound = this.containerProps.oldSound;
+		
 		this.multiHitDict = this.projProps.multiHit ? new IntMap<Bool>() : null;
 		if (this.projProps.size >= 0)
 			this.size = this.projProps.size / 100;
 		else
-			this.size = ObjectLibrary.getSizeFromType(this.containerType) / 100;
+			this.size = (item ? ItemLibrary.getSizeFromType(this.containerType) : ObjectLibrary.getSizeFromType(this.containerType)) / 100;
 		this.physicalDamage = this.magicDamage = this.trueDamage = 0;
 		this.heatSeekFired = false;
 		this.lastDeflect = 0.0;

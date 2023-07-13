@@ -1,5 +1,6 @@
 package ui.tooltip;
 
+import objects.ItemLibrary;
 import network.NetworkHandler.StatType;
 import constants.ActivationType;
 import objects.ObjectLibrary;
@@ -95,22 +96,22 @@ class EquipmentToolTip extends ToolTip {
 
 	public function new(objectType: Int, player: Player, invType: Int, inventoryOwnerType: String, inventorySlotID: Int = 1) {
 		this.player = player;
-		this.playerCanUse = player != null ? ObjectLibrary.isUsableByPlayer(objectType, player) : false;
-		this.objectXML = ObjectLibrary.xmlLibrary.get(objectType);
+		this.playerCanUse = player != null ? ItemLibrary.isUsableByPlayer(objectType, player) : false;
+		this.objectXML = ItemLibrary.xmlLibrary.get(objectType);
 		this.rarityColor = ColorUtils.getRarityColor(this.objectXML.element("Tier"), 0x999999);
 		super(0x424242, 0.6, this.rarityColor, 1, true);
 		this.objectType = objectType;
-		var equipSlotIndex: Int = this.player != null ? ObjectLibrary.getMatchingSlotIndex(this.objectType, this.player) : -1;
+		var equipSlotIndex: Int = this.player != null ? ItemLibrary.getMatchingSlotIndex(this.objectType, this.player) : -1;
 		this.isEquippable = equipSlotIndex != -1;
 		this.effects = new Array<Effect>();
 
 		if (this.player == null)
 			this.curItemXML = this.objectXML;
 		else if (this.isEquippable && this.player.equipment[equipSlotIndex] != -1)
-			this.curItemXML = ObjectLibrary.xmlLibrary.get(this.player.equipment[equipSlotIndex]);
+			this.curItemXML = ItemLibrary.xmlLibrary.get(this.player.equipment[equipSlotIndex]);
 
-		var scaleValue = ObjectLibrary.xmlLibrary.get(this.objectType).intElement("ScaleValue", 5);
-		var texture = ObjectLibrary.getRedrawnTextureFromType(this.objectType, 60, true, true, scaleValue);
+		var scaleValue = ItemLibrary.xmlLibrary.get(this.objectType).intElement("ScaleValue", 5);
+		var texture = ItemLibrary.getRedrawnTextureFromType(this.objectType, 60, true, true, scaleValue);
 		texture = BitmapUtil.cropToBitmapData(texture, 4, 4, texture.width - 8, texture.height - 8);
 		this.icon = new Bitmap(texture);
 		this.icon.x = 12;
@@ -121,7 +122,7 @@ class EquipmentToolTip extends ToolTip {
 		this.titleText.setBold(true);
 		this.titleText.setItalic(true);
 		this.titleText.wordWrap = true;
-		this.titleText.text = ObjectLibrary.typeToDisplayId.get(this.objectType);
+		this.titleText.text = ItemLibrary.typeToDisplayId.get(this.objectType);
 		this.titleText.updateMetrics();
 		this.titleText.filters = [new DropShadowFilter(0, 0, 0, 0.5, 12, 12)];
 		this.titleText.x = this.icon.width + 16;
@@ -230,8 +231,8 @@ class EquipmentToolTip extends ToolTip {
 				case ActivationType.TIER_INCREASE:
 					this.effects.push(new Effect("", "Gain Tier " + StringUtils.toRoman(activateXML.intAttribute("amount")) + " on use"));
 				case ActivationType.UNLOCK_SKIN:
-					var skinXML = ObjectLibrary.xmlLibrary.get(activateXML.intAttribute("objType"));
-					var classXML = ObjectLibrary.xmlLibrary.get(skinXML.intElement("PlayerClassType"));
+					var skinXML = ItemLibrary.xmlLibrary.get(activateXML.intAttribute("objType"));
+					var classXML = ItemLibrary.xmlLibrary.get(skinXML.intElement("PlayerClassType"));
 					this.effects.push(new Effect("Unlocks Skin",
 						"\'"
 						+ skinXML.element("DisplayId", skinXML.attribute("id"))
@@ -240,7 +241,7 @@ class EquipmentToolTip extends ToolTip {
 						+ classXML.element("DisplayId", classXML.attribute("id"))
 						+ ")"));
 				case ActivationType.OPEN_PORTAL:
-					var portalXML = ObjectLibrary.xmlLibrary.get(activateXML.intAttribute("objType"));
+					var portalXML = ItemLibrary.xmlLibrary.get(activateXML.intAttribute("objType"));
 					this.effects.push(new Effect("Opens Portal", "\'" + portalXML.element("DisplayId", portalXML.attribute("id")) + "\'"));
 				case ActivationType.CLOCK:
 					this.effects.push(new Effect("", "Rewinds time by " + activateXML.attribute("amount") + " seconds"));

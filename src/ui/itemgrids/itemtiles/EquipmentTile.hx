@@ -3,6 +3,7 @@ package ui.itemgrids.itemtiles;
 import util.BitmapUtil;
 import constants.ItemConstants;
 import objects.ObjectLibrary;
+import objects.ItemLibrary;
 import objects.Player;
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
@@ -22,7 +23,7 @@ class EquipmentTile extends InteractiveItemTile {
 	}
 
 	override public function canHoldItem(itemType: Int) {
-		return itemType <= 0 || ObjectLibrary.slotsMatching(this.slotType, ObjectLibrary.getSlotTypeFromType(itemType));
+		return itemType <= 0 || ItemLibrary.slotsMatching(this.slotType, ItemLibrary.getSlotTypeFromType(itemType));
 	}
 
 	override public function setItem(itemId: Int) {
